@@ -74,5 +74,16 @@
       "skills/git-workflow/plantillas/github/workflows/pruebas.yml"
     ],
     "actualizar": "npx skills@latest update"
+  },
+  {
+    "nombre": "guia-skills",
+    "hilo": "guia-skills",
+    "repo": "SantiagoRicaurte06/Discord",
+    "archivos": [
+      "skills/guia-skills/SKILL.md",
+      "skills/guia-skills/scripts/instalar.sh"
+    ],
+    "adjuntar": true,
+    "actualizar": "npx skills@latest update"
   }
 ]

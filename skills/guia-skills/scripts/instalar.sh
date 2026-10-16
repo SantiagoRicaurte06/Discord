@@ -56,13 +56,13 @@ while IFS='|' read -r nombre fuente skills uso; do
   [[ " ${faltan[*]} " == *" $nombre "* ]] || continue
   echo "→ $nombre"
   # shellcheck disable=SC2086
-  npx -y skills@latest add "$fuente" --skill $skills "${FLAGS[@]}" >/dev/null 2>&1 \
+  npx -y skills@latest add "$fuente" --skill $skills "${FLAGS[@]}" </dev/null >/dev/null 2>&1 \
     && echo "  ✓ skills: $skills" || echo "  ✖ no se pudo instalar (revisa tu conexión o corre: npx skills add $fuente --skill $skills)"
   if [ "$nombre" = thermos ]; then
     destino="$([ "$GLOBAL" = 1 ] && echo "$DIR_GLOBAL" || echo "$DIR_PROYECTO")/agents"
     mkdir -p "$destino"
     for a in $AGENTES_THERMOS; do
-      curl -fsSL "https://raw.githubusercontent.com/cursor/plugins/main/thermos/agents/$a.md" -o "$destino/$a.md" \
+      curl -fsSL "https://raw.githubusercontent.com/cursor/plugins/main/thermos/agents/$a.md" -o "$destino/$a.md" </dev/null \
         && echo "  ✓ subagente: $a" || echo "  ✖ no se pudo bajar el subagente $a"
     done
   fi
