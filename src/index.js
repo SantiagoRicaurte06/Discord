@@ -10,56 +10,67 @@ if (!process.env.DISCORD_TOKEN) {
   process.exit(1);
 }
 
-const client = new Client({
-  intents: [
-    GatewayIntentBits.Guilds,
-    GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.MessageContent, // activar "Message Content Intent" en el Developer Portal
-  ],
-  partials: [Partials.Channel],
-});
+const BASE_INTENTS = [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages];
+// MessageContent requiere activar "Message Content Intent" en el Developer Portal.
+const FULL_INTENTS = [...BASE_INTENTS, GatewayIntentBits.MessageContent];
 
-client.once(Events.ClientReady, (c) => {
-  console.log(`✅ Conectado como ${c.user.tag} en ${c.guilds.cache.size} servidor(es)`);
-});
+function createClient(intents) {
+  const client = new Client({ intents, partials: [Partials.Channel] });
+  registerEvents(client);
+  return client;
+}
 
-client.on(Events.InteractionCreate, async (interaction) => {
-  if (interaction.isChatInputCommand()) return handleCommand(interaction);
-  if (interaction.isAutocomplete()) return handleAutocomplete(interaction);
-});
+function registerEvents(client) {
+  client.once(Events.ClientReady, (c) => {
+    console.log(`✅ Conectado como ${c.user.tag} en ${c.guilds.cache.size} servidor(es)`);
+  });
 
-// Registro automático de links de Drive y archivos subidos.
-client.on(Events.MessageCreate, async (message) => {
-  if (message.author.bot || !message.guild) return;
-  const { guild } = message;
-  const parentId = message.channel.isThread() ? message.channel.parentId : message.channelId;
-  const proyecto = findProyectoByChannel(parentId);
+  client.on(Events.InteractionCreate, async (interaction) => {
+    if (interaction.isChatInputCommand()) return handleCommand(interaction);
+    if (interaction.isAutocomplete()) return handleAutocomplete(interaction);
+  });
 
-  try {
-    let registrado = false;
-    for (const url of extractDriveLinks(message.content)) {
-      const ok = await registrarLink(guild, {
-        url, titulo: 'Link compartido', proyecto: proyecto?.id, autor: message.author.id, origen: message.url,
-      });
-      registrado ||= ok;
-    }
-    if (registrado) await message.react('📎');
+  // Registro automático de links de Drive y archivos subidos.
+  client.on(Events.MessageCreate, async (message) => {
+    if (message.author.bot || !message.guild) return;
+    const { guild } = message;
+    const parentId = message.channel.isThread() ? message.channel.parentId : message.channelId;
+    const proyecto = findProyectoByChannel(parentId);
 
-    if (proyecto && message.attachments.size) {
-      const log = findText(guild, 'archivos');
-      for (const a of message.attachments.values()) {
-        addArchivo({ nombre: a.name, url: a.url, tamaño: a.size, proyecto: proyecto.id, autor: message.author.id, mensaje: message.url });
-        await log?.send({
-          embeds: [new EmbedBuilder().setColor(0xeb459e).setTitle(`📄 ${a.name}`.slice(0, 256)).setURL(message.url)
-            .setDescription(`Proyecto: **${proyecto.nombre}** (<#${proyecto.channelId}>)\nSubido por <@${message.author.id}> · ${(a.size / 1024).toFixed(1)} KB`)
-            .setTimestamp()],
+    try {
+      let registrado = false;
+      for (const url of extractDriveLinks(message.content)) {
+        const ok = await registrarLink(guild, {
+          url, titulo: 'Link compartido', proyecto: proyecto?.id, autor: message.author.id, origen: message.url,
         });
+        registrado ||= ok;
       }
-      await message.react('🗂️');
-    }
-  } catch (err) {
-    console.error('Error procesando mensaje:', err);
-  }
-});
+      if (registrado) await message.react('📎');
 
-client.login(process.env.DISCORD_TOKEN);
+      if (proyecto && message.attachments.size) {
+        const log = findText(guild, 'archivos');
+        for (const a of message.attachments.values()) {
+          addArchivo({ nombre: a.name, url: a.url, tamaño: a.size, proyecto: proyecto.id, autor: message.author.id, mensaje: message.url });
+          await log?.send({
+            embeds: [new EmbedBuilder().setColor(0xeb459e).setTitle(`📄 ${a.name}`.slice(0, 256)).setURL(message.url)
+              .setDescription(`Proyecto: **${proyecto.nombre}** (<#${proyecto.channelId}>)\nSubido por <@${message.author.id}> · ${(a.size / 1024).toFixed(1)} KB`)
+              .setTimestamp()],
+          });
+        }
+        await message.react('🗂️');
+      }
+    } catch (err) {
+      console.error('Error procesando mensaje:', err);
+    }
+  });
+}
+
+try {
+  await createClient(FULL_INTENTS).login(process.env.DISCORD_TOKEN);
+} catch (err) {
+  if (!/disallowed intents/i.test(err.message)) throw err;
+  console.warn('⚠️ Message Content Intent desactivado: los slash commands funcionan, pero no se registrarán'
+    + ' automáticamente los links de Drive ni los archivos. Actívalo en Developer Portal > Bot.');
+  await createClient(BASE_INTENTS).login(process.env.DISCORD_TOKEN);
+}
+
