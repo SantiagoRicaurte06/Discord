@@ -56,6 +56,11 @@ export const CANALES = {
   ideasAprobadas: { nombre: `🏆${SEP}proyectos-aprobados`, cat: 'comunidad', tipo: FORO, antes: [], tema: 'Una publicación por proyecto con su responsable, equipo, estado y progreso. Se actualiza sola.' },
   linksDrive: { nombre: `🔗${SEP}links-drive`, cat: 'recursos', tipo: TEXTO, antes: ['links-drive'], tema: 'Registro de los links de Google Drive' },
   archivos: { nombre: `📁${SEP}archivos`, cat: 'recursos', tipo: FORO, antes: ['archivos'] },
+  skills: {
+    nombre: `🧠${SEP}skills`, cat: 'recursos', tipo: FORO, antes: [],
+    tema: 'Comparte habilidades, tutoriales, cursos y trucos. Una publicación por tema; usa las etiquetas para filtrar.',
+    etiquetas: [['🎨', 'Frontend'], ['⚙️', 'Backend'], ['🗄️', 'Bases de datos'], ['☁️', 'DevOps'], ['🤖', 'IA'], ['✏️', 'Diseño'], ['📚', 'Curso'], ['💡', 'Tip']],
+  },
   vozGeneral: { nombre: '🎙️ Sala general', cat: 'voz', tipo: VOZ, antes: ['🔊 General', 'General'] },
   afk: { nombre: '💤 Ausente', cat: 'voz', tipo: VOZ, antes: ['💤 AFK'] },
 };
@@ -111,6 +116,11 @@ export async function ensureCanal(guild, key, extra = {}) {
     creado = true;
   } else if (c.name !== def.nombre || c.parentId !== cat.id) {
     await c.edit({ name: def.nombre, parent: cat.id, lockPermissions: false });
+  }
+  // Etiquetas de foro definidas en el estilo (se agregan las que falten).
+  if (def.etiquetas) {
+    const faltan = def.etiquetas.filter(([, nombre]) => !c.availableTags.some((t) => t.name === nombre));
+    if (faltan.length) await c.setAvailableTags([...c.availableTags, ...faltan.map(([emoji, name]) => ({ name, emoji: { id: null, name: emoji } }))]);
   }
   return { canal: c, creado };
 }

@@ -531,6 +531,7 @@ function guiaEmbeds(guild) {
       `**${m('ideasAprobadas')}** — foro con una publicación por proyecto: estado, equipo y progreso`,
       `**${m('archivos')}** — carpeta de archivos generales`,
       `**${m('linksDrive')}** — links de Drive generales`,
+      `**${m('skills')}** — foro para compartir habilidades, tutoriales y cursos (con etiquetas por área)`,
       `**${m('vozGeneral')}** — sala de voz del equipo`,
     ].join('\n')),
 
