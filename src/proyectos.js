@@ -9,7 +9,7 @@ import {
 import { driveTipo } from './drive.js';
 import { crearForo, ensureCarpeta } from './carpetas.js';
 import { conectarGithub } from './github.js';
-import { ensureCanalesTareas } from './tareas.js';
+import { ensureCanalesTareas, sincronizarIssues } from './tareas.js';
 import { publicarTarjeta, refrescarTarjetaDeProyecto, avance } from './tarjetas.js';
 import {
   githubConfigurado, crearRepo, invitar, quitarAcceso,
@@ -179,6 +179,8 @@ export async function crearProyecto(guild, autorId, { nombre, descripcion, githu
   await ensureCarpeta(guild, p.id);
   const conexion = await conectarGithub(guild, p);
   await ensureCanalesTareas(guild, p);
+  // Primera lectura de issues al momento (si el repo es nuevo, estará vacío).
+  if (p.github) await sincronizarIssues(guild, p).catch((e) => console.error(`Issues de ${p.id}:`, e.message));
 
   const ficha = await chat.send({ embeds: [proyectoEmbed(p)], components: fichaComponents(p) });
   await ficha.pin().catch(() => {});

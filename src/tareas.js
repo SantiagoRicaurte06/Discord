@@ -5,7 +5,7 @@
 //   Se agregan con /tarea-extra y se marcan con un select.
 // Ambos canales son de solo lectura para los miembros; el tablero es un mensaje fijo que el bot actualiza.
 import {
-  ActionRowBuilder, ChannelType, EmbedBuilder, LabelBuilder, ModalBuilder, PermissionFlagsBits,
+  ActionRowBuilder, ButtonBuilder, ButtonStyle, ChannelType, EmbedBuilder, LabelBuilder, ModalBuilder, PermissionFlagsBits,
   StringSelectMenuBuilder, StringSelectMenuOptionBuilder, TextInputBuilder, TextInputStyle,
 } from 'discord.js';
 import { getDb, save, discordDeGithub } from './store.js';
@@ -117,8 +117,14 @@ function tablero(p, origen) {
   const embed = new EmbedBuilder().setColor(origen === 'github' ? COLORES.github : COLORES.primario)
     .setTitle(titulo).setDescription(cuerpo).setTimestamp();
 
-  // Los issues solo cambian desde GitHub: su tablero no tiene menús.
+  // Los issues solo cambian desde GitHub: su tablero solo tiene el botón para sincronizar al momento.
   const components = [];
+  if (origen === 'github' && p.github) {
+    components.push(new ActionRowBuilder().addComponents(
+      new ButtonBuilder().setCustomId(`tareas-sync:${p.id}`).setLabel('Sincronizar ahora').setEmoji('🔄').setStyle(ButtonStyle.Secondary),
+      new ButtonBuilder().setURL(`${p.github.replace(/\.git$/, '')}/issues`).setLabel('Issues en GitHub').setStyle(ButtonStyle.Link),
+    ));
+  }
   if (origen === 'extra' && abiertas.length) {
     components.push(new ActionRowBuilder().addComponents(
       new StringSelectMenuBuilder()
@@ -188,9 +194,15 @@ export async function sincronizarIssues(guild, p) {
   if (res.status === 304 && resPrs.status === 304) return;
   if (!res.ok && res.status !== 304) {
     const sinCupo = res.headers.get('x-ratelimit-remaining') === '0';
+    const conToken = Boolean(process.env.GITHUB_PAT);
     let error = `GitHub respondió ${res.status}.`;
-    if (sinCupo) error = 'GitHub limitó las consultas sin token; se reintentará solo. Un GITHUB_PAT lo evita.';
-    else if (res.status === 404 || res.status === 403) error = 'No se pudo leer el repo (¿es privado? se necesita GITHUB_PAT).';
+    if (sinCupo) error = conToken ? 'Se agotó el límite de consultas de GitHub; se reintentará solo.' : 'GitHub limitó las consultas sin token; se reintentará solo. Un GITHUB_PAT lo evita.';
+    else if (res.status === 401) error = 'El GITHUB_PAT es inválido o venció: genera uno nuevo.';
+    else if (res.status === 404 || res.status === 403) {
+      error = conToken
+        ? `El GITHUB_PAT no tiene acceso a ${repo.owner}/${repo.repo}: dale acceso a ese repo (o "All repositories") con permiso Issues: Read.`
+        : 'No se pudo leer el repo (¿es privado? se necesita GITHUB_PAT).';
+    }
     if (p.errorIssues !== error) {
       p.errorIssues = error;
       save();
@@ -311,3 +323,12 @@ export async function agregarTareaExtra(guild, p, { titulo, tipo, detalle, autor
 }
 
 export const proyectoPorCanalExtra = (channelId) => Object.values(getDb().proyectos).find((p) => p.extraId === channelId);
+
+// Al cambiar de repo: olvida los issues y la caché del repo anterior.
+export function reiniciarIssues(p) {
+  p.tareas = (p.tareas ?? []).filter((t) => t.origen !== 'github');
+  p.issuesEtag = null;
+  p.prsEtag = null;
+  p.prs = [];
+  p.errorIssues = null;
+}

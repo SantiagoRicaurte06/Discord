@@ -31,6 +31,7 @@ import {
 } from '../tarjetas.js';
 import {
   ensureCanalesTareas, marcar, modalTareaExtra, agregarTareaExtra, proyectoPorCanalExtra,
+  sincronizarIssues, reiniciarIssues, refrescarTablero,
 } from '../tareas.js';
 import { conectarGithub, instrucciones } from '../github.js';
 
@@ -680,6 +681,19 @@ const componentes = {
     }));
   },
 
+  async 'boton:tareas-sync'(interaction, proyectoId) {
+    const p = getDb().proyectos[proyectoId];
+    if (!p || !visible(interaction, p.id)) throw new UserError('Solo los miembros del proyecto pueden sincronizar.');
+    await interaction.deferReply(ephemeral);
+    p.issuesEtag = null;
+    p.prsEtag = null;
+    await sincronizarIssues(interaction.guild, p);
+    const issues = (p.tareas ?? []).filter((t) => t.origen === 'github');
+    return interaction.editReply(p.errorIssues
+      ? `⚠️ ${p.errorIssues}`
+      : `🔄 Sincronizado: ${issues.length} issue(s), ${issues.filter((t) => t.estado !== 'hecha').length} abierto(s), ${(p.prs ?? []).length} PR en revisión.`);
+  },
+
   async 'select:tarea-hecha'(interaction, proyectoId) {
     return cambiarTareas(interaction, proyectoId, true);
   },
@@ -767,13 +781,18 @@ const componentes = {
     p.descripcion = f.getTextInputValue('descripcion').trim();
     const repoNuevo = github && github !== p.github;
     p.github = github;
-    if (repoNuevo) p.githubConectado = false;
+    if (repoNuevo) {
+      p.githubConectado = false;
+      reiniciarIssues(p);
+    }
     const driveNuevo = drive && drive !== p.drive;
     p.drive = drive;
     save();
     await interaction.deferReply(ephemeral);
     if (driveNuevo) await registrarLink(interaction.guild, { url: drive, titulo: `Carpeta de ${p.nombre}`, proyecto: p.id, autor: interaction.user.id });
     if (repoNuevo) {
+      await sincronizarIssues(interaction.guild, p).catch((e) => console.error(`Issues de ${p.id}:`, e.message));
+      await refrescarTablero(interaction.guild, p, 'extra').catch(() => {});
       const { ok } = await conectarGithub(interaction.guild, p);
       await refrescarFicha(interaction.guild, p);
       if (!ok) return interaction.editReply({ content: `✏️ **${p.nombre}** actualizado. Conecta el nuevo repo:`, embeds: [instrucciones(p)] });
