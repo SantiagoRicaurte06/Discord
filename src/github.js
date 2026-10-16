@@ -94,3 +94,44 @@ export async function conectarGithub(guild, p) {
   }
   return { canal, ...resultado };
 }
+
+// Comprueba si el repo ya envía eventos al canal de commits:
+// 1) hay mensajes del webhook en el canal, o 2) con GITHUB_PAT, el webhook existe en el repo.
+// Devuelve { conectado, detalle } y guarda el resultado en p.githubConectado.
+export async function verificarConexion(guild, p) {
+  if (!p.github) return { conectado: false, detalle: 'El proyecto no tiene repositorio.' };
+  const hookId = p.webhookUrl?.match(/webhooks\/(\d+)\//)?.[1];
+
+  const canal = p.commitsId && await guild.channels.fetch(p.commitsId).catch(() => null);
+  const mensajes = canal && await canal.messages.fetch({ limit: 20 }).catch(() => null);
+  if (mensajes?.some((m) => m.webhookId && (!hookId || m.webhookId === hookId))) {
+    p.githubConectado = true;
+    save();
+    return { conectado: true, detalle: 'Ya llegan eventos de GitHub al canal de commits.' };
+  }
+
+  const repo = parseRepo(p.github);
+  if (process.env.GITHUB_PAT && repo && p.webhookUrl) {
+    const res = await fetch(`https://api.github.com/repos/${repo.owner}/${repo.repo}/hooks`, {
+      headers: { Authorization: `Bearer ${process.env.GITHUB_PAT}`, Accept: 'application/vnd.github+json', 'User-Agent': 'discord-organizador' },
+    }).catch(() => null);
+    if (res?.ok) {
+      const hooks = await res.json();
+      const nuestro = hooks.find((h) => h.config?.url === webhookGithubUrl(p));
+      const sinSufijo = hooks.find((h) => h.config?.url === p.webhookUrl);
+      if (nuestro) {
+        p.githubConectado = true;
+        if (!p.githubHookId) p.githubHookId = nuestro.id;
+        save();
+        const ultima = nuestro.last_response?.code;
+        return { conectado: true, detalle: `El webhook está en GitHub${ultima ? ` (última respuesta de Discord: ${ultima})` : ''}. Los commits aparecerán con el próximo push.` };
+      }
+      if (sinSufijo) return { conectado: false, detalle: 'El webhook existe, pero a su URL le falta **/github** al final. Edítalo en GitHub → Settings → Webhooks.' };
+      return { conectado: false, detalle: 'No encontré el webhook del bot en el repo. Usa el botón 📡 Conectar GitHub para ver los pasos.' };
+    }
+    if (res && (res.status === 403 || res.status === 404)) {
+      return { conectado: false, detalle: 'Todavía no llegan eventos, y el GITHUB_PAT no puede ver los webhooks del repo (falta el permiso Webhooks: Read). Haz un push y vuelve a actualizar.' };
+    }
+  }
+  return { conectado: false, detalle: 'Todavía no llegan eventos al canal de commits. GitHub solo los envía al haber actividad: haz un push y vuelve a actualizar.' };
+}

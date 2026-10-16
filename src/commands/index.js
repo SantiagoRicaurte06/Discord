@@ -18,7 +18,7 @@ import {
 import {
   UserError, modalCrear, modalMiembros, modalEditar, proyectoEmbed, refrescarFicha,
   crearProyecto, sincronizarMiembros, miembrosElegidos, puedeGestionar, archivarProyecto,
-  avisarGithub, invitarAProyectos, alternarPausa, modalEliminar, eliminarProyecto,
+  avisarGithub, invitarAProyectos, alternarPausa, modalEliminar, eliminarProyecto, actualizarProyecto,
 } from '../proyectos.js';
 import { publicarResumen } from '../resumen.js';
 import { revisarSkills } from '../skillsMonitor.js';
@@ -64,6 +64,8 @@ export const commands = [
     .addSubcommand((s) => s.setName('preparar-repo').setDescription('Agrega al repo del proyecto las skills del equipo y el git workflow')
       .addStringOption((o) => proyectoOption(o, false)))
     .addSubcommand((s) => s.setName('pausar').setDescription('Pausa o reanuda un proyecto (el resto del estado es automático)')
+      .addStringOption((o) => proyectoOption(o, false)))
+    .addSubcommand((s) => s.setName('actualizar').setDescription('Revisa la conexión con GitHub y refresca issues, tableros, ficha y publicación')
       .addStringOption((o) => proyectoOption(o, false)))
     .addSubcommand((s) => s.setName('eliminar').setDescription('Elimina el proyecto: canales, rol, tareas y su publicación en aprobados')
       .addStringOption((o) => proyectoOption(o, false)))
@@ -347,6 +349,12 @@ const handlers = {
       return interaction.editReply(pausado ? `⏸️ **${p.nombre}** pausado.` : `▶️ **${p.nombre}** reanudado.`);
     }
 
+    if (sub === 'actualizar') {
+      const p = resolverProyecto(interaction);
+      await interaction.deferReply(ephemeral);
+      return interaction.editReply((await actualizarProyecto(interaction.guild, p)).join('\n'));
+    }
+
     if (sub === 'eliminar') {
       const p = proyectoGestionable(interaction, resolverProyecto(interaction));
       return interaction.showModal(modalEliminar(p));
@@ -603,6 +611,7 @@ function guiaEmbeds(guild) {
       { name: 'Estado automático', value: '⏳ Por iniciar (sin issues) → 🛠️ Desarrollo → 🚀 Producción (todos cerrados) → 🔧 Mantenimiento (tareas extra pendientes). `/proyecto pausar` o el botón ⏸️ lo pausa. · Responsable' },
       { name: '`/proyecto github`', value: 'Conecta el repositorio al canal de commits. · Responsable' },
       { name: '`/proyecto archivar`', value: 'Lo marca como terminado y lo pasa a ◇. · Responsable' },
+      { name: '`/proyecto actualizar`', value: 'También con el botón 🔄 de la ficha: revisa la conexión con GitHub y refresca issues, tableros, ficha y aprobados. · Miembros' },
       { name: '`/proyecto eliminar`', value: 'También con el botón 🗑️ de la ficha. Pide escribir el nombre; borra canales, rol, tareas y su publicación en aprobados (el repo de GitHub se conserva). · Responsable' },
       { name: '`/proyecto lista` · `/proyecto info`', value: 'Ver tus proyectos o la ficha de uno. · Miembros' },
       { name: 'Issues', value: 'Se crean, asignan y revisan en GitHub. El bot los lee cada 5 min: 👤 quién lo tiene (vinculen su GitHub), 🔍 PR en revisión (si el PR dice "closes #N") y ✅ cerrados. Nunca modifica GitHub.' },
@@ -668,6 +677,14 @@ const componentes = {
   async 'boton:proyecto-github'(interaction, id) {
     return responderGithub(interaction, proyectoDeComponente(interaction, id));
   },
+  // Cualquier miembro puede refrescar (no cambia datos del proyecto).
+  async 'boton:proyecto-actualizar'(interaction, id) {
+    const p = getDb().proyectos[id];
+    if (!p || !visible(interaction, p.id)) throw new UserError('Solo los miembros del proyecto pueden actualizarlo.');
+    await interaction.deferReply(ephemeral);
+    return interaction.editReply((await actualizarProyecto(interaction.guild, p)).join('\n'));
+  },
+
   async 'boton:proyecto-eliminar'(interaction, id) {
     return interaction.showModal(modalEliminar(proyectoDeComponente(interaction, id)));
   },

@@ -7,9 +7,9 @@ import {
   getDb, slug, addProyecto, save, githubDe,
 } from './store.js';
 import { driveTipo } from './drive.js';
-import { crearForo, ensureCarpeta } from './carpetas.js';
-import { conectarGithub } from './github.js';
-import { ensureCanalesTareas, sincronizarIssues } from './tareas.js';
+import { crearForo, ensureCarpeta, refrescarIndice } from './carpetas.js';
+import { conectarGithub, verificarConexion } from './github.js';
+import { ensureCanalesTareas, sincronizarIssues, refrescarTablero } from './tareas.js';
 import { publicarTarjeta, refrescarTarjetaDeProyecto, avance } from './tarjetas.js';
 import {
   githubConfigurado, crearRepo, invitar, quitarAcceso,
@@ -114,6 +114,7 @@ export function fichaComponents(p) {
     p.pausado
       ? new ButtonBuilder().setCustomId(`proyecto-pausa:${p.id}`).setLabel('Reanudar').setEmoji('▶️').setStyle(ButtonStyle.Success)
       : new ButtonBuilder().setCustomId(`proyecto-pausa:${p.id}`).setLabel('Pausar').setEmoji('⏸️').setStyle(ButtonStyle.Secondary),
+    new ButtonBuilder().setCustomId(`proyecto-actualizar:${p.id}`).setLabel('Actualizar').setEmoji('🔄').setStyle(ButtonStyle.Secondary),
     new ButtonBuilder().setCustomId(`proyecto-eliminar:${p.id}`).setLabel('Eliminar').setEmoji('🗑️').setStyle(ButtonStyle.Danger),
   );
   const enlaces = new ActionRowBuilder();
@@ -337,4 +338,27 @@ export async function eliminarProyecto(guild, p) {
   delete db.proyectos[p.id];
   save();
   return borrados;
+}
+
+// Revisa y refresca todo el proyecto: conexión con GitHub, issues, tableros, carpeta, ficha y publicación en aprobados.
+export async function actualizarProyecto(guild, p) {
+  const resumen = [];
+  const conexion = await verificarConexion(guild, p).catch((e) => ({ conectado: false, detalle: e.message }));
+  resumen.push(`${conexion.conectado ? '✅' : '⚠️'} **GitHub:** ${conexion.detalle}`);
+
+  await ensureCanalesTareas(guild, p).catch(() => {});
+  if (p.github) {
+    p.issuesEtag = null;
+    p.prsEtag = null;
+    await sincronizarIssues(guild, p).catch((e) => { p.errorIssues = e.message; });
+    const issues = (p.tareas ?? []).filter((t) => t.origen === 'github');
+    resumen.push(p.errorIssues ? `⚠️ **Issues:** ${p.errorIssues}`
+      : `✅ **Issues:** ${issues.length} (${issues.filter((t) => t.estado !== 'hecha').length} abiertos) · ${(p.prs ?? []).length} PR en revisión`);
+  }
+  await refrescarTablero(guild, p, 'extra').catch(() => {});
+  await refrescarIndice(guild, p.id).catch(() => {});
+  await refrescarFicha(guild, p);
+  await refrescarTarjetaDeProyecto(guild, p.id).catch(() => {});
+  resumen.push(`✅ **Refrescado:** ficha, tableros de tareas, carpeta de archivos y publicación en aprobados (estado: ${avance(p).etapa})`);
+  return resumen;
 }
