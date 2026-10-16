@@ -21,7 +21,14 @@ function leer(ruta) {
 }
 
 // Si db.json está dañado, arranca con la copia más reciente que se pueda leer.
+// Si no existe y hay DB_SEMILLA_B64 (db.json en base64), arranca con ella: sirve para migrar a otro servidor.
 function load() {
+  if (!existsSync(DB_PATH) && process.env.DB_SEMILLA_B64) {
+    const semilla = JSON.parse(Buffer.from(process.env.DB_SEMILLA_B64, 'base64').toString('utf8'));
+    mkdirSync(dirname(DB_PATH), { recursive: true });
+    writeFileSync(DB_PATH, JSON.stringify(semilla, null, 2));
+    console.log(`📦 Base de datos inicial cargada desde DB_SEMILLA_B64 en ${DB_PATH}. Ya puedes borrar esa variable.`);
+  }
   if (!existsSync(DB_PATH)) return structuredClone(EMPTY);
   try {
     return leer(DB_PATH);
