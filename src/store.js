@@ -12,7 +12,9 @@ const DATA_DIR = process.env.DATA_DIR ?? join(dirname(fileURLToPath(import.meta.
 const DB_PATH = join(DATA_DIR, 'db.json');
 const BACKUP_DIR = join(DATA_DIR, 'backups');
 const BACKUPS_DIAS = 14;
-const EMPTY = { proyectos: {}, links: [], ideas: [], archivos: [], carpetas: {} };
+const EMPTY = {
+  proyectos: {}, links: [], ideas: [], archivos: [], carpetas: {}, usuarios: {},
+};
 
 function leer(ruta) {
   return { ...structuredClone(EMPTY), ...JSON.parse(readFileSync(ruta, 'utf8')) };
@@ -96,4 +98,17 @@ export function addArchivo(a) {
   db.archivos.push(archivo);
   save();
   return archivo;
+}
+
+// Cuenta de GitHub vinculada a cada usuario de Discord.
+export const githubDe = (discordId) => db.usuarios[discordId]?.github ?? null;
+
+export function vincularGithub(discordId, login) {
+  db.usuarios[discordId] = { ...db.usuarios[discordId], github: login };
+  save();
+}
+
+export function desvincularGithub(discordId) {
+  if (db.usuarios[discordId]) delete db.usuarios[discordId].github;
+  save();
 }

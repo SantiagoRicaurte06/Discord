@@ -6,7 +6,7 @@ import {
 import { extractDriveLinks } from './drive.js';
 import { findProyectoByChannel, getDb, save } from './store.js';
 import { refrescarFicha } from './proyectos.js';
-import { procesarVoto } from './ideas.js';
+import { procesarVoto, revisarVotacionesPendientes } from './ideas.js';
 import { iniciarSincronizacion } from './tareas.js';
 import { guardarArchivo, asignarRespaldo, archivoPorMensaje } from './carpetas.js';
 
@@ -28,7 +28,11 @@ function createClient(intents) {
 function registerEvents(client) {
   client.once(Events.ClientReady, (c) => {
     console.log(`✅ Conectado como ${c.user.tag} en ${c.guilds.cache.size} servidor(es)`);
-    if (process.env.GUILD_ID) iniciarSincronizacion(c, process.env.GUILD_ID);
+    if (process.env.GUILD_ID) {
+      iniciarSincronizacion(c, process.env.GUILD_ID);
+      const guild = c.guilds.cache.get(process.env.GUILD_ID);
+      if (guild) revisarVotacionesPendientes(guild).catch((e) => console.error('Revisando votaciones:', e));
+    }
   });
 
   client.on(Events.InteractionCreate, async (interaction) => {

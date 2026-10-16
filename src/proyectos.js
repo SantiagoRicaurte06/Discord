@@ -3,11 +3,16 @@ import {
   ActionRowBuilder, ButtonBuilder, ButtonStyle, ChannelType, EmbedBuilder, LabelBuilder,
   ModalBuilder, PermissionFlagsBits, TextInputBuilder, TextInputStyle, UserSelectMenuBuilder,
 } from 'discord.js';
-import { getDb, slug, addProyecto, save } from './store.js';
+import {
+  getDb, slug, addProyecto, save, githubDe,
+} from './store.js';
 import { driveTipo } from './drive.js';
 import { crearForo, ensureCarpeta } from './carpetas.js';
 import { conectarGithub } from './github.js';
 import { ensureCanalesTareas } from './tareas.js';
+import {
+  githubConfigurado, crearRepo, invitar, quitarAcceso,
+} from './githubApi.js';
 import { COLORES, PROYECTO } from './layout.js';
 
 export const ESTADOS = ['💭 Idea', '📝 Planeación', '🚧 En progreso', '⏸️ Pausado', '✅ Terminado'];
@@ -40,7 +45,9 @@ export function modalCrear({ ideaId, nombre, descripcion, autorId } = {}) {
     .addLabelComponents(
       texto('nombre', 'Nombre del proyecto', { required: true, max: 80, value: nombre }),
       texto('descripcion', 'Descripción', { style: TextInputStyle.Paragraph, required: true, max: 1000, value: descripcion }),
-      texto('github', 'Repositorio de GitHub', { placeholder: 'https://github.com/usuario/repo' }),
+      texto('github', 'Repositorio de GitHub', {
+        placeholder: githubConfigurado() ? 'Vacío = el bot crea el repo' : 'https://github.com/usuario/repo',
+      }),
       texto('drive', 'Carpeta de Google Drive', { placeholder: 'https://drive.google.com/drive/folders/...' }),
       selectorMiembros(autorId ? [autorId] : []),
     );
@@ -73,8 +80,8 @@ export function proyectoEmbed(p) {
     .addFields(
       { name: 'Estado', value: p.estado, inline: true },
       { name: 'Rol', value: `<@&${p.roleId}>`, inline: true },
-      { name: 'Creado por', value: `<@${p.autor}>`, inline: true },
-      { name: '🐙 GitHub', value: p.github ?? '—', inline: true },
+      { name: '🐙 GitHub', value: p.github ?? (p.errorRepo ? `⚠️ ${p.errorRepo}` : '—'), inline: true },
+      { name: '⭐ Responsable', value: `<@${p.autor}>`, inline: true },
       { name: '☁️ Carpeta Drive', value: p.drive ? `[abrir](${p.drive})` : '—', inline: true },
       { name: '📂 Archivos', value: `<#${p.foroId}> (${archivos.length})`, inline: true },
       {
@@ -132,6 +139,16 @@ export async function crearProyecto(guild, autorId, { nombre, descripcion, githu
   if (getDb().proyectos[id]) throw new UserError(`Ya existe el proyecto **${nombre}**.`);
   const todos = [...new Set([autorId, ...miembros])];
 
+  // Sin repo indicado, el bot crea uno nuevo en GitHub (si hay GITHUB_PAT).
+  let errorRepo = null;
+  if (!github && githubConfigurado()) {
+    try {
+      github = (await crearRepo(id, descripcion)).url;
+    } catch (err) {
+      errorRepo = err.message;
+    }
+  }
+
   const role = await guild.roles.create({ name: PROYECTO.rol(nombre).slice(0, 100), mentionable: true, reason: `Proyecto ${nombre}` });
   const overwrites = [
     { id: guild.roles.everyone.id, deny: [VER] },
@@ -149,9 +166,9 @@ export async function crearProyecto(guild, autorId, { nombre, descripcion, githu
   const p = addProyecto({
     id, nombre, descripcion, github: github ?? null, drive: drive ?? null, estado: ESTADOS[1],
     roleId: role.id, categoryId: cat.id, channelId: chat.id, foroId: foro.id, vozId: voz.id,
-    miembros: [], autor: autorId, fecha: new Date().toISOString(),
+    miembros: [], autor: autorId, fecha: new Date().toISOString(), errorRepo,
   });
-  await sincronizarMiembros(guild, p, todos);
+  const equipo = await sincronizarMiembros(guild, p, todos);
   await ensureCarpeta(guild, p.id);
   const conexion = await conectarGithub(guild, p);
   await ensureCanalesTareas(guild, p);
@@ -161,24 +178,59 @@ export async function crearProyecto(guild, autorId, { nombre, descripcion, githu
   p.fichaId = ficha.id;
   save();
   await chat.send({ content: `👋 Bienvenidos al proyecto ${p.miembros.map((m) => `<@${m}>`).join(' ')}` });
-  return { p, github: conexion };
+  await avisarGithub(guild, p, equipo);
+  return { p, github: conexion, equipo };
 }
 
-// Deja el rol exactamente en las personas indicadas (ids de usuarios, sin bots).
+// Deja el rol exactamente en las personas indicadas (ids de usuarios, sin bots)
+// e invita o quita a cada persona del repo de GitHub según su cuenta vinculada.
 export async function sincronizarMiembros(guild, p, nuevos) {
   const agregar = nuevos.filter((m) => !p.miembros.includes(m));
   const quitar = p.miembros.filter((m) => !nuevos.includes(m));
+  const invitados = [];
+  const sinGithub = [];
   for (const userId of agregar) {
     const member = await guild.members.fetch(userId).catch(() => null);
     await member?.roles.add(p.roleId);
+    const login = githubDe(userId);
+    if (!login) sinGithub.push(userId);
+    else if (p.github && (await invitar(p.github, login).catch(() => ({ ok: false }))).ok) invitados.push(userId);
   }
   for (const userId of quitar) {
     const member = await guild.members.fetch(userId).catch(() => null);
     await member?.roles.remove(p.roleId).catch(() => {});
+    const login = githubDe(userId);
+    if (login && p.github) await quitarAcceso(p.github, login).catch(() => {});
   }
   p.miembros = [...nuevos];
   save();
-  return { agregar, quitar };
+  return {
+    agregar, quitar, invitados, sinGithub,
+  };
+}
+
+// Mensaje en el chat del proyecto sobre las invitaciones a GitHub.
+export async function avisarGithub(guild, p, { invitados = [], sinGithub = [] } = {}) {
+  if (!p.github || (!invitados.length && !sinGithub.length)) return;
+  const chat = await guild.channels.fetch(p.channelId).catch(() => null);
+  const lineas = [];
+  if (invitados.length) lineas.push(`📨 Invitación al repo de GitHub enviada a ${invitados.map((m) => `<@${m}>`).join(' ')} (revisen su correo o github.com/notifications).`);
+  if (sinGithub.length) lineas.push(`🔗 ${sinGithub.map((m) => `<@${m}>`).join(' ')}: vinculen su GitHub con \`/github vincular\` y el bot les enviará la invitación.`);
+  await chat?.send(lineas.join('\n')).catch(() => {});
+}
+
+// Al vincular una cuenta, invita a esa persona a los repos de todos sus proyectos.
+export async function invitarAProyectos(guild, userId) {
+  const login = githubDe(userId);
+  const invitado = [];
+  for (const p of Object.values(getDb().proyectos)) {
+    if (!p.github || p.archivado || !p.miembros.includes(userId)) continue;
+    if ((await invitar(p.github, login).catch(() => ({ ok: false }))).ok) {
+      invitado.push(p);
+      await avisarGithub(guild, p, { invitados: [userId] });
+    }
+  }
+  return invitado;
 }
 
 // Usuarios elegidos en el selector del formulario, sin bots.

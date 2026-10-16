@@ -4,8 +4,10 @@ import { Client, GatewayIntentBits } from 'discord.js';
 import { setupServer } from './commands/index.js';
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+// Escuchar "listo" antes de iniciar sesión: si llega antes de que login() resuelva, no se pierde.
+const listo = new Promise((r) => client.once('clientReady', r));
 await client.login(process.env.DISCORD_TOKEN);
-await new Promise((r) => client.once('clientReady', r));
+await listo;
 const guild = await client.guilds.fetch(process.env.GUILD_ID);
 await guild.channels.fetch();
 const creados = await setupServer(guild);

@@ -3,8 +3,9 @@ import {
   ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageType,
 } from 'discord.js';
 import {
-  getDb, slug, findProyecto, findProyectoByChannel, addLink, save,
+  getDb, slug, findProyecto, findProyectoByChannel, addLink, save, githubDe, vincularGithub, desvincularGithub,
 } from '../store.js';
+import { existeUsuario, githubConfigurado } from '../githubApi.js';
 import { isDriveLink, driveTipo } from '../drive.js';
 import {
   ensureCarpeta, guardarArchivo, asignarRespaldo, GENERAL,
@@ -15,6 +16,7 @@ import {
 import {
   ESTADOS, UserError, modalCrear, modalMiembros, modalEditar, proyectoEmbed, refrescarFicha,
   crearProyecto, sincronizarMiembros, miembrosElegidos, puedeGestionar, archivarProyecto,
+  avisarGithub, invitarAProyectos,
 } from '../proyectos.js';
 import {
   modalIdea, publicarIdea, refrescarAprobada, refrescarAprobadasDeProyecto, VOTOS_NECESARIOS, SI, NO,
@@ -68,6 +70,16 @@ export const commands = [
   new SlashCommandBuilder()
     .setName('idea-base')
     .setDescription('Propone una idea (solo en el canal de ideas)'),
+
+  new SlashCommandBuilder()
+    .setName('github')
+    .setDescription('Tu cuenta de GitHub (para recibir invitaciones a los repos de tus proyectos)')
+    .addSubcommand((s) => s.setName('vincular').setDescription('Vincula tu usuario de GitHub')
+      .addStringOption((o) => o.setName('usuario').setDescription('Tu usuario de GitHub (ej: octocat)').setRequired(true).setMaxLength(39))
+      .addUserOption((o) => o.setName('miembro').setDescription('Solo administradores: vincular a otra persona')))
+    .addSubcommand((s) => s.setName('desvincular').setDescription('Quita tu cuenta de GitHub vinculada')
+      .addUserOption((o) => o.setName('miembro').setDescription('Solo administradores: desvincular a otra persona')))
+    .addSubcommand((s) => s.setName('equipo').setDescription('Muestra las cuentas de GitHub vinculadas')),
 
   new SlashCommandBuilder()
     .setName('tarea-extra')
@@ -333,6 +345,47 @@ const handlers = {
     return interaction.showModal(modalIdea());
   },
 
+  async github(interaction) {
+    const sub = interaction.options.getSubcommand();
+    const otro = interaction.options.getUser('miembro');
+    if (otro && otro.id !== interaction.user.id && !esAdmin(interaction)) {
+      throw new UserError('Solo un administrador puede vincular o desvincular a otra persona.');
+    }
+    const persona = otro ?? interaction.user;
+
+    if (sub === 'vincular') {
+      const usuario = interaction.options.getString('usuario').trim().replace(/^@/, '').replace(/^https?:\/\/github\.com\//i, '').replace(/\/$/, '');
+      if (!/^[a-z\d](?:[a-z\d-]{0,38})$/i.test(usuario)) throw new UserError('Ese no es un usuario de GitHub válido.');
+      await interaction.deferReply(ephemeral);
+      const encontrado = await existeUsuario(usuario).catch(() => undefined);
+      if (encontrado === null) return interaction.editReply(`⚠️ No existe el usuario **${usuario}** en GitHub.`);
+      vincularGithub(persona.id, encontrado?.login ?? usuario);
+      const proyectos = await invitarAProyectos(interaction.guild, persona.id);
+      return interaction.editReply([
+        `🔗 <@${persona.id}> vinculado a GitHub como **${encontrado?.login ?? usuario}**.`,
+        proyectos.length ? `📨 Invitación enviada a: ${proyectos.map((p) => `**${p.nombre}**`).join(', ')}.` : '',
+        encontrado === undefined ? '-# No se pudo verificar el usuario en GitHub ahora; se guardó igual.' : '',
+      ].filter(Boolean).join('\n'));
+    }
+
+    if (sub === 'desvincular') {
+      desvincularGithub(persona.id);
+      return interaction.reply({ content: `Cuenta de GitHub de <@${persona.id}> desvinculada.`, ...ephemeral });
+    }
+
+    if (sub === 'equipo') {
+      await interaction.guild.members.fetch().catch(() => {});
+      const lineas = Object.entries(getDb().usuarios).filter(([, u]) => u.github)
+        .map(([id, u]) => `<@${id}> → [${u.github}](https://github.com/${u.github})`);
+      return interaction.reply({
+        embeds: [new EmbedBuilder().setColor(COLORES.github).setTitle('🐙 Cuentas de GitHub vinculadas')
+          .setDescription(lineas.join('\n') || 'Nadie ha vinculado su cuenta. Usa `/github vincular`.')
+          .setFooter({ text: githubConfigurado() ? 'Las invitaciones a los repos se envían automáticamente' : 'Falta GITHUB_PAT: el bot aún no puede enviar invitaciones' })],
+        ...ephemeral,
+      });
+    }
+  },
+
   async 'tarea-extra'(interaction) {
     const p = proyectoPorCanalExtra(interaction.channelId);
     if (!p) throw new UserError('Este comando solo se usa en el canal 🧩・tareas-extra de un proyecto.');
@@ -414,7 +467,7 @@ function guiaEmbeds(guild) {
     embed('🔑 Roles y permisos', COLORES.aviso).addFields(
       { name: 'Administrador', value: 'Puede hacer todo, incluido gestionar cualquier proyecto y usar `/setup`.' },
       { name: ROL_CREADOR, value: `${creador} puede crear proyectos (botón o \`/proyecto crear\`) y escribir en ${m('crear')}.` },
-      { name: 'Creador del proyecto', value: 'Quien creó un proyecto puede editar sus datos (descripción, GitHub, Drive), gestionar miembros, cambiar el estado, conectar GitHub y archivarlo.' },
+      { name: '⭐ Responsable del proyecto', value: 'Quien creó el proyecto (en los aprobados por votación, el responsable por defecto). Asigna el equipo, edita los datos (descripción, GitHub, Drive), cambia el estado, conecta GitHub y archiva.' },
       { name: '◆ Rol del proyecto', value: 'Lo reciben los miembros de cada proyecto. Pueden **ver y escribir** en su chat, subir archivos a su carpeta, leer sus commits y entrar a su sala de voz. No pueden cambiar los datos del proyecto.' },
       { name: 'Todos', value: 'Proponer y votar ideas, subir archivos a la carpeta general, guardar links de Drive y usar la voz general.' },
     ),
@@ -428,11 +481,11 @@ function guiaEmbeds(guild) {
       '› `🧩・tareas-extra` tareas y arreglos que no están en los issues',
       '› `🎙️ Reunión` sala de voz del equipo del proyecto',
     ].join('\n')).addFields(
-      { name: '`/proyecto crear`', value: `Abre el formulario: nombre, descripción, GitHub, Drive y miembros. · ${ROL_CREADOR}` },
-      { name: '`/proyecto miembros`', value: 'Agrega o quita personas (da o quita el rol). · Creador del proyecto' },
-      { name: '`/proyecto estado`', value: 'Idea, Planeación, En progreso, Pausado o Terminado. · Creador del proyecto' },
-      { name: '`/proyecto github`', value: 'Conecta el repositorio al canal de commits. · Creador del proyecto' },
-      { name: '`/proyecto archivar`', value: 'Lo marca como terminado y lo pasa a ◇. · Creador del proyecto' },
+      { name: '`/proyecto crear`', value: `Abre el formulario: nombre, descripción, GitHub (vacío = el bot crea el repo), Drive y miembros. · ${ROL_CREADOR}` },
+      { name: '`/proyecto miembros`', value: 'Agrega o quita personas (da o quita el rol). · Responsable' },
+      { name: '`/proyecto estado`', value: 'Idea, Planeación, En progreso, Pausado o Terminado. · Responsable' },
+      { name: '`/proyecto github`', value: 'Conecta el repositorio al canal de commits. · Responsable' },
+      { name: '`/proyecto archivar`', value: 'Lo marca como terminado y lo pasa a ◇. · Responsable' },
       { name: '`/proyecto lista` · `/proyecto info`', value: 'Ver tus proyectos o la ficha de uno. · Miembros' },
       { name: '`/tarea-extra`', value: 'Solo en `🧩・tareas-extra`: agrega una tarea o arreglo. · Miembros' },
       { name: 'Marcar tareas', value: 'Issues: se sincronizan cada 5 minutos y se marcan solos al cerrarse en GitHub (el bot nunca modifica GitHub). Tareas extra: el menú **Marcar como realizadas** las tacha y **Reabrir** las devuelve. · Miembros' },
@@ -448,7 +501,8 @@ function guiaEmbeds(guild) {
     embed('💡 Ideas, 📡 GitHub y 🎧 Voz', COLORES.ideas).addFields(
       { name: '`/idea-base`', value: `Solo funciona en ${m('ideas')} (ahí no se puede escribir). Abre un formulario con nombre y descripción y publica la idea con ${SI} y ${NO}. · Todos` },
       { name: 'Votación', value: `Con **${VOTOS_NECESARIOS} ${SI}** la idea pasa a ${m('ideasAprobadas')} con su estado y barra de progreso. Con **${VOTOS_NECESARIOS} ${NO}** se elimina. Las reacciones del bot no cuentan.` },
-      { name: 'Proyectos aprobados', value: `Cada tarjeta muestra el equipo, el **estado** y el **progreso**, calculados con los issues de GitHub: % = issues cerrados ÷ total; 🛠️ Desarrollo mientras quede alguno abierto, 🚀 Producción cuando están todos cerrados. El botón **Crear proyecto** (${ROL_CREADOR}) crea el proyecto y asigna las personas.` },
+      { name: 'Proyectos aprobados', value: 'Al aprobarse, el bot **crea el proyecto y su repo de GitHub** con el responsable por defecto. La tarjeta muestra responsable, repo, equipo, **estado** y **progreso** (issues cerrados ÷ total; 🛠️ Desarrollo mientras quede alguno abierto, 🚀 Producción cuando están todos cerrados). El botón **Asignar equipo** es para el responsable.' },
+      { name: '`/github vincular`', value: 'Vincula tu usuario de GitHub. Al asignarte a un proyecto, el bot te invita a su repo automáticamente (y te quita el acceso si te sacan). `/github equipo` muestra las cuentas vinculadas. · Todos' },
       { name: 'Commits de GitHub', value: 'Al conectar el repo, cada push, PR, issue y release llega a `📡・commits`. Si falta conectarlo, la ficha muestra ⚠️ y el botón **Conectar GitHub** da los pasos.' },
       { name: 'Voz', value: `${m('vozGeneral')} para todo el equipo. Tras **15 minutos** sin actividad, Discord te mueve a ${m('afk')}.` },
       { name: '`/ayuda`', value: 'Muestra esta guía en cualquier canal (solo la ves tú).' },
@@ -571,14 +625,20 @@ const componentes = {
   async 'modal:proyecto-miembros'(interaction, id) {
     const p = proyectoDeComponente(interaction, id);
     await interaction.deferReply(ephemeral);
-    const { agregar, quitar } = await sincronizarMiembros(interaction.guild, p, miembrosElegidos(interaction.fields));
+    const equipo = await sincronizarMiembros(interaction.guild, p, miembrosElegidos(interaction.fields));
+    const { agregar, quitar } = equipo;
     await refrescarFicha(interaction.guild, p);
     await refrescarAprobadasDeProyecto(interaction.guild, p.id);
+    await avisarGithub(interaction.guild, p, equipo);
     if (agregar.length) {
       const chat = await interaction.guild.channels.fetch(p.channelId).catch(() => null);
       await chat?.send(`👋 Bienvenidos al proyecto ${agregar.map((m) => `<@${m}>`).join(' ')}`);
     }
-    return interaction.editReply(`👥 Miembros de **${p.nombre}** actualizados: +${agregar.length} / −${quitar.length}`);
+    return interaction.editReply([
+      `👥 Miembros de **${p.nombre}** actualizados: +${agregar.length} / −${quitar.length}`,
+      equipo.invitados.length ? `📨 Invitados al repo: ${equipo.invitados.map((m) => `<@${m}>`).join(' ')}` : '',
+      equipo.sinGithub.length ? `🔗 Sin GitHub vinculado (se les invitará al vincularlo): ${equipo.sinGithub.map((m) => `<@${m}>`).join(' ')}` : '',
+    ].filter(Boolean).join('\n'));
   },
 
   async 'modal:proyecto-editar'(interaction, id) {

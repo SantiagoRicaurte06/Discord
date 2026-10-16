@@ -1,11 +1,14 @@
 // Ideas: /idea-base publica una idea en 💡・ideas con ✅ y ❌.
-// Con VOTOS_NECESARIOS ❌ se elimina; con VOTOS_NECESARIOS ✅ pasa a proyectos aprobados.
+// Con VOTOS_NECESARIOS ❌ se elimina; con VOTOS_NECESARIOS ✅ pasa a proyectos aprobados y el bot crea
+// el proyecto (canales, rol y repo de GitHub) con el responsable por defecto (RESPONSABLE_ID o el dueño del servidor).
 // Las reacciones del bot no cuentan.
 import {
   ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, LabelBuilder, ModalBuilder,
   TextInputBuilder, TextInputStyle,
 } from 'discord.js';
-import { getDb, addIdea, save } from './store.js';
+import {
+  getDb, addIdea, save, slug,
+} from './store.js';
 import { COLORES, canal } from './layout.js';
 
 export const VOTOS_NECESARIOS = 3;
@@ -52,9 +55,8 @@ function ideaEmbed(idea) {
 
 function aprobadaContenido(idea) {
   const p = idea.proyecto ? getDb().proyectos[idea.proyecto] : null;
-  const equipo = p?.miembros.length
-    ? p.miembros.map((m) => `<@${m}>`).join(' ')
-    : '*Sin asignar — crea el proyecto con el botón para asignar el equipo*';
+  let equipo = '*Sin proyecto — usa el botón para crearlo*';
+  if (p) equipo = p.miembros.map((m) => `<@${m}>`).join(' ') || '—';
   const a = avance(p);
   let detalle = 'Se calcula con los issues de GitHub cuando se cree el proyecto.';
   if (p) detalle = a.total ? `${a.hechas}/${a.total} issues cerrados` : 'El repositorio aún no tiene issues.';
@@ -63,16 +65,20 @@ function aprobadaContenido(idea) {
     .setDescription(idea.descripcion)
     .addFields(
       { name: 'Estado', value: a.etapa, inline: true },
+      { name: '⭐ Responsable', value: p ? `<@${p.autor}>` : '—', inline: true },
       { name: 'Propuesta por', value: `<@${idea.autor}>`, inline: true },
+      { name: '🐙 Repositorio', value: p?.github ?? (p?.errorRepo ? `⚠️ ${p.errorRepo}` : '—'), inline: true },
       { name: 'Aprobada con', value: `${SI} ${idea.votosSi}`, inline: true },
       { name: `👥 Equipo${p ? ` (${p.miembros.length})` : ''}`, value: equipo },
       { name: 'Progreso', value: `${barra(a.pct)}\n-# ${detalle}` },
     )
     .setFooter({ text: `Idea #${idea.id} · aprobada${p ? ` · proyecto ${p.nombre}` : ''}` })
     .setTimestamp(new Date(idea.aprobadaEn));
-  const components = p ? [] : [new ActionRowBuilder().addComponents(
-    new ButtonBuilder().setCustomId(`idea-proyecto:${idea.id}`).setLabel('Crear proyecto').setEmoji('🚀').setStyle(ButtonStyle.Success),
-  )];
+  // Con proyecto: el responsable asigna el equipo desde aquí. Sin proyecto (falló la creación): botón para crearlo a mano.
+  const boton = p
+    ? new ButtonBuilder().setCustomId(`proyecto-miembros:${p.id}`).setLabel('Asignar equipo').setEmoji('👥').setStyle(ButtonStyle.Primary)
+    : new ButtonBuilder().setCustomId(`idea-proyecto:${idea.id}`).setLabel('Crear proyecto').setEmoji('🚀').setStyle(ButtonStyle.Success);
+  const components = [new ActionRowBuilder().addComponents(boton)];
   return { embeds: [embed], components, allowedMentions: { parse: [] } };
 }
 
@@ -108,7 +114,7 @@ const procesando = new Set();
 export async function procesarVoto(reaction, user) {
   if (user.bot) return;
   const idea = getDb().ideas.find((i) => i.messageId === reaction.message.id && i.estado === 'votacion');
-  if (!idea || procesando.has(idea.id)) return;
+  if (!idea) return;
 
   const emoji = reaction.emoji.name;
   if (emoji !== SI && emoji !== NO) {
@@ -116,9 +122,15 @@ export async function procesarVoto(reaction, user) {
     return;
   }
 
+  const msg = reaction.message.partial ? await reaction.message.fetch() : reaction.message;
+  await evaluar(msg, idea);
+}
+
+// Cuenta los votos (sin bots) y aprueba o descarta la idea si llegó al mínimo.
+async function evaluar(msg, idea) {
+  if (procesando.has(idea.id)) return;
   procesando.add(idea.id);
   try {
-    const msg = reaction.message.partial ? await reaction.message.fetch() : reaction.message;
     const contar = async (e) => {
       const r = msg.reactions.cache.find((x) => x.emoji.name === e);
       if (!r) return 0;
@@ -140,12 +152,42 @@ export async function procesarVoto(reaction, user) {
   }
 }
 
+// Al arrancar: revisa las ideas en votación por si hubo votos mientras el bot estaba apagado.
+export async function revisarVotacionesPendientes(guild) {
+  for (const idea of getDb().ideas.filter((i) => i.estado === 'votacion' && i.messageId)) {
+    const ch = await guild.channels.fetch(idea.channelId).catch(() => null);
+    const msg = await ch?.messages.fetch(idea.messageId).catch(() => null);
+    if (!msg) {
+      idea.estado = 'eliminada';
+      save();
+      continue;
+    }
+    await evaluar(msg, idea).catch((e) => console.error(`Votos de la idea #${idea.id}:`, e.message));
+  }
+}
+
 export async function aprobar(guild, idea, votosSi) {
   Object.assign(idea, {
     estado: 'aprobada', votosSi, aprobadaEn: new Date().toISOString(),
   });
+  await crearProyectoDeIdea(guild, idea);
   const destino = canal(guild, 'ideasAprobadas');
   const msg = await destino?.send(aprobadaContenido(idea));
   idea.aprobadaMessageId = msg?.id;
+  save();
+}
+
+// Crea el proyecto de una idea aprobada, con el responsable por defecto como único miembro inicial.
+async function crearProyectoDeIdea(guild, idea) {
+  const { crearProyecto } = await import('./proyectos.js');
+  const responsable = process.env.RESPONSABLE_ID || guild.ownerId;
+  const nombre = getDb().proyectos[slug(idea.titulo)] ? `${idea.titulo} ${idea.id}` : idea.titulo;
+  try {
+    const { p } = await crearProyecto(guild, responsable, { nombre, descripcion: idea.descripcion.slice(0, 1000) });
+    idea.proyecto = p.id;
+  } catch (err) {
+    idea.errorProyecto = err.message;
+    console.error(`No se pudo crear el proyecto de la idea #${idea.id}:`, err);
+  }
   save();
 }
