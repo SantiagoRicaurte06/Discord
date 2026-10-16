@@ -32,9 +32,9 @@ const selectorMiembros = (defaults = []) => new LabelBuilder()
     .setPlaceholder('Elige a las personas')
     .setDefaultUsers(defaults.slice(0, 25)));
 
-export function modalCrear({ ideaId, nombre, descripcion, autorId } = {}) {
+export function modalCrear({ nombre, descripcion, autorId } = {}) {
   return new ModalBuilder()
-    .setCustomId(ideaId ? `proyecto-crear:${ideaId}` : 'proyecto-crear')
+    .setCustomId('proyecto-crear')
     .setTitle('Nuevo proyecto')
     .addLabelComponents(
       texto('nombre', 'Nombre del proyecto', { required: true, max: 80, value: nombre }),

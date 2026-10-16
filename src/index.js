@@ -6,6 +6,7 @@ import {
 import { extractDriveLinks } from './drive.js';
 import { findProyectoByChannel, getDb, save } from './store.js';
 import { refrescarFicha } from './proyectos.js';
+import { procesarVoto } from './ideas.js';
 import { guardarArchivo, asignarRespaldo, archivoPorMensaje } from './carpetas.js';
 
 if (!process.env.DISCORD_TOKEN) {
@@ -13,12 +14,12 @@ if (!process.env.DISCORD_TOKEN) {
   process.exit(1);
 }
 
-const BASE_INTENTS = [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages];
+const BASE_INTENTS = [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildMessageReactions];
 // MessageContent requiere activar "Message Content Intent" en el Developer Portal.
 const FULL_INTENTS = [...BASE_INTENTS, GatewayIntentBits.MessageContent];
 
 function createClient(intents) {
-  const client = new Client({ intents, partials: [Partials.Channel] });
+  const client = new Client({ intents, partials: [Partials.Channel, Partials.Message, Partials.Reaction, Partials.User] });
   registerEvents(client);
   return client;
 }
@@ -32,6 +33,16 @@ function registerEvents(client) {
     if (interaction.isChatInputCommand()) return handleCommand(interaction);
     if (interaction.isAutocomplete()) return handleAutocomplete(interaction);
     if (interaction.isButton() || interaction.isModalSubmit()) return handleComponent(interaction);
+  });
+
+  // Votación de ideas.
+  client.on(Events.MessageReactionAdd, async (reaction, user) => {
+    try {
+      if (reaction.partial) await reaction.fetch();
+      await procesarVoto(reaction, user);
+    } catch (err) {
+      console.error('Error procesando voto:', err);
+    }
   });
 
   // Registro automático de links de Drive y archivos subidos.

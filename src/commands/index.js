@@ -3,7 +3,7 @@ import {
   ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageType,
 } from 'discord.js';
 import {
-  getDb, slug, findProyecto, findProyectoByChannel, addLink, addIdea, save,
+  getDb, slug, findProyecto, findProyectoByChannel, addLink, save,
 } from '../store.js';
 import { isDriveLink, driveTipo } from '../drive.js';
 import {
@@ -16,6 +16,7 @@ import {
   ESTADOS, UserError, modalCrear, modalMiembros, modalEditar, proyectoEmbed, refrescarFicha,
   crearProyecto, sincronizarMiembros, miembrosElegidos, puedeGestionar, archivarProyecto,
 } from '../proyectos.js';
+import { modalIdea, publicarIdea, VOTOS_NECESARIOS, SI, NO } from '../ideas.js';
 import { conectarGithub, instrucciones } from '../github.js';
 
 const AFK_SEGUNDOS = 900; // 15 minutos
@@ -60,14 +61,8 @@ export const commands = [
       .addStringOption((o) => proyectoOption(o, false))),
 
   new SlashCommandBuilder()
-    .setName('idea')
-    .setDescription('Ideas')
-    .addSubcommand((s) => s.setName('nueva').setDescription('Publica una idea para discutir y votar')
-      .addStringOption((o) => o.setName('titulo').setDescription('Título corto').setRequired(true).setMaxLength(80))
-      .addStringOption((o) => o.setName('descripcion').setDescription('Detalles').setMaxLength(1000)))
-    .addSubcommand((s) => s.setName('lista').setDescription('Lista las ideas'))
-    .addSubcommand((s) => s.setName('aprobar').setDescription('Convierte una idea en proyecto')
-      .addIntegerOption((o) => o.setName('id').setDescription('Número de la idea').setRequired(true))),
+    .setName('idea-base')
+    .setDescription('Propone una idea (solo en el canal de ideas)'),
 
   new SlashCommandBuilder()
     .setName('archivo')
@@ -166,7 +161,8 @@ async function setupCrearProyectos(guild) {
     { id: guild.roles.everyone.id, deny: [PermissionFlagsBits.SendMessages, PermissionFlagsBits.CreatePublicThreads, PermissionFlagsBits.AddReactions] },
     { id: rol.id, allow: [PermissionFlagsBits.SendMessages, PermissionFlagsBits.AttachFiles, PermissionFlagsBits.AddReactions] },
   ]);
-  await c.setTopic(`Crea proyectos con el botón o /proyecto crear. Solo ${ROL_CREADOR} puede escribir aquí.`);
+  const tema = `Crea proyectos con el botón o /proyecto crear. Solo ${ROL_CREADOR} puede escribir aquí.`;
+  if (c.topic !== tema) await c.setTopic(tema);
 
   const contenido = {
     embeds: [new EmbedBuilder().setColor(COLORES.exito).setTitle('Crear un proyecto').setDescription([
@@ -222,6 +218,8 @@ export async function setupServer(guild) {
   await setupCrearProyectos(guild);
   await ordenar(guild);
   await setupFuncionamiento(guild);
+  await soloLectura(guild, 'ideas', { reacciones: true });
+  await soloLectura(guild, 'ideasAprobadas');
   return creados;
 }
 
@@ -317,45 +315,10 @@ const handlers = {
     }
   },
 
-  async idea(interaction) {
-    const sub = interaction.options.getSubcommand();
-    const db = getDb();
-
-    if (sub === 'nueva') {
-      const titulo = interaction.options.getString('titulo');
-      const descripcion = interaction.options.getString('descripcion') ?? '';
-      const destino = canal(interaction.guild, 'ideas') ?? interaction.channel;
-      const id = addIdea({ titulo, descripcion, autor: interaction.user.id, estado: 'abierta' });
-      const msg = await destino.send({
-        embeds: [new EmbedBuilder().setColor(COLORES.ideas).setTitle(`💡 #${id} · ${titulo}`)
-          .setDescription(descripcion || '—').setFooter({ text: `Para convertirla en proyecto: /idea aprobar id:${id}` })
-          .setAuthor({ name: interaction.user.displayName, iconURL: interaction.user.displayAvatarURL() })],
-      });
-      await msg.react('👍');
-      await msg.react('👎');
-      await msg.startThread({ name: `💬 ${titulo}`.slice(0, 100) }).catch(() => {});
-      const idea = db.ideas.find((i) => i.id === id);
-      idea.messageId = msg.id;
-      idea.channelId = destino.id;
-      save();
-      return interaction.reply({ content: `💡 Idea #${id} publicada en <#${destino.id}>`, ...ephemeral });
-    }
-
-    if (sub === 'lista') {
-      if (!db.ideas.length) return interaction.reply('No hay ideas aún. Usa `/idea nueva`.');
-      const lineas = db.ideas.slice(-30).map((i) => `${i.estado === 'aprobada' ? '✅' : '💡'} **#${i.id}** ${i.titulo}`);
-      return interaction.reply({ embeds: [new EmbedBuilder().setColor(COLORES.ideas).setTitle('💡 Ideas').setDescription(lineas.join('\n'))] });
-    }
-
-    if (sub === 'aprobar') {
-      const idea = db.ideas.find((i) => i.id === interaction.options.getInteger('id'));
-      if (!idea) throw new UserError('No existe esa idea.');
-      if (idea.estado === 'aprobada') throw new UserError('Esa idea ya es un proyecto.');
-      exigirCreador(interaction);
-      return interaction.showModal(modalCrear({
-        ideaId: idea.id, nombre: idea.titulo, descripcion: idea.descripcion || idea.titulo, autorId: interaction.user.id,
-      }));
-    }
+  async 'idea-base'(interaction) {
+    const ideas = canal(interaction.guild, 'ideas');
+    if (interaction.channelId !== ideas?.id) throw new UserError(`Este comando solo se usa en ${mencion(interaction.guild, 'ideas')}.`);
+    return interaction.showModal(modalIdea());
   },
 
   async archivo(interaction) {
@@ -388,6 +351,18 @@ const handlers = {
   },
 };
 
+// Nadie escribe; con reacciones: true se puede votar con los emojis existentes pero no agregar otros.
+async function soloLectura(guild, key, { reacciones = false } = {}) {
+  const { canal: c } = await ensureCanal(guild, key);
+  const deny = [PermissionFlagsBits.SendMessages, PermissionFlagsBits.CreatePublicThreads,
+    PermissionFlagsBits.CreatePrivateThreads, PermissionFlagsBits.AddReactions];
+  await c.permissionOverwrites.set([
+    { id: guild.roles.everyone.id, deny, allow: reacciones ? [PermissionFlagsBits.UseApplicationCommands] : [] },
+    { id: guild.members.me.id, allow: [PermissionFlagsBits.SendMessages, PermissionFlagsBits.AddReactions, PermissionFlagsBits.ManageMessages] },
+  ]);
+  if (CANALES[key].tema && c.topic !== CANALES[key].tema) await c.setTopic(CANALES[key].tema);
+}
+
 // Canal de solo lectura con la guía completa; el bot la mantiene actualizada.
 async function setupFuncionamiento(guild) {
   const { canal: c } = await ensureCanal(guild, 'funcionamiento');
@@ -411,6 +386,7 @@ function guiaEmbeds(guild) {
       `**${m('crear')}** — crear proyectos`,
       `**${m('general')}** — conversación del equipo`,
       `**${m('ideas')}** — proponer y votar ideas`,
+      `**${m('ideasAprobadas')}** — ideas aprobadas, su estado y progreso`,
       `**${m('archivos')}** — carpeta de archivos generales`,
       `**${m('linksDrive')}** — links de Drive generales`,
       `**${m('vozGeneral')}** — sala de voz del equipo`,
@@ -418,10 +394,10 @@ function guiaEmbeds(guild) {
 
     embed('🔑 Roles y permisos', COLORES.aviso).addFields(
       { name: 'Administrador', value: 'Puede hacer todo, incluido gestionar cualquier proyecto y usar `/setup`.' },
-      { name: ROL_CREADOR, value: `${creador} puede crear proyectos (botón o \`/proyecto crear\`), aprobar ideas como proyecto y escribir en ${m('crear')}.` },
+      { name: ROL_CREADOR, value: `${creador} puede crear proyectos (botón o \`/proyecto crear\`) y escribir en ${m('crear')}.` },
       { name: 'Creador del proyecto', value: 'Quien creó un proyecto puede editar sus datos (descripción, GitHub, Drive), gestionar miembros, cambiar el estado, conectar GitHub y archivarlo.' },
       { name: '◆ Rol del proyecto', value: 'Lo reciben los miembros de cada proyecto. Pueden **ver y escribir** en su chat, subir archivos a su carpeta, leer sus commits y entrar a su sala de voz. No pueden cambiar los datos del proyecto.' },
-      { name: 'Todos', value: 'Proponer ideas, subir archivos a la carpeta general, guardar links de Drive y usar la voz general.' },
+      { name: 'Todos', value: 'Proponer y votar ideas, subir archivos a la carpeta general, guardar links de Drive y usar la voz general.' },
     ),
 
     embed('◆ Proyectos', COLORES.primario).setDescription([
@@ -447,8 +423,8 @@ function guiaEmbeds(guild) {
     ),
 
     embed('💡 Ideas, 📡 GitHub y 🎧 Voz', COLORES.ideas).addFields(
-      { name: '`/idea nueva`', value: `Publica en ${m('ideas')} con votación 👍 👎 y un hilo para discutirla. · Todos` },
-      { name: '`/idea lista` · `/idea aprobar`', value: `Ver ideas o convertir una en proyecto (abre el formulario ya lleno). · Aprobar: ${ROL_CREADOR}` },
+      { name: '`/idea-base`', value: `Solo funciona en ${m('ideas')} (ahí no se puede escribir). Abre un formulario con nombre y descripción y publica la idea con ${SI} y ${NO}. · Todos` },
+      { name: 'Votación', value: `Con **${VOTOS_NECESARIOS} ${SI}** la idea pasa a ${m('ideasAprobadas')} con su estado y barra de progreso. Con **${VOTOS_NECESARIOS} ${NO}** se elimina. Las reacciones del bot no cuentan.` },
       { name: 'Commits de GitHub', value: 'Al conectar el repo, cada push, PR, issue y release llega a `📡・commits`. Si falta conectarlo, la ficha muestra ⚠️ y el botón **Conectar GitHub** da los pasos.' },
       { name: 'Voz', value: `${m('vozGeneral')} para todo el equipo. Tras **15 minutos** sin actividad, Discord te mueve a ${m('afk')}.` },
       { name: '`/ayuda`', value: 'Muestra esta guía en cualquier canal (solo la ves tú).' },
@@ -499,7 +475,16 @@ const componentes = {
   },
 
   // Formularios
-  async 'modal:proyecto-crear'(interaction, ideaId) {
+  async 'modal:idea-base'(interaction) {
+    await interaction.deferReply(ephemeral);
+    const { idea } = await publicarIdea(interaction.guild, interaction.member ?? interaction.user, {
+      titulo: interaction.fields.getTextInputValue('nombre').trim(),
+      descripcion: interaction.fields.getTextInputValue('descripcion').trim(),
+    });
+    return interaction.editReply(`💡 Idea **#${idea.id}** publicada. Con ${VOTOS_NECESARIOS} ${SI} pasa a ${mencion(interaction.guild, 'ideasAprobadas')}; con ${VOTOS_NECESARIOS} ${NO} se descarta.`);
+  },
+
+  async 'modal:proyecto-crear'(interaction) {
     exigirCreador(interaction);
     const f = interaction.fields;
     const nombre = f.getTextInputValue('nombre').trim();
@@ -514,14 +499,6 @@ const componentes = {
     const { p, github } = await crearProyecto(interaction.guild, interaction.user.id, datos);
     if (p.drive) {
       await registrarLink(interaction.guild, { url: p.drive, titulo: `Carpeta de ${p.nombre}`, proyecto: p.id, autor: interaction.user.id }).catch(() => {});
-    }
-    const idea = ideaId && getDb().ideas.find((i) => String(i.id) === ideaId);
-    if (idea) {
-      idea.estado = 'aprobada';
-      idea.proyecto = p.id;
-      save();
-      await canal(interaction.guild, 'ideasAprobadas')
-        ?.send(`✅ La idea **#${idea.id} ${idea.titulo}** ahora es un proyecto (${p.nombre}).`);
     }
     const listo = `✅ Proyecto **${p.nombre}** creado: <#${p.channelId}> · rol <@&${p.roleId}> · ${p.miembros.length} miembro(s)`;
     if (p.github && !github.ok) return interaction.editReply({ content: `${listo}\n\nFalta un paso para recibir los commits:`, embeds: [instrucciones(p)] });
