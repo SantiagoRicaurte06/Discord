@@ -3,14 +3,21 @@
     "nombre": "grill-me",
     "hilo": "grill-me",
     "repo": "mattpocock/skills",
-    "archivos": ["skills/productivity/grill-me/SKILL.md", "skills/productivity/grilling/SKILL.md"],
+    "archivos": [
+      "skills/productivity/grill-me/SKILL.md",
+      "skills/productivity/grilling/SKILL.md"
+    ],
     "actualizar": "npx skills@latest update"
   },
   {
     "nombre": "caveman",
     "hilo": "caveman",
     "repo": "JuliusBrussee/caveman",
-    "archivos": ["skills/caveman/SKILL.md", "skills/ultracave/SKILL.md", "skills/megacave/SKILL.md"],
+    "archivos": [
+      "skills/caveman/SKILL.md",
+      "skills/ultracave/SKILL.md",
+      "skills/megacave/SKILL.md"
+    ],
     "actualizar": "npx skills@latest update"
   },
   {
@@ -24,7 +31,9 @@
     "nombre": "anti-slop",
     "hilo": "anti-slop",
     "repo": "rand/cc-polymath",
-    "archivos": ["skills/anti-slop/SKILL.md"],
+    "archivos": [
+      "skills/anti-slop/SKILL.md"
+    ],
     "actualizar": "npx skills@latest update"
   },
   {
@@ -44,8 +53,26 @@
     "nombre": "checklist-lanzamiento",
     "hilo": "checklist-lanzamiento",
     "repo": "SantiagoRicaurte06/Discord",
-    "archivos": ["skills/checklist-lanzamiento/SKILL.md", "skills/checklist-lanzamiento/scripts/revisar.mjs"],
+    "archivos": [
+      "skills/checklist-lanzamiento/SKILL.md",
+      "skills/checklist-lanzamiento/scripts/revisar.mjs"
+    ],
     "adjuntar": true,
+    "actualizar": "npx skills@latest update"
+  },
+  {
+    "nombre": "git-workflow",
+    "hilo": "git-workflow",
+    "repo": "SantiagoRicaurte06/Discord",
+    "archivos": [
+      "skills/git-workflow/SKILL.md",
+      "skills/git-workflow/referencia/GIT_WORKFLOW.md",
+      "skills/git-workflow/scripts/configurar.sh",
+      "skills/git-workflow/plantillas/githooks/commit-msg",
+      "skills/git-workflow/plantillas/githooks/pre-commit",
+      "skills/git-workflow/plantillas/github/workflows/commits.yml",
+      "skills/git-workflow/plantillas/github/workflows/pruebas.yml"
+    ],
     "actualizar": "npx skills@latest update"
   }
 ]
