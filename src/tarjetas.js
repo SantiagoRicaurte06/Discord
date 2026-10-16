@@ -10,6 +10,8 @@ export const ETAPAS = {
   pendiente: '⏳ Por iniciar',
   desarrollo: '🛠️ Desarrollo',
   produccion: '🚀 Producción',
+  mantenimiento: '🔧 Mantenimiento',
+  pausado: '⏸️ Pausado',
   archivado: '🗄️ Archivado',
 };
 
@@ -19,16 +21,25 @@ export const ETIQUETAS = Object.values(ETAPAS).map((e) => {
   return { name: nombre.join(' '), emoji: { id: null, name: emoji } };
 });
 
-// Avance según los issues de GitHub: % cerrados; Producción cuando no queda ninguno abierto.
+// Etapa y avance del proyecto (todo automático, salvo Pausado y Archivado):
+// - Desarrollo: % = issues de GitHub cerrados ÷ total. Por iniciar si aún no hay issues.
+// - Producción: todos los issues cerrados. Mantenimiento: en producción con tareas extra pendientes.
 export function avance(p) {
-  if (!p) return { etapa: ETAPAS.pendiente, pct: 0, hechas: 0, total: 0 };
-  const issues = (p.tareas ?? []).filter((t) => t.origen === 'github');
-  const hechas = issues.filter((t) => t.estado === 'hecha').length;
-  const total = issues.length;
-  const pct = total ? Math.round((hechas / total) * 100) : 0;
-  let etapa = total && hechas === total ? ETAPAS.produccion : ETAPAS.desarrollo;
+  const vacio = { total: 0, hechas: 0, pct: 0 };
+  if (!p) return { etapa: ETAPAS.pendiente, dev: vacio, mant: vacio, enProduccion: false };
+  const contar = (lista) => {
+    const hechas = lista.filter((t) => t.estado === 'hecha').length;
+    return { total: lista.length, hechas, pct: lista.length ? Math.round((hechas / lista.length) * 100) : 0 };
+  };
+  const dev = contar((p.tareas ?? []).filter((t) => t.origen === 'github'));
+  const mant = contar((p.tareas ?? []).filter((t) => t.origen === 'extra'));
+  const enProduccion = dev.total > 0 && dev.hechas === dev.total;
+  let etapa = ETAPAS.desarrollo;
+  if (!dev.total) etapa = ETAPAS.pendiente;
+  if (enProduccion) etapa = mant.hechas < mant.total ? ETAPAS.mantenimiento : ETAPAS.produccion;
+  if (p.pausado) etapa = ETAPAS.pausado;
   if (p.archivado) etapa = ETAPAS.archivado;
-  return { etapa, pct, hechas, total };
+  return { etapa, dev, mant, enProduccion };
 }
 
 export function barra(pct, largo = 10) {
@@ -42,26 +53,44 @@ const ideaDe = (p) => getDb().ideas.find((i) => i.proyecto === p.id);
 function contenido({ p, idea }) {
   const a = avance(p);
   const titulo = p?.nombre ?? idea.titulo;
-  let detalle = 'Se calcula con los issues de GitHub cuando se cree el proyecto.';
-  if (p) detalle = a.total ? `${a.hechas}/${a.total} issues cerrados` : 'El repositorio aún no tiene issues.';
-  if (p && !p.github) detalle = 'El proyecto no tiene repositorio de GitHub.';
-  if (p?.errorIssues) detalle = `⚠️ ${p.errorIssues}`;
+  let detalleDev = 'Se calcula con los issues de GitHub cuando se cree el proyecto.';
+  if (p) detalleDev = a.dev.total ? `${a.dev.hechas}/${a.dev.total} issues cerrados` : 'El repositorio aún no tiene issues.';
+  if (p && !p.github) detalleDev = 'El proyecto no tiene repositorio de GitHub.';
+  if (p?.errorIssues) detalleDev = `⚠️ ${p.errorIssues}`;
   const origen = idea
     ? `💡 Idea de <@${idea.autor}> · aprobada con ✅ ${idea.votosSi}`
     : `✍️ Creado manualmente por <@${p.autor}>`;
 
+  // Seguimiento: issues abiertos con y sin responsable, y PRs en revisión.
+  const abiertos = (p?.tareas ?? []).filter((t) => t.origen === 'github' && t.estado !== 'hecha');
+  const sinAsignar = abiertos.filter((t) => !t.asignados?.length).length;
+  const revision = (p?.prs ?? []).length;
+  const seguimiento = p && a.dev.total
+    ? `🟢 ${abiertos.length} abiertos · 👤 ${sinAsignar} sin asignar · 🔍 ${revision} PR en revisión`
+    : null;
+
+  const campos = [
+    { name: 'Estado', value: a.etapa, inline: true },
+    { name: '⭐ Responsable', value: p ? `<@${p.autor}>` : '—', inline: true },
+    { name: '🐙 Repositorio', value: p?.github ?? (p?.errorRepo ? `⚠️ ${p.errorRepo}` : '—'), inline: true },
+    { name: `👥 Equipo${p ? ` (${p.miembros.length})` : ''}`, value: p ? (p.miembros.map((m) => `<@${m}>`).join(' ') || '—') : '*Sin proyecto — usa el botón para crearlo*' },
+    { name: '🛠️ Desarrollo', value: `${barra(a.dev.pct)}\n-# ${detalleDev}` },
+  ];
+  if (a.enProduccion || a.mant.total) {
+    const detalleMant = a.mant.total ? `${a.mant.hechas}/${a.mant.total} tareas extra hechas` : 'Sin tareas extra pendientes';
+    campos.push({ name: '🔧 Mantenimiento', value: `${barra(a.mant.total ? a.mant.pct : 100)}\n-# ${detalleMant}` });
+  }
+  if (seguimiento) campos.push({ name: 'Seguimiento', value: seguimiento });
+  campos.push({ name: 'Origen', value: origen });
+
+  const colores = {
+    [ETAPAS.produccion]: COLORES.primario, [ETAPAS.mantenimiento]: COLORES.aviso, [ETAPAS.pausado]: COLORES.github,
+  };
   const embed = new EmbedBuilder()
-    .setColor(a.etapa === ETAPAS.produccion ? COLORES.primario : COLORES.exito)
+    .setColor(colores[a.etapa] ?? COLORES.exito)
     .setTitle(`◆ ${titulo}`)
     .setDescription(p?.descripcion ?? idea.descripcion)
-    .addFields(
-      { name: 'Estado', value: a.etapa, inline: true },
-      { name: '⭐ Responsable', value: p ? `<@${p.autor}>` : '—', inline: true },
-      { name: '🐙 Repositorio', value: p?.github ?? (p?.errorRepo ? `⚠️ ${p.errorRepo}` : '—'), inline: true },
-      { name: `👥 Equipo${p ? ` (${p.miembros.length})` : ''}`, value: p ? (p.miembros.map((m) => `<@${m}>`).join(' ') || '—') : '*Sin proyecto — usa el botón para crearlo*' },
-      { name: 'Progreso', value: `${barra(a.pct)}\n-# ${detalle}` },
-      { name: 'Origen', value: origen },
-    )
+    .addFields(campos)
     .setFooter({ text: p ? `Proyecto ${p.id}` : `Idea #${idea.id}` })
     .setTimestamp();
 

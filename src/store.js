@@ -112,3 +112,7 @@ export function desvincularGithub(discordId) {
   if (db.usuarios[discordId]) delete db.usuarios[discordId].github;
   save();
 }
+
+// Usuario de Discord con esa cuenta de GitHub vinculada (o null).
+export const discordDeGithub = (login) => Object.entries(db.usuarios)
+  .find(([, u]) => u.github?.toLowerCase() === login?.toLowerCase())?.[0] ?? null;

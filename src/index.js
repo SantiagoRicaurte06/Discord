@@ -8,6 +8,7 @@ import { findProyectoByChannel, getDb, save } from './store.js';
 import { refrescarFicha } from './proyectos.js';
 import { procesarVoto, revisarVotacionesPendientes } from './ideas.js';
 import { iniciarSincronizacion } from './tareas.js';
+import { iniciarResumenSemanal } from './resumen.js';
 import { guardarArchivo, asignarRespaldo, archivoPorMensaje } from './carpetas.js';
 
 if (!process.env.DISCORD_TOKEN) {
@@ -30,6 +31,7 @@ function registerEvents(client) {
     console.log(`✅ Conectado como ${c.user.tag} en ${c.guilds.cache.size} servidor(es)`);
     if (process.env.GUILD_ID) {
       iniciarSincronizacion(c, process.env.GUILD_ID);
+      iniciarResumenSemanal(c, process.env.GUILD_ID);
       const guild = c.guilds.cache.get(process.env.GUILD_ID);
       if (guild) revisarVotacionesPendientes(guild).catch((e) => console.error('Revisando votaciones:', e));
     }

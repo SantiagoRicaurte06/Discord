@@ -14,15 +14,16 @@ import {
   CANALES, COLORES, canal, ensureCanal, ordenar, mencion,
 } from '../layout.js';
 import {
-  ESTADOS, UserError, modalCrear, modalMiembros, modalEditar, proyectoEmbed, refrescarFicha,
+  UserError, modalCrear, modalMiembros, modalEditar, proyectoEmbed, refrescarFicha,
   crearProyecto, sincronizarMiembros, miembrosElegidos, puedeGestionar, archivarProyecto,
-  avisarGithub, invitarAProyectos,
+  avisarGithub, invitarAProyectos, alternarPausa,
 } from '../proyectos.js';
+import { publicarResumen } from '../resumen.js';
 import {
   modalIdea, publicarIdea, VOTOS_NECESARIOS, SI, NO,
 } from '../ideas.js';
 import {
-  refrescarTarjetaDeProyecto, vincularTarjeta, ensureEtiquetas, publicarTarjeta,
+  refrescarTarjetaDeProyecto, vincularTarjeta, ensureEtiquetas, publicarTarjeta, avance,
 } from '../tarjetas.js';
 import {
   ensureCanalesTareas, marcar, modalTareaExtra, agregarTareaExtra, proyectoPorCanalExtra,
@@ -53,9 +54,7 @@ export const commands = [
       .addStringOption((o) => proyectoOption(o, false)))
     .addSubcommand((s) => s.setName('github').setDescription('Conecta el repo de GitHub al canal de commits')
       .addStringOption((o) => proyectoOption(o, false)))
-    .addSubcommand((s) => s.setName('estado').setDescription('Cambia el estado de un proyecto')
-      .addStringOption((o) => o.setName('estado').setDescription('Nuevo estado').setRequired(true)
-        .addChoices(...ESTADOS.map((e) => ({ name: e, value: e }))))
+    .addSubcommand((s) => s.setName('pausar').setDescription('Pausa o reanuda un proyecto (el resto del estado es automático)')
       .addStringOption((o) => proyectoOption(o, false)))
     .addSubcommand((s) => s.setName('archivar').setDescription('Marca el proyecto como terminado y lo manda al final')
       .addStringOption((o) => proyectoOption(o, false))),
@@ -99,6 +98,11 @@ export const commands = [
     .addSubcommand((s) => s.setName('respaldo').setDescription('Agrega o cambia el link de Drive de un archivo')
       .addStringOption((o) => o.setName('archivo').setDescription('Archivo').setRequired(true).setAutocomplete(true))
       .addStringOption((o) => o.setName('drive').setDescription('Link de respaldo en Google Drive').setRequired(true))),
+
+  new SlashCommandBuilder()
+    .setName('resumen')
+    .setDescription('Publica ahora el resumen semanal en el canal general')
+    .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild),
 
   new SlashCommandBuilder().setName('ayuda').setDescription('Muestra cómo usar el bot'),
 ];
@@ -280,7 +284,7 @@ const handlers = {
     if (sub === 'lista') {
       const ps = Object.values(db.proyectos).filter((p) => visible(interaction, p.id));
       if (!ps.length) return interaction.reply({ content: 'No tienes proyectos aún. Crea uno con `/proyecto crear`.', ...ephemeral });
-      const lineas = ps.map((p) => `${p.estado} — **${p.nombre}** <#${p.channelId}>${p.github ? ` · [GitHub](${p.github})` : ''}${p.drive ? ` · [Drive](${p.drive})` : ''}`);
+      const lineas = ps.map((p) => `${avance(p).etapa} — **${p.nombre}** <#${p.channelId}>${p.github ? ` · [GitHub](${p.github})` : ''}${p.drive ? ` · [Drive](${p.drive})` : ''}`);
       return interaction.reply({
         embeds: [new EmbedBuilder().setColor(COLORES.primario).setTitle(`◆ Tus proyectos (${ps.length})`).setDescription(lineas.join('\n').slice(0, 4000))],
         ...ephemeral,
@@ -302,12 +306,11 @@ const handlers = {
       return responderGithub(interaction, p);
     }
 
-    if (sub === 'estado') {
+    if (sub === 'pausar') {
       const p = proyectoGestionable(interaction, resolverProyecto(interaction));
-      p.estado = interaction.options.getString('estado');
-      save();
-      await refrescarFicha(interaction.guild, p);
-      return interaction.reply(`🔄 **${p.nombre}** ahora está en: ${p.estado}`);
+      await interaction.deferReply(ephemeral);
+      const pausado = await alternarPausa(interaction.guild, p);
+      return interaction.editReply(pausado ? `⏸️ **${p.nombre}** pausado.` : `▶️ **${p.nombre}** reanudado.`);
     }
 
     if (sub === 'archivar') {
@@ -400,6 +403,9 @@ const handlers = {
     const p = proyectoPorCanalExtra(interaction.channelId);
     if (!p) throw new UserError('Este comando solo se usa en el canal 🧩・tareas-extra de un proyecto.');
     if (!visible(interaction, p.id)) throw new UserError('Solo los miembros del proyecto pueden agregar tareas.');
+    if (!avance(p).enProduccion) {
+      throw new UserError('Las tareas extra se habilitan cuando el proyecto llega a producción (todos los issues cerrados). Mientras tanto, créalas como issues en GitHub.');
+    }
     return interaction.showModal(modalTareaExtra());
   },
 
@@ -426,6 +432,12 @@ const handlers = {
       await asignarRespaldo(interaction.guild, archivo, drive);
       return interaction.editReply(`☁️ Respaldo de **${archivo.nombre}** actualizado.`);
     }
+  },
+
+  async resumen(interaction) {
+    await interaction.deferReply(ephemeral);
+    const msg = await publicarResumen(interaction.guild);
+    return interaction.editReply(msg ? `📊 Resumen publicado en <#${msg.channelId}>.` : 'No encontré el canal general.');
   },
 
   async ayuda(interaction) {
@@ -504,18 +516,18 @@ function guiaEmbeds(guild) {
       '› `💬・chat` con la ficha fijada (estado, miembros, GitHub, Drive y botones)',
       '› `📁・archivos` carpeta con índice de archivos y respaldos',
       '› `📡・commits` donde llegan los commits, PRs, issues y releases de GitHub',
-      '› `📋・tareas` los issues de GitHub; se marcan ✅ solos cuando se cierran en GitHub',
-      '› `🧩・tareas-extra` tareas y arreglos que no están en los issues',
+      '› `📋・tareas` los issues de GitHub: quién los tiene 👤, PR en revisión 🔍 y cerrados ✅',
+      '› `🧩・tareas-extra` arreglos y añadidos cuando el proyecto ya está en producción',
       '› `🎙️ Reunión` sala de voz del equipo del proyecto',
     ].join('\n')).addFields(
       { name: '`/proyecto crear`', value: `Abre el formulario: nombre, descripción, GitHub (vacío = el bot crea el repo), Drive y miembros. · ${ROL_CREADOR}` },
       { name: '`/proyecto miembros`', value: 'Agrega o quita personas (da o quita el rol). · Responsable' },
-      { name: '`/proyecto estado`', value: 'Idea, Planeación, En progreso, Pausado o Terminado. · Responsable' },
+      { name: 'Estado automático', value: '⏳ Por iniciar (sin issues) → 🛠️ Desarrollo → 🚀 Producción (todos cerrados) → 🔧 Mantenimiento (tareas extra pendientes). `/proyecto pausar` o el botón ⏸️ lo pausa. · Responsable' },
       { name: '`/proyecto github`', value: 'Conecta el repositorio al canal de commits. · Responsable' },
       { name: '`/proyecto archivar`', value: 'Lo marca como terminado y lo pasa a ◇. · Responsable' },
       { name: '`/proyecto lista` · `/proyecto info`', value: 'Ver tus proyectos o la ficha de uno. · Miembros' },
-      { name: '`/tarea-extra`', value: 'Solo en `🧩・tareas-extra`: agrega una tarea o arreglo. · Miembros' },
-      { name: 'Marcar tareas', value: 'Issues: se sincronizan cada 5 minutos y se marcan solos al cerrarse en GitHub (el bot nunca modifica GitHub). Tareas extra: el menú **Marcar como realizadas** las tacha y **Reabrir** las devuelve. · Miembros' },
+      { name: 'Issues', value: 'Se crean, asignan y revisan en GitHub. El bot los lee cada 5 min: 👤 quién lo tiene (vinculen su GitHub), 🔍 PR en revisión (si el PR dice "closes #N") y ✅ cerrados. Nunca modifica GitHub.' },
+      { name: '`/tarea-extra`', value: 'Solo en `🧩・tareas-extra` y con el proyecto en producción: agrega un arreglo o añadido. El menú las marca como hechas o las reabre. · Miembros' },
     ),
 
     embed('📁 Archivos y 🔗 Drive', COLORES.archivos).addFields(
@@ -528,10 +540,11 @@ function guiaEmbeds(guild) {
     embed('💡 Ideas, 📡 GitHub y 🎧 Voz', COLORES.ideas).addFields(
       { name: '`/idea-base`', value: `Solo funciona en ${m('ideas')} (ahí no se puede escribir). Abre un formulario con nombre y descripción y publica la idea con ${SI} y ${NO}. · Todos` },
       { name: 'Votación', value: `Con **${VOTOS_NECESARIOS} ${SI}** la idea pasa a ${m('ideasAprobadas')} con su estado y barra de progreso. Con **${VOTOS_NECESARIOS} ${NO}** se elimina. Las reacciones del bot no cuentan.` },
-      { name: 'Proyectos aprobados (foro)', value: 'Al aprobarse una idea, el bot **crea el proyecto y su repo** con el responsable por defecto. Todo proyecto (por votación o manual) tiene su publicación con responsable, repo, equipo, **estado** y **progreso** (issues cerrados ÷ total). La etiqueta muestra la etapa: ⏳ Por iniciar · 🛠️ Desarrollo · 🚀 Producción · 🗄️ Archivado. **Asignar equipo**: responsable.' },
+      { name: 'Proyectos aprobados (foro)', value: 'Todos lo ven, tengan o no proyectos. Al aprobarse una idea el bot **crea el proyecto y su repo**. Cada proyecto (votado o manual) tiene su publicación: responsable, repo, equipo, barras de 🛠️ desarrollo y 🔧 mantenimiento, y seguimiento (abiertos, sin asignar, en revisión). La etiqueta muestra la etapa.' },
       { name: '`/github vincular`', value: 'Vincula tu usuario de GitHub. Al asignarte a un proyecto, el bot te invita a su repo automáticamente (y te quita el acceso si te sacan). `/github equipo` muestra las cuentas vinculadas. · Todos' },
       { name: 'Commits de GitHub', value: 'Al conectar el repo, cada push, PR, issue y release llega a `📡・commits`. Si falta conectarlo, la ficha muestra ⚠️ y el botón **Conectar GitHub** da los pasos.' },
       { name: 'Voz', value: `${m('vozGeneral')} para todo el equipo. Tras **15 minutos** sin actividad, Discord te mueve a ${m('afk')}.` },
+      { name: 'Resumen semanal', value: `Cada lunes en ${m('general')}: avance por proyecto, lo cerrado en la semana, lo sin asignar y quién tiene qué. \`/resumen\` lo publica al momento (admins).` },
       { name: '`/ayuda`', value: 'Muestra esta guía en cualquier canal (solo la ves tú).' },
     ).setFooter({ text: guild?.name ?? 'Servidor' }),
   ];
@@ -575,6 +588,12 @@ const componentes = {
   async 'boton:proyecto-github'(interaction, id) {
     return responderGithub(interaction, proyectoDeComponente(interaction, id));
   },
+  async 'boton:proyecto-pausa'(interaction, id) {
+    const p = proyectoDeComponente(interaction, id);
+    await interaction.deferReply(ephemeral);
+    const pausado = await alternarPausa(interaction.guild, p);
+    return interaction.editReply(pausado ? `⏸️ **${p.nombre}** pausado.` : `▶️ **${p.nombre}** reanudado.`);
+  },
   async 'boton:proyecto-editar'(interaction, id) {
     return interaction.showModal(modalEditar(proyectoDeComponente(interaction, id)));
   },
@@ -601,6 +620,7 @@ const componentes = {
   async 'modal:tarea-extra'(interaction) {
     const p = proyectoPorCanalExtra(interaction.channelId);
     if (!p || !visible(interaction, p.id)) throw new UserError('Solo los miembros del proyecto pueden agregar tareas.');
+    if (!avance(p).enProduccion) throw new UserError('Las tareas extra solo se agregan con el proyecto en producción.');
     const f = interaction.fields;
     await interaction.deferReply(ephemeral);
     const t = await agregarTareaExtra(interaction.guild, p, {

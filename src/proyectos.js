@@ -10,13 +10,11 @@ import { driveTipo } from './drive.js';
 import { crearForo, ensureCarpeta } from './carpetas.js';
 import { conectarGithub } from './github.js';
 import { ensureCanalesTareas } from './tareas.js';
-import { publicarTarjeta, refrescarTarjetaDeProyecto } from './tarjetas.js';
+import { publicarTarjeta, refrescarTarjetaDeProyecto, avance } from './tarjetas.js';
 import {
   githubConfigurado, crearRepo, invitar, quitarAcceso,
 } from './githubApi.js';
 import { COLORES, PROYECTO } from './layout.js';
-
-export const ESTADOS = ['💭 Idea', '📝 Planeación', '🚧 En progreso', '⏸️ Pausado', '✅ Terminado'];
 
 // Errores esperados que se muestran al usuario sin ensuciar la consola.
 export class UserError extends Error {}
@@ -79,7 +77,7 @@ export function proyectoEmbed(p) {
     .setTitle(`◆ ${p.nombre}`)
     .setDescription(p.descripcion)
     .addFields(
-      { name: 'Estado', value: p.estado, inline: true },
+      { name: 'Estado', value: avance(p).etapa, inline: true },
       { name: 'Rol', value: `<@&${p.roleId}>`, inline: true },
       { name: '🐙 GitHub', value: p.github ?? (p.errorRepo ? `⚠️ ${p.errorRepo}` : '—'), inline: true },
       { name: '⭐ Responsable', value: `<@${p.autor}>`, inline: true },
@@ -111,6 +109,9 @@ export function fichaComponents(p) {
   const row = new ActionRowBuilder().addComponents(
     new ButtonBuilder().setCustomId(`proyecto-miembros:${p.id}`).setLabel('Miembros').setEmoji('👥').setStyle(ButtonStyle.Primary),
     new ButtonBuilder().setCustomId(`proyecto-editar:${p.id}`).setLabel('Editar').setEmoji('✏️').setStyle(ButtonStyle.Secondary),
+    p.pausado
+      ? new ButtonBuilder().setCustomId(`proyecto-pausa:${p.id}`).setLabel('Reanudar').setEmoji('▶️').setStyle(ButtonStyle.Success)
+      : new ButtonBuilder().setCustomId(`proyecto-pausa:${p.id}`).setLabel('Pausar').setEmoji('⏸️').setStyle(ButtonStyle.Secondary),
   );
   if (!p.githubConectado) {
     row.addComponents(new ButtonBuilder().setCustomId(`proyecto-github:${p.id}`).setLabel('Conectar GitHub').setEmoji('📡').setStyle(ButtonStyle.Secondary));
@@ -166,7 +167,7 @@ export async function crearProyecto(guild, autorId, { nombre, descripcion, githu
   const voz = await guild.channels.create({ name: PROYECTO.voz, type: ChannelType.GuildVoice, parent: cat.id, permissionOverwrites: overwrites });
 
   const p = addProyecto({
-    id, nombre, descripcion, github: github ?? null, drive: drive ?? null, estado: ESTADOS[1],
+    id, nombre, descripcion, github: github ?? null, drive: drive ?? null,
     roleId: role.id, categoryId: cat.id, channelId: chat.id, foroId: foro.id, vozId: voz.id,
     miembros: [], autor: autorId, fecha: new Date().toISOString(), errorRepo,
   });
@@ -254,8 +255,16 @@ export async function archivarProyecto(guild, p) {
     await cat.setPosition(guild.channels.cache.filter((c) => c.type === ChannelType.GuildCategory).size);
   }
   p.archivado = true;
-  p.estado = ESTADOS[4];
   save();
   await refrescarFicha(guild, p);
   await refrescarTarjetaDeProyecto(guild, p.id);
+}
+
+// El estado es automático (según issues); solo Pausado se marca a mano.
+export async function alternarPausa(guild, p) {
+  p.pausado = !p.pausado;
+  save();
+  await refrescarFicha(guild, p);
+  await refrescarTarjetaDeProyecto(guild, p.id);
+  return p.pausado;
 }
