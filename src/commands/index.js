@@ -1,5 +1,6 @@
 import {
   SlashCommandBuilder, EmbedBuilder, ChannelType, PermissionFlagsBits, MessageFlags,
+  ActionRowBuilder, ButtonBuilder, ButtonStyle,
 } from 'discord.js';
 import {
   getDb, slug, findProyecto, findProyectoByChannel, addLink, addIdea, save,
@@ -18,6 +19,8 @@ import {
 
 const COLOR = 0x5865f2;
 const AFK_SEGUNDOS = 900; // 15 minutos
+const ROL_CREADOR = 'Creador de proyectos';
+const CANAL_CREAR = 'crear-proyectos';
 const ephemeral = { flags: MessageFlags.Ephemeral };
 
 const proyectoOption = (o, required = true) =>
@@ -100,6 +103,14 @@ function resolverProyecto(interaction, required = true) {
   return p;
 }
 
+// Crear proyectos: solo el rol "Creador de proyectos" (y administradores).
+function exigirCreador(interaction) {
+  const tieneRol = interaction.member?.roles?.cache?.some((r) => r.name === ROL_CREADOR);
+  if (!tieneRol && !esAdmin(interaction)) {
+    throw new UserError(`Necesitas el rol **${ROL_CREADOR}** para crear proyectos.`);
+  }
+}
+
 function proyectoGestionable(interaction, p) {
   if (!puedeGestionar(interaction, p)) throw new UserError('Solo los miembros del proyecto pueden hacer esto.');
   return p;
@@ -148,6 +159,53 @@ async function setupVoz(guild) {
   if (guild.afkTimeout !== AFK_SEGUNDOS) await guild.setAFKTimeout(AFK_SEGUNDOS);
 }
 
+// #crear-proyectos: todos lo ven, solo el rol "Creador de proyectos" escribe. Tiene el panel con el botón.
+async function setupCrearProyectos(guild) {
+  const rol = guild.roles.cache.find((r) => r.name === ROL_CREADOR)
+    ?? await guild.roles.create({ name: ROL_CREADOR, color: 0x57f287, mentionable: true, reason: 'Puede crear proyectos y escribir en #crear-proyectos' });
+  const overwrites = [
+    { id: guild.roles.everyone.id, deny: [PermissionFlagsBits.SendMessages, PermissionFlagsBits.CreatePublicThreads, PermissionFlagsBits.AddReactions] },
+    { id: rol.id, allow: [PermissionFlagsBits.SendMessages, PermissionFlagsBits.AttachFiles, PermissionFlagsBits.AddReactions] },
+  ];
+  let canal = findText(guild, CANAL_CREAR);
+  if (canal) {
+    await canal.permissionOverwrites.set(overwrites);
+  } else {
+    const cat = await ensureCategory(guild, LAYOUT[0].categoria);
+    canal = await guild.channels.create({
+      name: CANAL_CREAR, type: ChannelType.GuildText, parent: cat.id, permissionOverwrites: overwrites,
+      topic: `Crea proyectos con el botón o /proyecto crear. Solo el rol ${ROL_CREADOR} puede escribir aquí.`,
+    });
+  }
+
+  const db = getDb();
+  const panel = db.panelCrear && await canal.messages.fetch(db.panelCrear).catch(() => null);
+  const contenido = {
+    embeds: [new EmbedBuilder().setColor(0x57f287).setTitle('🚀 Crear un proyecto').setDescription([
+      'Pulsa el botón para abrir el formulario:',
+      '• Nombre y descripción',
+      '• Repositorio de GitHub',
+      '• Carpeta de Google Drive',
+      '• Miembros del equipo',
+      '',
+      'Se creará un **rol** y una **categoría privada** con chat, carpeta de archivos y canal de voz.',
+      `Solo <@&${rol.id}> puede crear proyectos y escribir en este canal.`,
+    ].join('\n'))],
+    components: [new ActionRowBuilder().addComponents(
+      new ButtonBuilder().setCustomId('proyecto-panel').setLabel('Crear proyecto').setEmoji('➕').setStyle(ButtonStyle.Success),
+    )],
+    allowedMentions: { parse: [] },
+  };
+  if (panel) await panel.edit(contenido);
+  else {
+    const msg = await canal.send(contenido);
+    await msg.pin().catch(() => {});
+    db.panelCrear = msg.id;
+    save();
+  }
+  return canal;
+}
+
 // Crea categorías y canales base; devuelve los canales creados.
 export async function setupServer(guild) {
   const creados = [];
@@ -162,6 +220,7 @@ export async function setupServer(guild) {
   await ensureForo(guild);
   await ensureCarpeta(guild, GENERAL);
   await setupVoz(guild);
+  await setupCrearProyectos(guild);
   if (creados.includes('#bienvenida')) await findText(guild, 'bienvenida').send({ embeds: [ayudaEmbed()] });
   return creados;
 }
@@ -181,7 +240,10 @@ const handlers = {
     const sub = interaction.options.getSubcommand();
     const db = getDb();
 
-    if (sub === 'crear') return interaction.showModal(modalCrear({ autorId: interaction.user.id }));
+    if (sub === 'crear') {
+      exigirCreador(interaction);
+      return interaction.showModal(modalCrear({ autorId: interaction.user.id }));
+    }
 
     if (sub === 'lista') {
       const ps = Object.values(db.proyectos).filter((p) => visible(interaction, p.id));
@@ -284,6 +346,7 @@ const handlers = {
       const idea = db.ideas.find((i) => i.id === interaction.options.getInteger('id'));
       if (!idea) throw new UserError('No existe esa idea.');
       if (idea.estado === 'aprobada') throw new UserError('Esa idea ya es un proyecto.');
+      exigirCreador(interaction);
       return interaction.showModal(modalCrear({
         ideaId: idea.id, nombre: idea.titulo, descripcion: idea.descripcion || idea.titulo, autorId: interaction.user.id,
       }));
@@ -323,7 +386,8 @@ const handlers = {
 function ayudaEmbed() {
   return new EmbedBuilder().setColor(COLOR).setTitle('🤖 Cómo funciona este servidor').setDescription([
     '**Proyectos** (privados: solo los miembros los ven)',
-    '`/proyecto crear` — formulario: nombre, descripción, GitHub, Drive y miembros',
+    '`/proyecto crear` o el botón de #crear-proyectos — formulario: nombre, descripción, GitHub, Drive y miembros',
+    'Requiere el rol **Creador de proyectos**',
     'Cada proyecto tiene su rol, chat, carpeta de archivos y canal de voz',
     '`/proyecto miembros` · `/proyecto lista` · `/proyecto info` · `/proyecto estado` · `/proyecto archivar`',
     '',
@@ -370,6 +434,11 @@ function proyectoDeComponente(interaction, id) {
 }
 
 const componentes = {
+  async 'boton:proyecto-panel'(interaction) {
+    exigirCreador(interaction);
+    return interaction.showModal(modalCrear({ autorId: interaction.user.id }));
+  },
+
   // Botones de la ficha
   async 'boton:proyecto-miembros'(interaction, id) {
     return interaction.showModal(modalMiembros(proyectoDeComponente(interaction, id)));
@@ -380,6 +449,7 @@ const componentes = {
 
   // Formularios
   async 'modal:proyecto-crear'(interaction, ideaId) {
+    exigirCreador(interaction);
     const f = interaction.fields;
     const nombre = f.getTextInputValue('nombre').trim();
     const datos = {
