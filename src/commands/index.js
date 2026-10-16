@@ -18,7 +18,7 @@ import {
 import {
   UserError, modalCrear, modalMiembros, modalEditar, proyectoEmbed, refrescarFicha,
   crearProyecto, sincronizarMiembros, miembrosElegidos, puedeGestionar, archivarProyecto,
-  avisarGithub, invitarAProyectos, alternarPausa,
+  avisarGithub, invitarAProyectos, alternarPausa, modalEliminar, eliminarProyecto,
 } from '../proyectos.js';
 import { publicarResumen } from '../resumen.js';
 import { revisarSkills } from '../skillsMonitor.js';
@@ -64,6 +64,8 @@ export const commands = [
     .addSubcommand((s) => s.setName('preparar-repo').setDescription('Agrega al repo del proyecto las skills del equipo y el git workflow')
       .addStringOption((o) => proyectoOption(o, false)))
     .addSubcommand((s) => s.setName('pausar').setDescription('Pausa o reanuda un proyecto (el resto del estado es automático)')
+      .addStringOption((o) => proyectoOption(o, false)))
+    .addSubcommand((s) => s.setName('eliminar').setDescription('Elimina el proyecto: canales, rol, tareas y su publicación en aprobados')
       .addStringOption((o) => proyectoOption(o, false)))
     .addSubcommand((s) => s.setName('archivar').setDescription('Marca el proyecto como terminado y lo manda al final')
       .addStringOption((o) => proyectoOption(o, false))),
@@ -345,6 +347,11 @@ const handlers = {
       return interaction.editReply(pausado ? `⏸️ **${p.nombre}** pausado.` : `▶️ **${p.nombre}** reanudado.`);
     }
 
+    if (sub === 'eliminar') {
+      const p = proyectoGestionable(interaction, resolverProyecto(interaction));
+      return interaction.showModal(modalEliminar(p));
+    }
+
     if (sub === 'archivar') {
       const p = proyectoGestionable(interaction, resolverProyecto(interaction));
       await interaction.deferReply();
@@ -596,6 +603,7 @@ function guiaEmbeds(guild) {
       { name: 'Estado automático', value: '⏳ Por iniciar (sin issues) → 🛠️ Desarrollo → 🚀 Producción (todos cerrados) → 🔧 Mantenimiento (tareas extra pendientes). `/proyecto pausar` o el botón ⏸️ lo pausa. · Responsable' },
       { name: '`/proyecto github`', value: 'Conecta el repositorio al canal de commits. · Responsable' },
       { name: '`/proyecto archivar`', value: 'Lo marca como terminado y lo pasa a ◇. · Responsable' },
+      { name: '`/proyecto eliminar`', value: 'También con el botón 🗑️ de la ficha. Pide escribir el nombre; borra canales, rol, tareas y su publicación en aprobados (el repo de GitHub se conserva). · Responsable' },
       { name: '`/proyecto lista` · `/proyecto info`', value: 'Ver tus proyectos o la ficha de uno. · Miembros' },
       { name: 'Issues', value: 'Se crean, asignan y revisan en GitHub. El bot los lee cada 5 min: 👤 quién lo tiene (vinculen su GitHub), 🔍 PR en revisión (si el PR dice "closes #N") y ✅ cerrados. Nunca modifica GitHub.' },
       { name: '`/proyecto preparar-repo`', value: 'Agrega al repo las skills del equipo y el git workflow (los repos que crea el bot ya vienen así). · Responsable' },
@@ -660,6 +668,23 @@ const componentes = {
   async 'boton:proyecto-github'(interaction, id) {
     return responderGithub(interaction, proyectoDeComponente(interaction, id));
   },
+  async 'boton:proyecto-eliminar'(interaction, id) {
+    return interaction.showModal(modalEliminar(proyectoDeComponente(interaction, id)));
+  },
+
+  async 'modal:proyecto-eliminar'(interaction, id) {
+    const p = proyectoDeComponente(interaction, id);
+    const escrito = interaction.fields.getTextInputValue('confirmacion').trim();
+    if (escrito.toLowerCase() !== p.nombre.toLowerCase()) {
+      throw new UserError(`El nombre no coincide ("${escrito}"). No se eliminó nada.`);
+    }
+    await interaction.deferReply(ephemeral);
+    const { nombre } = p;
+    const borrados = await eliminarProyecto(interaction.guild, p);
+    // Si el comando se usó dentro del proyecto, ese canal ya no existe: la respuesta puede fallar.
+    return interaction.editReply(`🗑️ **${nombre}** eliminado: ${borrados.join(', ')}. El repo de GitHub se conserva.`).catch(() => {});
+  },
+
   async 'boton:proyecto-pausa'(interaction, id) {
     const p = proyectoDeComponente(interaction, id);
     await interaction.deferReply(ephemeral);

@@ -107,20 +107,32 @@ export function proyectoEmbed(p) {
 }
 
 export function fichaComponents(p) {
-  const row = new ActionRowBuilder().addComponents(
+  // Fila 1: acciones del responsable. Fila 2: conexiones y enlaces (máx. 5 botones por fila).
+  const acciones = new ActionRowBuilder().addComponents(
     new ButtonBuilder().setCustomId(`proyecto-miembros:${p.id}`).setLabel('Miembros').setEmoji('👥').setStyle(ButtonStyle.Primary),
     new ButtonBuilder().setCustomId(`proyecto-editar:${p.id}`).setLabel('Editar').setEmoji('✏️').setStyle(ButtonStyle.Secondary),
     p.pausado
       ? new ButtonBuilder().setCustomId(`proyecto-pausa:${p.id}`).setLabel('Reanudar').setEmoji('▶️').setStyle(ButtonStyle.Success)
       : new ButtonBuilder().setCustomId(`proyecto-pausa:${p.id}`).setLabel('Pausar').setEmoji('⏸️').setStyle(ButtonStyle.Secondary),
+    new ButtonBuilder().setCustomId(`proyecto-eliminar:${p.id}`).setLabel('Eliminar').setEmoji('🗑️').setStyle(ButtonStyle.Danger),
   );
+  const enlaces = new ActionRowBuilder();
   if (!p.githubConectado) {
-    row.addComponents(new ButtonBuilder().setCustomId(`proyecto-github:${p.id}`).setLabel('Conectar GitHub').setEmoji('📡').setStyle(ButtonStyle.Secondary));
+    enlaces.addComponents(new ButtonBuilder().setCustomId(`proyecto-github:${p.id}`).setLabel('Conectar GitHub').setEmoji('📡').setStyle(ButtonStyle.Secondary));
   }
-  if (p.github) row.addComponents(new ButtonBuilder().setURL(p.github).setLabel('GitHub').setEmoji('🐙').setStyle(ButtonStyle.Link));
-  if (p.drive) row.addComponents(new ButtonBuilder().setURL(p.drive).setLabel('Drive').setEmoji('☁️').setStyle(ButtonStyle.Link));
-  return [row];
+  if (p.github) enlaces.addComponents(new ButtonBuilder().setURL(p.github).setLabel('GitHub').setEmoji('🐙').setStyle(ButtonStyle.Link));
+  if (p.drive) enlaces.addComponents(new ButtonBuilder().setURL(p.drive).setLabel('Drive').setEmoji('☁️').setStyle(ButtonStyle.Link));
+  return enlaces.components.length ? [acciones, enlaces] : [acciones];
 }
+
+export const modalEliminar = (p) => new ModalBuilder()
+  .setCustomId(`proyecto-eliminar:${p.id}`)
+  .setTitle(`Eliminar · ${p.nombre}`.slice(0, 45))
+  .addLabelComponents(new LabelBuilder()
+    .setLabel('Escribe el nombre del proyecto para confirmar')
+    .setDescription('Borra canales, rol, tareas y su publicación en aprobados. El repo de GitHub se conserva.')
+    .setTextInputComponent(new TextInputBuilder().setCustomId('confirmacion').setStyle(TextInputStyle.Short)
+      .setRequired(true).setPlaceholder(p.nombre.slice(0, 100))));
 
 export async function refrescarFicha(guild, p) {
   const channel = await guild.channels.fetch(p.channelId).catch(() => null);
@@ -276,4 +288,53 @@ export async function alternarPausa(guild, p) {
   await refrescarFicha(guild, p);
   await refrescarTarjetaDeProyecto(guild, p.id);
   return p.pausado;
+}
+
+// Elimina el proyecto de Discord y del bot. El repo de GitHub se conserva (solo se quita el webhook del bot).
+export async function eliminarProyecto(guild, p) {
+  const db = getDb();
+  const borrados = [];
+
+  // Publicación en proyectos aprobados (y la de la idea si quedó separada).
+  const idea = db.ideas.find((i) => i.proyecto === p.id);
+  for (const hiloId of [p.tarjetaId, idea?.tarjetaId].filter(Boolean)) {
+    const hilo = await guild.channels.fetch(hiloId).catch(() => null);
+    if (hilo) { await hilo.delete(`Proyecto ${p.nombre} eliminado`).catch(() => {}); borrados.push('publicación en aprobados'); }
+  }
+
+  // Webhook de commits registrado en el repo.
+  if (p.githubHookId && githubConfigurado()) {
+    const repo = p.github?.match(/github\.com\/([\w.-]+)\/([\w.-]+?)(?:\.git)?\/?$/i);
+    if (repo) {
+      await fetch(`https://api.github.com/repos/${repo[1]}/${repo[2]}/hooks/${p.githubHookId}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${process.env.GITHUB_PAT}`, Accept: 'application/vnd.github+json', 'User-Agent': 'discord-organizador' },
+      }).catch(() => {});
+    }
+  }
+
+  // Canales (los de la categoría y los guardados) y la categoría al final.
+  const ids = new Set([p.channelId, p.foroId, p.vozId, p.commitsId, p.tareasId, p.extraId].filter(Boolean));
+  await guild.channels.fetch().catch(() => {});
+  for (const c of guild.channels.cache.filter((x) => x.parentId === p.categoryId).values()) ids.add(c.id);
+  let canales = 0;
+  for (const id of ids) {
+    const c = guild.channels.cache.get(id) ?? await guild.channels.fetch(id).catch(() => null);
+    if (c && await c.delete(`Proyecto ${p.nombre} eliminado`).then(() => true).catch(() => false)) canales += 1;
+  }
+  const cat = await guild.channels.fetch(p.categoryId).catch(() => null);
+  if (cat) await cat.delete(`Proyecto ${p.nombre} eliminado`).catch(() => {});
+  borrados.push(`${canales} canal(es) y la categoría`);
+
+  const rol = await guild.roles.fetch(p.roleId).catch(() => null);
+  if (rol) { await rol.delete(`Proyecto ${p.nombre} eliminado`).catch(() => {}); borrados.push('el rol'); }
+
+  // Registro en el bot.
+  if (idea) { idea.proyecto = null; idea.estado = 'eliminada'; delete idea.tarjetaId; }
+  db.archivos = db.archivos.filter((a) => a.proyecto !== p.id);
+  db.links = db.links.filter((l) => l.proyecto !== p.id);
+  delete db.carpetas[p.id];
+  delete db.proyectos[p.id];
+  save();
+  return borrados;
 }

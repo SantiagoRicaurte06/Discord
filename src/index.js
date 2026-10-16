@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import { Client, GatewayIntentBits, Events, Partials } from 'discord.js';
 import {
-  handleCommand, handleAutocomplete, handleComponent, registrarLink,
+  handleCommand, handleAutocomplete, handleComponent, registrarLink, commands,
 } from './commands/index.js';
 import { extractDriveLinks } from './drive.js';
 import { findProyectoByChannel, getDb, save } from './store.js';
@@ -30,6 +30,11 @@ function createClient(intents) {
 function registerEvents(client) {
   client.once(Events.ClientReady, (c) => {
     console.log(`✅ Conectado como ${c.user.tag} en ${c.guilds.cache.size} servidor(es)`);
+    // Registra los slash commands al arrancar: así un despliegue nuevo no necesita `npm run deploy`.
+    const guild = process.env.GUILD_ID && c.guilds.cache.get(process.env.GUILD_ID);
+    guild?.commands.set(commands.map((cmd) => cmd.toJSON()))
+      .then((r) => console.log(`✅ ${r.size} comandos registrados`))
+      .catch((e) => console.error('Registrando comandos:', e.message));
     if (process.env.GUILD_ID) {
       iniciarSincronizacion(c, process.env.GUILD_ID);
       iniciarResumenSemanal(c, process.env.GUILD_ID);
