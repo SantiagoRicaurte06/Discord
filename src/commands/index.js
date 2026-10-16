@@ -22,6 +22,7 @@ import {
 } from '../proyectos.js';
 import { publicarResumen } from '../resumen.js';
 import { revisarSkills } from '../skillsMonitor.js';
+import { prepararRepo, guiaSkillsEmbed } from '../plantillaRepo.js';
 import {
   modalIdea, publicarIdea, VOTOS_NECESARIOS, SI, NO,
 } from '../ideas.js';
@@ -58,6 +59,8 @@ export const commands = [
     .addSubcommand((s) => s.setName('miembros').setDescription('Agrega o quita personas de un proyecto')
       .addStringOption((o) => proyectoOption(o, false)))
     .addSubcommand((s) => s.setName('github').setDescription('Conecta el repo de GitHub al canal de commits')
+      .addStringOption((o) => proyectoOption(o, false)))
+    .addSubcommand((s) => s.setName('preparar-repo').setDescription('Agrega al repo del proyecto las skills del equipo y el git workflow')
       .addStringOption((o) => proyectoOption(o, false)))
     .addSubcommand((s) => s.setName('pausar').setDescription('Pausa o reanuda un proyecto (el resto del estado es automático)')
       .addStringOption((o) => proyectoOption(o, false)))
@@ -313,6 +316,25 @@ const handlers = {
     if (sub === 'github') {
       const p = proyectoGestionable(interaction, resolverProyecto(interaction));
       return responderGithub(interaction, p);
+    }
+
+    if (sub === 'preparar-repo') {
+      const p = proyectoGestionable(interaction, resolverProyecto(interaction));
+      if (!p.github) throw new UserError('El proyecto no tiene repositorio. Agrégalo con ✏️ Editar en la ficha.');
+      await interaction.deferReply(ephemeral);
+      let resultado;
+      try {
+        resultado = await prepararRepo(p.github);
+        p.repoPreparado = true;
+        save();
+      } catch (err) {
+        resultado = { ok: false, error: err.message.slice(0, 200) };
+      }
+      const chat = await interaction.guild.channels.fetch(p.channelId).catch(() => null);
+      if (resultado.ok) await chat?.send({ embeds: [guiaSkillsEmbed(p, resultado)] }).catch(() => {});
+      return interaction.editReply(resultado.ok
+        ? (resultado.sinCambios ? '✅ El repo ya tenía las skills y el git workflow.' : `✅ Repo preparado: ${resultado.skills?.length ?? 0} skills, git workflow y rama develop. Avisé en <#${p.channelId}>.`)
+        : `⚠️ No se pudo preparar el repo: ${resultado.error}`);
     }
 
     if (sub === 'pausar') {
@@ -575,6 +597,7 @@ function guiaEmbeds(guild) {
       { name: '`/proyecto archivar`', value: 'Lo marca como terminado y lo pasa a ◇. · Responsable' },
       { name: '`/proyecto lista` · `/proyecto info`', value: 'Ver tus proyectos o la ficha de uno. · Miembros' },
       { name: 'Issues', value: 'Se crean, asignan y revisan en GitHub. El bot los lee cada 5 min: 👤 quién lo tiene (vinculen su GitHub), 🔍 PR en revisión (si el PR dice "closes #N") y ✅ cerrados. Nunca modifica GitHub.' },
+      { name: '`/proyecto preparar-repo`', value: 'Agrega al repo las skills del equipo y el git workflow (los repos que crea el bot ya vienen así). · Responsable' },
       { name: '`/tarea-extra`', value: 'Solo en `🧩・tareas-extra` y con el proyecto en producción: agrega un arreglo o añadido. El menú las marca como hechas o las reabre. · Miembros' },
     ),
 

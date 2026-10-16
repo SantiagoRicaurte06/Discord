@@ -15,6 +15,7 @@ import {
   githubConfigurado, crearRepo, invitar, quitarAcceso,
 } from './githubApi.js';
 import { COLORES, PROYECTO } from './layout.js';
+import { prepararEnSegundoPlano, guiaSkillsEmbed } from './plantillaRepo.js';
 
 // Errores esperados que se muestran al usuario sin ensuciar la consola.
 export class UserError extends Error {}
@@ -144,9 +145,12 @@ export async function crearProyecto(guild, autorId, { nombre, descripcion, githu
 
   // Sin repo indicado, el bot crea uno nuevo en GitHub (si hay GITHUB_PAT).
   let errorRepo = null;
+  let repoNuevo = false;
   if (!github && githubConfigurado()) {
     try {
-      github = (await crearRepo(id, descripcion)).url;
+      const creado = await crearRepo(id, descripcion);
+      github = creado.url;
+      repoNuevo = creado.creado;
     } catch (err) {
       errorRepo = err.message;
     }
@@ -182,6 +186,9 @@ export async function crearProyecto(guild, autorId, { nombre, descripcion, githu
   save();
   await chat.send({ content: `👋 Bienvenidos al proyecto ${p.miembros.map((m) => `<@${m}>`).join(' ')}` });
   await avisarGithub(guild, p, equipo);
+  // Repo creado por el bot: se le agregan las skills y el git workflow. Repo existente: solo la guía.
+  if (repoNuevo) prepararEnSegundoPlano(guild, p);
+  else await chat.send({ embeds: [guiaSkillsEmbed(p, null)] }).catch(() => {});
   if (opciones.tarjeta !== false) await publicarTarjeta(guild, { p, idea: opciones.idea });
   return { p, github: conexion, equipo };
 }
