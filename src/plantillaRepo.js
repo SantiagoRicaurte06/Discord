@@ -1,6 +1,7 @@
 // Prepara el repo de un proyecto con las skills del equipo y el git workflow, para que quien lo clone
 // tenga todo listo sin instalar nada (Claude Code carga .claude/skills y .claude/agents del proyecto).
-// Usa los scripts de este repo: skills/guia-skills/scripts/instalar.sh y skills/git-workflow/scripts/configurar.sh.
+// Usa los scripts de este repo: skills/guia-skills/scripts/instalar.sh, skills/git-workflow/scripts/configurar.sh
+// y skills/proteccion/scripts/activar.sh (hook que frena acciones destructivas de Claude).
 // Requiere en el servidor del bot: git, bash, Node/npx y GITHUB_PAT con permiso de escritura en el repo.
 import { execFile } from 'node:child_process';
 import { mkdtemp, rm, appendFile, readFile } from 'node:fs/promises';
@@ -18,7 +19,8 @@ const ejecutar = promisify(execFile);
 const SKILLS = join(dirname(fileURLToPath(import.meta.url)), '..', 'skills');
 const INSTALAR = join(SKILLS, 'guia-skills', 'scripts', 'instalar.sh');
 const CONFIGURAR = join(SKILLS, 'git-workflow', 'scripts', 'configurar.sh');
-const MENSAJE = 'chore: add team skills and git workflow';
+const PROTECCION = join(SKILLS, 'proteccion', 'scripts', 'activar.sh');
+const MENSAJE = 'chore: add team skills, git workflow and safety hooks';
 
 const NOTA_README = `
 ## Skills del equipo
@@ -31,6 +33,9 @@ Una sola vez después de clonar, activa los hooks de Git del equipo:
 \`\`\`bash
 git config core.hooksPath .githooks
 \`\`\`
+
+Claude Code también trae un hook de protección (\`.claude/hooks/proteccion.sh\`) que frena borrar la base de datos,
+\`rm -rf\` sobre el proyecto, force push a \`main\`/\`develop\` y similares. Ver la skill \`proteccion\`.
 
 Normas de ramas y commits: [GIT_WORKFLOW.md](GIT_WORKFLOW.md). Actualizar las skills: \`npx skills@latest update\`.
 `;
@@ -63,10 +68,12 @@ export async function prepararRepo(repoUrl, { cloneUrl, rama = null } = {}) {
 
     await correr('bash', [INSTALAR, '--instalar'], dir, 600_000);
     await correr('bash', [CONFIGURAR, '--aplicar'], dir);
+    // Por si npx no pudo bajar la skill: el hook se activa igual con la copia local (es idempotente).
+    await correr('bash', [PROTECCION], dir);
 
     const claude = await readFile(join(dir, 'CLAUDE.md'), 'utf8').catch(() => '');
     if (!claude.includes('## Skills del equipo')) {
-      await appendFile(join(dir, 'CLAUDE.md'), '\n## Skills del equipo\n\nEste repo trae las skills del equipo en `.claude/skills/`. Al empezar cada tarea, consulta `guia-skills` para decidir cuál aplicar.\n');
+      await appendFile(join(dir, 'CLAUDE.md'), '\n## Skills del equipo\n\nEste repo trae las skills del equipo en `.claude/skills/`. Al empezar cada tarea, consulta `guia-skills` para decidir cuál aplicar.\n\nSi el hook `🛡️ proteccion` bloquea un comando, no intentes rodearlo: explica qué querías hacer y propón una alternativa segura (skill `proteccion`).\n');
     }
     const readme = await readFile(join(dir, 'README.md'), 'utf8').catch(() => '');
     if (!readme.includes('## Skills del equipo')) await appendFile(join(dir, 'README.md'), NOTA_README);
@@ -106,7 +113,7 @@ export function guiaSkillsEmbed(p, resultado) {
   const e = new EmbedBuilder().setColor(enRepo ? COLORES.exito : COLORES.primario).setTitle('🧭 Skills del equipo');
   if (enRepo) {
     return e.setDescription([
-      `El repo **ya trae las skills del equipo**${resultado.skills?.length ? ` (${resultado.skills.length})` : ''}, los subagentes de thermos y las normas de Git.`,
+      `El repo **ya trae las skills del equipo**${resultado.skills?.length ? ` (${resultado.skills.length})` : ''}, los subagentes de thermos, las normas de Git y el hook 🛡️ que impide que Claude borre la base de datos o haga force push a main.`,
       '',
       '**Para empezar:**',
       `1. Clona el repo: \`git clone ${p.github}\``,

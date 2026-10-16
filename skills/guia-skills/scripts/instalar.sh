@@ -24,11 +24,15 @@ anti-slop|rand/cc-polymath|anti-slop|quita el contenido con cara de IA
 thermos|https://github.com/cursor/plugins/tree/main/thermos|thermos thermo-nuclear-review thermo-nuclear-code-quality-review|doble revisión antes de mergear
 checklist-lanzamiento|santiagoricaurte06/discord|checklist-lanzamiento|24 puntos antes de deployar
 git-workflow|santiagoricaurte06/discord|git-workflow|normas de ramas, commits y PRs
+proteccion|santiagoricaurte06/discord|proteccion|hook que frena borrar la BD, rm -rf y force push
 guia-skills|santiagoricaurte06/discord|guia-skills|esta guía'
 AGENTES_THERMOS="thermo-nuclear-review-subagent thermo-nuclear-code-quality-review-subagent"
 
 DIR_PROYECTO=".claude"; DIR_GLOBAL="$HOME/.claude"
 instalada() { [ -f "$DIR_PROYECTO/skills/$1/SKILL.md" ] || [ -f "$DIR_GLOBAL/skills/$1/SKILL.md" ] || [ -f ".agents/skills/$1/SKILL.md" ]; }
+# El hook de proteccion no basta con instalar la skill: hay que activarlo en settings.json.
+dir_skill() { local d; for d in "$DIR_PROYECTO/skills/$1" ".agents/skills/$1" "$DIR_GLOBAL/skills/$1"; do [ -d "$d" ] && { echo "$d"; return; }; done; }
+hook_ok() { grep -qs 'proteccion\.sh' "$DIR_PROYECTO/settings.json" "$DIR_GLOBAL/settings.json"; }
 agente_ok() { [ -f "$DIR_PROYECTO/agents/$1.md" ] || [ -f "$DIR_GLOBAL/agents/$1.md" ]; }
 
 echo "Skills del equipo ($([ "$GLOBAL" = 1 ] && echo "global: $DIR_GLOBAL" || echo "proyecto: $(pwd)"))"
@@ -38,6 +42,7 @@ while IFS='|' read -r nombre fuente skills uso; do
   pendientes=()
   for s in $skills; do instalada "$s" || pendientes+=("$s"); done
   if [ "$nombre" = thermos ]; then for a in $AGENTES_THERMOS; do agente_ok "$a" || pendientes+=("agente:$a"); done; fi
+  if [ "$nombre" = proteccion ]; then hook_ok || pendientes+=("activar el hook"); fi
   if [ ${#pendientes[@]} -eq 0 ]; then printf '  ✅ %-22s %s\n' "$nombre" "$uso"
   else printf '  ⬜ %-22s %s  (falta: %s)\n' "$nombre" "$uso" "${pendientes[*]}"; faltan+=("$nombre"); fi
 done <<< "$CATALOGO"
@@ -58,6 +63,12 @@ while IFS='|' read -r nombre fuente skills uso; do
   # shellcheck disable=SC2086
   npx -y skills@latest add "$fuente" --skill $skills "${FLAGS[@]}" </dev/null >/dev/null 2>&1 \
     && echo "  ✓ skills: $skills" || echo "  ✖ no se pudo instalar (revisa tu conexión o corre: npx skills add $fuente --skill $skills)"
+  if [ "$nombre" = proteccion ]; then
+    d="$(dir_skill proteccion)"
+    if [ -n "$d" ] && bash "$d/scripts/activar.sh" $([ "$GLOBAL" = 1 ] && echo --global) </dev/null >/dev/null; then
+      echo "  ✓ hook activo en $([ "$GLOBAL" = 1 ] && echo "$DIR_GLOBAL" || echo "$DIR_PROYECTO")/settings.json"
+    else echo "  ✖ no se pudo activar el hook (corre: bash <skill proteccion>/scripts/activar.sh)"; fi
+  fi
   if [ "$nombre" = thermos ]; then
     destino="$([ "$GLOBAL" = 1 ] && echo "$DIR_GLOBAL" || echo "$DIR_PROYECTO")/agents"
     mkdir -p "$destino"

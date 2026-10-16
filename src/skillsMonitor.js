@@ -63,6 +63,30 @@ async function hiloDe(foro, nombreHilo) {
   return [...activos.threads.values(), ...archivados.threads.values()].find((t) => t.name.includes(nombreHilo)) ?? null;
 }
 
+// Publica en el foro las skills del catálogo con "publicar" que todavía no tienen publicación,
+// con sus archivos adjuntos tomados de este repo. Así una skill nueva aparece sola al desplegar el bot.
+export async function publicarNuevas(guild) {
+  const foro = canal(guild, 'skills');
+  if (!foro) return [];
+  const publicadas = [];
+  for (const s of catalogo().filter((x) => x.publicar)) {
+    if (await hiloDe(foro, s.hilo)) continue;
+    const { titulo, texto, etiquetas = [] } = s.publicar;
+    const raiz = join(dirname(CATALOGO), '..');
+    const files = (s.archivos ?? []).map((ruta) => new AttachmentBuilder(readFileSync(join(raiz, ruta)), { name: basename(ruta) }));
+    const embed = new EmbedBuilder().setColor(COLORES.primario).setTitle(titulo).setDescription(texto.join('\n'))
+      .setFooter({ text: `Skill del equipo · ${s.repo}` });
+    const appliedTags = foro.availableTags.filter((t) => etiquetas.includes(t.name)).map((t) => t.id);
+    try {
+      await foro.threads.create({ name: titulo, appliedTags, message: { embeds: [embed], files } });
+      publicadas.push(s.nombre);
+    } catch (err) {
+      console.error(`Publicando la skill ${s.nombre}:`, err.message);
+    }
+  }
+  return publicadas;
+}
+
 async function avisar(hilo, s, { cambiados, version, versionAnterior, commits }) {
   if (hilo.archived) await hilo.setArchived(false).catch(() => {});
   const lineas = s.brew
@@ -143,6 +167,8 @@ export function iniciarRevisionSkills(client, guildId) {
     const r = await revisarSkills(guild).catch((e) => console.error('Revisión de skills:', e.message));
     if (r) console.log(`🔄 Skills revisadas: ${r.map((x) => `${x.nombre}=${x.estado}`).join(', ')}`);
   };
+  const guild = client.guilds.cache.get(guildId);
+  if (guild) publicarNuevas(guild).then((n) => n.length && console.log(`🧠 Skills publicadas: ${n.join(', ')}`)).catch(() => {});
   revisar();
   return setInterval(revisar, 15 * 60 * 1000);
 }

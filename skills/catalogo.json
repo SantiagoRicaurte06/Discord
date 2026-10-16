@@ -76,6 +76,47 @@
     "actualizar": "npx skills@latest update"
   },
   {
+    "nombre": "proteccion",
+    "hilo": "proteccion",
+    "repo": "SantiagoRicaurte06/Discord",
+    "archivos": [
+      "skills/proteccion/SKILL.md",
+      "skills/proteccion/scripts/proteccion.sh",
+      "skills/proteccion/scripts/activar.sh",
+      "skills/proteccion/scripts/probar.sh"
+    ],
+    "adjuntar": true,
+    "actualizar": "npx skills@latest update  (y vuelve a correr scripts/activar.sh para copiar el hook nuevo)",
+    "publicar": {
+      "titulo": "🛡️ proteccion",
+      "etiquetas": [
+        "IA",
+        "Bases de datos",
+        "DevOps"
+      ],
+      "texto": [
+        "**Hook de seguridad para Claude Code.** Revisa cada comando y archivo **antes** de que se ejecute y frena lo que puede romper el proyecto.",
+        "",
+        "**🚫 Bloquea**",
+        "• Borrar la base de datos: `DROP`, `TRUNCATE`, `DELETE`/`UPDATE` sin `WHERE`, `FLUSHALL`, `dropdb`, `prisma migrate reset`, `db push --accept-data-loss`, `supabase db reset`, `docker compose down -v`, borrar `*.db`, `data/` o `migrations/`",
+        "• `rm -rf` sobre `/`, `~`, `.`, `*` o `.git`",
+        "• Force push o borrar `main`/`develop`, `--no-verify`, `filter-branch`, `gh repo delete`, `terraform destroy`",
+        "",
+        "**❓ Pide permiso**",
+        "`git reset --hard`, `git clean -f`, `git branch -D`, force push a tu rama, `find -delete`, `npm publish`, editar `.env` o los hooks",
+        "",
+        "**Instalar en un repo** (los repos que crea Zy ya la traen):",
+        "```bash",
+        "npx skills@latest add santiagoricaurte06/discord --skill proteccion",
+        "bash .claude/skills/proteccion/scripts/activar.sh",
+        "```",
+        "Commitea `.claude/settings.json` y `.claude/hooks/` para que todo el equipo quede protegido. Para todos tus proyectos: `activar.sh --global`. Probarla: `scripts/probar.sh`.",
+        "",
+        "-# Si te bloquea algo que sí querías hacer, córrelo tú con `!comando` en Claude Code. Es una red de seguridad, no reemplaza los respaldos."
+      ]
+    }
+  },
+  {
     "nombre": "guia-skills",
     "hilo": "guia-skills",
     "repo": "SantiagoRicaurte06/Discord",
