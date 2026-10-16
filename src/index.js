@@ -9,6 +9,7 @@ import { refrescarFicha } from './proyectos.js';
 import { procesarVoto, revisarVotacionesPendientes } from './ideas.js';
 import { iniciarSincronizacion } from './tareas.js';
 import { iniciarResumenSemanal } from './resumen.js';
+import { iniciarRevisionSkills } from './skillsMonitor.js';
 import { guardarArchivo, asignarRespaldo, archivoPorMensaje } from './carpetas.js';
 
 if (!process.env.DISCORD_TOKEN) {
@@ -32,6 +33,7 @@ function registerEvents(client) {
     if (process.env.GUILD_ID) {
       iniciarSincronizacion(c, process.env.GUILD_ID);
       iniciarResumenSemanal(c, process.env.GUILD_ID);
+      iniciarRevisionSkills(c, process.env.GUILD_ID);
       const guild = c.guilds.cache.get(process.env.GUILD_ID);
       if (guild) revisarVotacionesPendientes(guild).catch((e) => console.error('Revisando votaciones:', e));
     }

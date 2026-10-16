@@ -66,7 +66,7 @@ export async function publicarResumen(guild) {
 }
 
 // Fecha y hora local en la zona configurada.
-function ahoraLocal() {
+export function ahoraLocal() {
   const partes = Object.fromEntries(new Intl.DateTimeFormat('en-CA', {
     timeZone: ZONA(), year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', hourCycle: 'h23', weekday: 'short',
   }).formatToParts(new Date()).map((x) => [x.type, x.value]));

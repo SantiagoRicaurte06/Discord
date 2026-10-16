@@ -1,0 +1,51 @@
+[
+  {
+    "nombre": "grill-me",
+    "hilo": "grill-me",
+    "repo": "mattpocock/skills",
+    "archivos": ["skills/productivity/grill-me/SKILL.md", "skills/productivity/grilling/SKILL.md"],
+    "actualizar": "npx skills@latest update"
+  },
+  {
+    "nombre": "caveman",
+    "hilo": "caveman",
+    "repo": "JuliusBrussee/caveman",
+    "archivos": ["skills/caveman/SKILL.md", "skills/ultracave/SKILL.md", "skills/megacave/SKILL.md"],
+    "actualizar": "npx skills@latest update"
+  },
+  {
+    "nombre": "RTK",
+    "hilo": "RTK",
+    "repo": "rtk-ai/rtk",
+    "brew": "rtk",
+    "actualizar": "brew upgrade rtk   (o vuelve a correr el script de instalación)"
+  },
+  {
+    "nombre": "anti-slop",
+    "hilo": "anti-slop",
+    "repo": "rand/cc-polymath",
+    "archivos": ["skills/anti-slop/SKILL.md"],
+    "actualizar": "npx skills@latest update"
+  },
+  {
+    "nombre": "thermos",
+    "hilo": "thermos",
+    "repo": "cursor/plugins",
+    "archivos": [
+      "thermos/skills/thermos/SKILL.md",
+      "thermos/skills/thermo-nuclear-review/SKILL.md",
+      "thermos/skills/thermo-nuclear-code-quality-review/SKILL.md",
+      "thermos/agents/thermo-nuclear-review-subagent.md",
+      "thermos/agents/thermo-nuclear-code-quality-review-subagent.md"
+    ],
+    "actualizar": "npx skills@latest update  (y vuelve a copiar los 2 subagentes con el comando de la publicación)"
+  },
+  {
+    "nombre": "checklist-lanzamiento",
+    "hilo": "checklist-lanzamiento",
+    "repo": "SantiagoRicaurte06/Discord",
+    "archivos": ["skills/checklist-lanzamiento/SKILL.md", "skills/checklist-lanzamiento/scripts/revisar.mjs"],
+    "adjuntar": true,
+    "actualizar": "npx skills@latest update"
+  }
+]

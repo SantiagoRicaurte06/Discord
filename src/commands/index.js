@@ -21,6 +21,7 @@ import {
   avisarGithub, invitarAProyectos, alternarPausa,
 } from '../proyectos.js';
 import { publicarResumen } from '../resumen.js';
+import { revisarSkills } from '../skillsMonitor.js';
 import {
   modalIdea, publicarIdea, VOTOS_NECESARIOS, SI, NO,
 } from '../ideas.js';
@@ -104,6 +105,11 @@ export const commands = [
   new SlashCommandBuilder()
     .setName('resumen')
     .setDescription('Publica ahora el resumen semanal en el canal general')
+    .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild),
+
+  new SlashCommandBuilder()
+    .setName('skills-revisar')
+    .setDescription('Revisa ahora si las skills publicadas tienen actualizaciones en GitHub')
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild),
 
   new SlashCommandBuilder().setName('ayuda').setDescription('Muestra cómo usar el bot'),
@@ -472,6 +478,15 @@ const handlers = {
     return interaction.editReply(msg ? `📊 Resumen publicado en <#${msg.channelId}>.` : 'No encontré el canal general.');
   },
 
+  async 'skills-revisar'(interaction) {
+    await interaction.deferReply(ephemeral);
+    const r = await revisarSkills(interaction.guild);
+    const icono = { actualizada: '🔄', 'sin cambios': '✅', 'referencia guardada': '📌', error: '⚠️' };
+    return interaction.editReply(r.length
+      ? r.map((x) => `${icono[x.estado] ?? '•'} **${x.nombre}**: ${x.estado}${x.detalle ? ` (${x.detalle})` : ''}`).join('\n')
+      : 'No encontré el foro de skills.');
+  },
+
   async ayuda(interaction) {
     return interaction.reply({ embeds: guiaEmbeds(interaction.guild), ...ephemeral });
   },
@@ -532,7 +547,7 @@ function guiaEmbeds(guild) {
       `**${m('ideasAprobadas')}** — foro con una publicación por proyecto: estado, equipo y progreso`,
       `**${m('archivos')}** — carpeta de archivos generales`,
       `**${m('linksDrive')}** — links de Drive generales`,
-      `**${m('skills')}** — skills, tutoriales y cursos recomendados (solo lectura, con etiquetas por área)`,
+      `**${m('skills')}** — skills recomendadas (solo lectura). Cada día a las 2 a. m. el bot revisa sus repos de GitHub y avisa si alguna se actualizó`,
       `**${m('vozGeneral')}** — sala de voz del equipo`,
     ].join('\n')),
 
