@@ -1,23 +1,59 @@
 // Almacenamiento simple en un archivo JSON (data/db.json).
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
+// Guardado atómico (archivo temporal + rename) para que un corte de luz no deje el archivo a medias,
+// y una copia diaria en data/backups/ (se conservan las últimas BACKUPS_DIAS).
+import {
+  readFileSync, writeFileSync, existsSync, mkdirSync, renameSync, readdirSync, unlinkSync,
+} from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 // DATA_DIR permite guardar la base en un volumen persistente al desplegar.
 const DATA_DIR = process.env.DATA_DIR ?? join(dirname(fileURLToPath(import.meta.url)), '..', 'data');
 const DB_PATH = join(DATA_DIR, 'db.json');
+const BACKUP_DIR = join(DATA_DIR, 'backups');
+const BACKUPS_DIAS = 14;
 const EMPTY = { proyectos: {}, links: [], ideas: [], archivos: [], carpetas: {} };
 
+function leer(ruta) {
+  return { ...structuredClone(EMPTY), ...JSON.parse(readFileSync(ruta, 'utf8')) };
+}
+
+// Si db.json está dañado, arranca con la copia más reciente que se pueda leer.
 function load() {
   if (!existsSync(DB_PATH)) return structuredClone(EMPTY);
-  return { ...structuredClone(EMPTY), ...JSON.parse(readFileSync(DB_PATH, 'utf8')) };
+  try {
+    return leer(DB_PATH);
+  } catch (err) {
+    const copias = existsSync(BACKUP_DIR) ? readdirSync(BACKUP_DIR).filter((f) => f.endsWith('.json')).sort().reverse() : [];
+    for (const f of copias) {
+      try {
+        const datos = leer(join(BACKUP_DIR, f));
+        console.warn(`⚠️ db.json dañado (${err.message}); se restauró la copia ${f}`);
+        return datos;
+      } catch { /* probar la siguiente */ }
+    }
+    throw err;
+  }
+}
+
+function backupDiario() {
+  const hoy = new Date().toISOString().slice(0, 10);
+  const destino = join(BACKUP_DIR, `db-${hoy}.json`);
+  if (existsSync(destino)) return;
+  mkdirSync(BACKUP_DIR, { recursive: true });
+  writeFileSync(destino, JSON.stringify(db, null, 2));
+  const viejas = readdirSync(BACKUP_DIR).filter((f) => /^db-\d{4}-\d{2}-\d{2}\.json$/.test(f)).sort().slice(0, -BACKUPS_DIAS);
+  for (const f of viejas) unlinkSync(join(BACKUP_DIR, f));
 }
 
 let db = load();
 
 export function save() {
   mkdirSync(dirname(DB_PATH), { recursive: true });
-  writeFileSync(DB_PATH, JSON.stringify(db, null, 2));
+  backupDiario();
+  const tmp = `${DB_PATH}.tmp`;
+  writeFileSync(tmp, JSON.stringify(db, null, 2));
+  renameSync(tmp, DB_PATH);
 }
 
 export const slug = (s) =>

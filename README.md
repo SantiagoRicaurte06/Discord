@@ -59,4 +59,14 @@ El bot necesita: Node 18+, salida a internet (Discord y api.github.com) y **disc
 
 **Gratis: Oracle Cloud Always Free** (VM Linux): instala Node 22, clona el repo, crea `.env`, y déjalo corriendo con `pm2 start src/index.js --name bot && pm2 save && pm2 startup`.
 
+**Raspberry Pi** (Pi 4 o 5 con 2 GB o más alcanza de sobra)
+1. Instala Raspberry Pi OS Lite (64-bit) y Node 22: `curl -fsSL https://deb.nodesource.com/setup_22.x | sudo bash - && sudo apt install -y nodejs git`.
+2. `git clone` del repo en `/home/pi/discord`, `npm install`, crea `.env` (copia de `.env.example`).
+3. Recomendado: guarda los datos en un SSD USB en vez de la tarjeta SD (`DATA_DIR=/mnt/ssd/discord-data`).
+4. `npm run deploy && npm run setup`, luego instala el servicio: ver `deploy/discord-bot.service`.
+
+**Base de datos**: es un archivo JSON (`$DATA_DIR/db.json`). Se guarda de forma atómica (no se corrompe con un corte de luz)
+y cada día se hace una copia en `$DATA_DIR/backups/` (se conservan 14). Si `db.json` se daña, el bot arranca con la última copia buena.
+Para tener una copia fuera del equipo, sincroniza la carpeta `backups/` con Google Drive usando `rclone` en un cron.
+
 Corre **una sola instancia** a la vez: dos bots con el mismo token se pisan la base de datos.

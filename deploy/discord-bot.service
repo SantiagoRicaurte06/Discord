@@ -1,0 +1,21 @@
+# Servicio systemd para Raspberry Pi / Linux: arranca el bot al encender y lo reinicia si falla.
+# Instalar:
+#   sudo cp deploy/discord-bot.service /etc/systemd/system/
+#   sudo systemctl daemon-reload && sudo systemctl enable --now discord-bot
+# Ver logs: journalctl -u discord-bot -f
+[Unit]
+Description=Bot de Discord organizador de proyectos
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/home/pi/discord
+EnvironmentFile=/home/pi/discord/.env
+ExecStart=/usr/bin/node src/index.js
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
