@@ -49,16 +49,6 @@ export async function crearRepo(nombre, descripcion) {
   throw new Error(`GitHub no creó el repo (${res.status}${res.datos?.message ? `: ${res.datos.message}` : ''})`);
 }
 
-export async function existeUsuario(login) {
-  const res = await (githubConfigurado()
-    ? api(`/users/${encodeURIComponent(login)}`)
-    : fetch(`${API}/users/${encodeURIComponent(login)}`, { headers: { 'User-Agent': 'discord-organizador' } })
-      .then(async (r) => ({ ok: r.ok, status: r.status, datos: await r.json().catch(() => null) })));
-  if (res.status === 404) return null;
-  if (!res.ok) throw new Error(`GitHub respondió ${res.status}`);
-  return { login: res.datos.login, url: res.datos.html_url };
-}
-
 // Invita como colaborador con permiso de escritura. GitHub envía la invitación por correo y notificación.
 export async function invitar(repoUrl, login) {
   const repo = parseRepo(repoUrl);
@@ -81,4 +71,57 @@ export async function quitarAcceso(repoUrl, login) {
     if (inv.invitee?.login?.toLowerCase() === login.toLowerCase()) await api(`${base}/invitations/${inv.id}`, { method: 'DELETE' });
   }
   return { ok: true };
+}
+
+// ---------- Inicio de sesión con GitHub (Device Flow) ----------
+// La persona abre github.com/login/device, escribe el código y autoriza; el bot obtiene un token
+// solo para leer su usuario (/user) y lo descarta. Requiere una OAuth App con "Device Flow" activado
+// y su Client ID en GITHUB_CLIENT_ID. No necesita URL pública ni client secret.
+
+export const loginConfigurado = () => Boolean(process.env.GITHUB_CLIENT_ID);
+
+async function postGithub(ruta, cuerpo) {
+  const res = await fetch(`https://github.com${ruta}`, {
+    method: 'POST',
+    headers: { Accept: 'application/json', 'Content-Type': 'application/json', 'User-Agent': 'discord-organizador' },
+    body: JSON.stringify({ client_id: process.env.GITHUB_CLIENT_ID, ...cuerpo }),
+  });
+  const datos = await res.json().catch(() => ({}));
+  if (!res.ok && !datos.error) throw new Error(`GitHub respondió ${res.status}`);
+  return datos;
+}
+
+// Pide un código para que la persona lo ingrese en github.com/login/device.
+export async function iniciarLogin() {
+  const d = await postGithub('/login/device/code', { scope: '' });
+  if (d.error) throw new Error(d.error_description ?? d.error);
+  return {
+    codigo: d.user_code, url: d.verification_uri, deviceCode: d.device_code,
+    intervalo: (d.interval ?? 5) * 1000, expiraEn: Date.now() + (d.expires_in ?? 900) * 1000,
+  };
+}
+
+const esperar = (ms) => new Promise((r) => { setTimeout(r, ms); });
+
+// Espera a que la persona autorice y devuelve su usuario de GitHub (o lanza error si cancela o vence).
+export async function esperarLogin({ deviceCode, intervalo, expiraEn }) {
+  let pausa = intervalo;
+  while (Date.now() < expiraEn) {
+    await esperar(pausa);
+    const t = await postGithub('/login/oauth/access_token', {
+      device_code: deviceCode, grant_type: 'urn:ietf:params:oauth:grant-type:device_code',
+    });
+    if (t.access_token) {
+      const res = await fetch(`${API}/user`, {
+        headers: { Accept: 'application/vnd.github+json', 'User-Agent': 'discord-organizador', Authorization: `Bearer ${t.access_token}` },
+      });
+      if (!res.ok) throw new Error(`GitHub respondió ${res.status} al leer el usuario`);
+      return (await res.json()).login;
+    }
+    if (t.error === 'slow_down') pausa += 5000;
+    else if (t.error === 'access_denied') throw new Error('Cancelaste la autorización en GitHub.');
+    else if (t.error === 'expired_token') break;
+    else if (t.error !== 'authorization_pending') throw new Error(t.error_description ?? t.error);
+  }
+  throw new Error('El código venció. Vuelve a usar /github vincular.');
 }

@@ -47,6 +47,16 @@ claude mcp add discord -e DISCORD_TOKEN=TU_TOKEN -- npx -y @pasympa/discord-mcp
 
 Con el MCP conectado, Claude puede leer/enviar mensajes y gestionar canales del servidor donde esté el bot.
 
+## Inicio de sesión con GitHub (`/github vincular`)
+
+Cada persona vincula su cuenta iniciando sesión en GitHub con un código (Device Flow), así nadie puede vincular una cuenta ajena.
+1. GitHub → Settings → Developer settings → **OAuth Apps** → *New OAuth App*.
+2. Nombre (ej. "Zy Discord"), Homepage URL y Callback URL: cualquier URL válida (ej. `https://discord.com`); no se usan.
+3. Crea la app, marca **Enable Device Flow** y guarda.
+4. Copia el **Client ID** en `GITHUB_CLIENT_ID`. No hace falta generar el client secret.
+
+El bot solo lee el nombre de usuario con un token de permisos mínimos y no lo guarda.
+
 ## Desplegar 24/7
 
 El bot necesita: Node 18+, salida a internet (Discord y api.github.com) y **disco persistente** para `db.json`.

@@ -5,7 +5,9 @@ import {
 import {
   getDb, slug, findProyecto, findProyectoByChannel, addLink, save, githubDe, vincularGithub, desvincularGithub,
 } from '../store.js';
-import { existeUsuario, githubConfigurado } from '../githubApi.js';
+import {
+  githubConfigurado, loginConfigurado, iniciarLogin, esperarLogin,
+} from '../githubApi.js';
 import { isDriveLink, driveTipo } from '../drive.js';
 import {
   ensureCarpeta, guardarArchivo, asignarRespaldo, GENERAL,
@@ -33,6 +35,8 @@ import { conectarGithub, instrucciones } from '../github.js';
 const AFK_SEGUNDOS = 900; // 15 minutos
 const ROL_CREADOR = 'Creador de proyectos';
 const ephemeral = { flags: MessageFlags.Ephemeral };
+// Usuarios con un inicio de sesión de GitHub pendiente (uno a la vez por persona).
+const loginsEnCurso = new Set();
 
 const proyectoOption = (o, required = true) =>
   o.setName('proyecto').setDescription('Nombre del proyecto').setRequired(required).setAutocomplete(true);
@@ -76,9 +80,7 @@ export const commands = [
   new SlashCommandBuilder()
     .setName('github')
     .setDescription('Tu cuenta de GitHub (para recibir invitaciones a los repos de tus proyectos)')
-    .addSubcommand((s) => s.setName('vincular').setDescription('Vincula tu usuario de GitHub')
-      .addStringOption((o) => o.setName('usuario').setDescription('Tu usuario de GitHub (ej: octocat)').setRequired(true).setMaxLength(39))
-      .addUserOption((o) => o.setName('miembro').setDescription('Solo administradores: vincular a otra persona')))
+    .addSubcommand((s) => s.setName('vincular').setDescription('Inicia sesión en GitHub para vincular tu cuenta'))
     .addSubcommand((s) => s.setName('desvincular').setDescription('Quita tu cuenta de GitHub vinculada')
       .addUserOption((o) => o.setName('miembro').setDescription('Solo administradores: desvincular a otra persona')))
     .addSubcommand((s) => s.setName('equipo').setDescription('Muestra las cuentas de GitHub vinculadas')),
@@ -367,18 +369,47 @@ const handlers = {
     const persona = otro ?? interaction.user;
 
     if (sub === 'vincular') {
-      const usuario = interaction.options.getString('usuario').trim().replace(/^@/, '').replace(/^https?:\/\/github\.com\//i, '').replace(/\/$/, '');
-      if (!/^[a-z\d](?:[a-z\d-]{0,38})$/i.test(usuario)) throw new UserError('Ese no es un usuario de GitHub válido.');
+      if (!loginConfigurado()) {
+        throw new UserError('El inicio de sesión con GitHub no está configurado todavía (falta GITHUB_CLIENT_ID). Avísale a un administrador.');
+      }
+      if (loginsEnCurso.has(interaction.user.id)) throw new UserError('Ya tienes un inicio de sesión en curso: termina el anterior o espera a que venza.');
       await interaction.deferReply(ephemeral);
-      const encontrado = await existeUsuario(usuario).catch(() => undefined);
-      if (encontrado === null) return interaction.editReply(`⚠️ No existe el usuario **${usuario}** en GitHub.`);
-      vincularGithub(persona.id, encontrado?.login ?? usuario);
-      const proyectos = await invitarAProyectos(interaction.guild, persona.id);
-      return interaction.editReply([
-        `🔗 <@${persona.id}> vinculado a GitHub como **${encontrado?.login ?? usuario}**.`,
-        proyectos.length ? `📨 Invitación enviada a: ${proyectos.map((p) => `**${p.nombre}**`).join(', ')}.` : '',
-        encontrado === undefined ? '-# No se pudo verificar el usuario en GitHub ahora; se guardó igual.' : '',
-      ].filter(Boolean).join('\n'));
+      const login = await iniciarLogin();
+      loginsEnCurso.add(interaction.user.id);
+      await interaction.editReply({
+        embeds: [new EmbedBuilder().setColor(COLORES.github).setTitle('🐙 Vincula tu cuenta de GitHub').setDescription([
+          `1. Abre **${login.url}** (botón de abajo) e inicia sesión con tu cuenta.`,
+          '2. Escribe este código:',
+          `# \`${login.codigo}\``,
+          '3. Pulsa **Authorize**. Este mensaje se actualiza solo cuando termines.',
+          '',
+          '-# El bot solo lee tu nombre de usuario; no guarda acceso a tu cuenta. El código vence en 15 minutos.',
+        ].join('\n'))],
+        components: [new ActionRowBuilder().addComponents(
+          new ButtonBuilder().setURL(login.url).setLabel('Abrir GitHub').setEmoji('🔑').setStyle(ButtonStyle.Link),
+        )],
+      });
+      try {
+        const usuario = await esperarLogin(login);
+        const otro = Object.entries(getDb().usuarios).find(([id, u]) => id !== interaction.user.id && u.github?.toLowerCase() === usuario.toLowerCase());
+        if (otro) {
+          return await interaction.editReply({ content: `⚠️ La cuenta **${usuario}** ya está vinculada a <@${otro[0]}>.`, embeds: [], components: [] });
+        }
+        vincularGithub(interaction.user.id, usuario);
+        const proyectos = await invitarAProyectos(interaction.guild, interaction.user.id);
+        return await interaction.editReply({
+          content: [
+            `✅ Cuenta vinculada: **[${usuario}](https://github.com/${usuario})**.`,
+            proyectos.length ? `📨 Invitación enviada a los repos de: ${proyectos.map((p) => `**${p.nombre}**`).join(', ')}.` : '',
+          ].filter(Boolean).join('\n'),
+          embeds: [],
+          components: [],
+        });
+      } catch (err) {
+        return await interaction.editReply({ content: `⚠️ ${err.message}`, embeds: [], components: [] }).catch(() => {});
+      } finally {
+        loginsEnCurso.delete(interaction.user.id);
+      }
     }
 
     if (sub === 'desvincular') {
@@ -541,7 +572,7 @@ function guiaEmbeds(guild) {
       { name: '`/idea-base`', value: `Solo funciona en ${m('ideas')} (ahí no se puede escribir). Abre un formulario con nombre y descripción y publica la idea con ${SI} y ${NO}. · Todos` },
       { name: 'Votación', value: `Con **${VOTOS_NECESARIOS} ${SI}** la idea pasa a ${m('ideasAprobadas')} con su estado y barra de progreso. Con **${VOTOS_NECESARIOS} ${NO}** se elimina. Las reacciones del bot no cuentan.` },
       { name: 'Proyectos aprobados (foro)', value: 'Todos lo ven, tengan o no proyectos. Al aprobarse una idea el bot **crea el proyecto y su repo**. Cada proyecto (votado o manual) tiene su publicación: responsable, repo, equipo, barras de 🛠️ desarrollo y 🔧 mantenimiento, y seguimiento (abiertos, sin asignar, en revisión). La etiqueta muestra la etapa.' },
-      { name: '`/github vincular`', value: 'Vincula tu usuario de GitHub. Al asignarte a un proyecto, el bot te invita a su repo automáticamente (y te quita el acceso si te sacan). `/github equipo` muestra las cuentas vinculadas. · Todos' },
+      { name: '`/github vincular`', value: 'Inicias sesión en GitHub con un código y tu cuenta queda vinculada. Al asignarte a un proyecto el bot te invita a su repo (y te quita el acceso si te sacan). `/github equipo` muestra las cuentas. · Todos' },
       { name: 'Commits de GitHub', value: 'Al conectar el repo, cada push, PR, issue y release llega a `📡・commits`. Si falta conectarlo, la ficha muestra ⚠️ y el botón **Conectar GitHub** da los pasos.' },
       { name: 'Voz', value: `${m('vozGeneral')} para todo el equipo. Tras **15 minutos** sin actividad, Discord te mueve a ${m('afk')}.` },
       { name: 'Resumen semanal', value: `Cada lunes en ${m('general')}: avance por proyecto, lo cerrado en la semana, lo sin asignar y quién tiene qué. \`/resumen\` lo publica al momento (admins).` },
