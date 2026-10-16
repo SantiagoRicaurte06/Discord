@@ -6,7 +6,7 @@ import {
   getDb, slug, findProyecto, findProyectoByChannel, addLink, save, githubDe, vincularGithub, desvincularGithub,
 } from '../store.js';
 import {
-  githubConfigurado, loginConfigurado, iniciarLogin, esperarLogin,
+  githubConfigurado, loginConfigurado, iniciarLogin, esperarLogin, crearRepo,
 } from '../githubApi.js';
 import { isDriveLink, driveTipo } from '../drive.js';
 import {
@@ -61,7 +61,7 @@ export const commands = [
       .addStringOption((o) => proyectoOption(o, false)))
     .addSubcommand((s) => s.setName('github').setDescription('Conecta el repo de GitHub al canal de commits')
       .addStringOption((o) => proyectoOption(o, false)))
-    .addSubcommand((s) => s.setName('preparar-repo').setDescription('Agrega al repo del proyecto las skills del equipo y el git workflow')
+    .addSubcommand((s) => s.setName('preparar-repo').setDescription('Crea el repo si falta y le agrega las skills del equipo y el git workflow')
       .addStringOption((o) => proyectoOption(o, false)))
     .addSubcommand((s) => s.setName('pausar').setDescription('Pausa o reanuda un proyecto (el resto del estado es automático)')
       .addStringOption((o) => proyectoOption(o, false)))
@@ -325,8 +325,27 @@ const handlers = {
 
     if (sub === 'preparar-repo') {
       const p = proyectoGestionable(interaction, resolverProyecto(interaction));
-      if (!p.github) throw new UserError('El proyecto no tiene repositorio. Agrégalo con ✏️ Editar en la ficha.');
       await interaction.deferReply(ephemeral);
+      let creado = false;
+      if (!p.github) {
+        // Proyecto sin repo (p. ej. falló la creación): se crea ahora y se conecta.
+        if (!githubConfigurado()) return interaction.editReply('⚠️ Falta `GITHUB_PAT` en el servidor del bot para crear el repo.');
+        try {
+          p.github = (await crearRepo(p.id, p.descripcion)).url;
+          p.errorRepo = null;
+          creado = true;
+          save();
+        } catch (err) {
+          p.errorRepo = err.message;
+          save();
+          await refrescarFicha(interaction.guild, p);
+          return interaction.editReply(`⚠️ No se pudo crear el repo: ${err.message}`);
+        }
+        await conectarGithub(interaction.guild, p).catch(() => {});
+        await sincronizarIssues(interaction.guild, p).catch(() => {});
+        await refrescarFicha(interaction.guild, p);
+        await refrescarTarjetaDeProyecto(interaction.guild, p.id).catch(() => {});
+      }
       let resultado;
       try {
         resultado = await prepararRepo(p.github);
@@ -337,9 +356,10 @@ const handlers = {
       }
       const chat = await interaction.guild.channels.fetch(p.channelId).catch(() => null);
       if (resultado.ok) await chat?.send({ embeds: [guiaSkillsEmbed(p, resultado)] }).catch(() => {});
-      return interaction.editReply(resultado.ok
+      const inicio = creado ? `🐙 Repo creado: ${p.github}\n` : '';
+      return interaction.editReply(inicio + (resultado.ok
         ? (resultado.sinCambios ? '✅ El repo ya tenía las skills y el git workflow.' : `✅ Repo preparado: ${resultado.skills?.length ?? 0} skills, git workflow y rama develop. Avisé en <#${p.channelId}>.`)
-        : `⚠️ No se pudo preparar el repo: ${resultado.error}`);
+        : `⚠️ No se pudo preparar el repo: ${resultado.error}`));
     }
 
     if (sub === 'pausar') {
@@ -615,7 +635,7 @@ function guiaEmbeds(guild) {
       { name: '`/proyecto eliminar`', value: 'También con el botón 🗑️ de la ficha. Pide escribir el nombre; borra canales, rol, tareas y su publicación en aprobados (el repo de GitHub se conserva). · Responsable' },
       { name: '`/proyecto lista` · `/proyecto info`', value: 'Ver tus proyectos o la ficha de uno. · Miembros' },
       { name: 'Issues', value: 'Se crean, asignan y revisan en GitHub. El bot los lee cada 5 min: 👤 quién lo tiene (vinculen su GitHub), 🔍 PR en revisión (si el PR dice "closes #N") y ✅ cerrados. Nunca modifica GitHub.' },
-      { name: '`/proyecto preparar-repo`', value: 'Agrega al repo las skills del equipo y el git workflow (los repos que crea el bot ya vienen así). · Responsable' },
+      { name: '`/proyecto preparar-repo`', value: 'Crea el repo si falta y le agrega las skills del equipo y el git workflow (los repos nuevos ya vienen así). · Responsable' },
       { name: '`/tarea-extra`', value: 'Solo en `🧩・tareas-extra` y con el proyecto en producción: agrega un arreglo o añadido. El menú las marca como hechas o las reabre. · Miembros' },
     ),
 
@@ -792,7 +812,8 @@ const componentes = {
       save();
       await vincularTarjeta(interaction.guild, idea, p);
     }
-    const listo = `✅ Proyecto **${p.nombre}** creado: <#${p.channelId}> · rol <@&${p.roleId}> · ${p.miembros.length} miembro(s)`;
+    let listo = `✅ Proyecto **${p.nombre}** creado: <#${p.channelId}> · rol <@&${p.roleId}> · ${p.miembros.length} miembro(s)`;
+    if (p.errorRepo) listo += `\n⚠️ No se creó el repo: ${p.errorRepo}.\nCuando lo corrijas, usa \`/proyecto preparar-repo\` en el chat del proyecto.`;
     if (p.github && !github.ok) return interaction.editReply({ content: `${listo}\n\nFalta un paso para recibir los commits:`, embeds: [instrucciones(p)] });
     return interaction.editReply(listo);
   },

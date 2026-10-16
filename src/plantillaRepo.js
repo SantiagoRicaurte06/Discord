@@ -10,6 +10,7 @@ import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 import { EmbedBuilder } from 'discord.js';
 import { parseRepo } from './github.js';
+import { identidadGit } from './githubApi.js';
 import { save } from './store.js';
 import { COLORES } from './layout.js';
 
@@ -74,7 +75,8 @@ export async function prepararRepo(repoUrl, { cloneUrl, rama = null } = {}) {
     const cambios = (await correr('git', ['status', '--porcelain'], dir)).stdout.trim();
     if (!cambios) return { ok: true, sinCambios: true };
     // El commit inicial va en main: se omiten los hooks recién instalados (bloquean commits directos a main).
-    await correr('git', ['-c', 'core.hooksPath=/dev/null', '-c', 'user.name=Zy', '-c', 'user.email=zy-bot@users.noreply.github.com',
+    const yo = await identidadGit().catch(() => ({ nombre: 'Zy', email: 'zy-bot@users.noreply.github.com' }));
+    await correr('git', ['-c', 'core.hooksPath=/dev/null', '-c', `user.name=${yo.nombre}`, '-c', `user.email=${yo.email}`,
       'commit', '--quiet', '-m', MENSAJE], dir);
     const principal = (await correr('git', ['symbolic-ref', '--short', 'HEAD'], dir)).stdout.trim();
     await correr('git', ['branch', '-f', 'develop', principal], dir);
@@ -121,7 +123,8 @@ export function guiaSkillsEmbed(p, resultado) {
     'npx skills@latest add santiagoricaurte06/discord --skill guia-skills',
     'bash .claude/skills/guia-skills/scripts/instalar.sh --instalar',
     '```',
-    p.github ? '-# El responsable puede agregarlas al repo para todos con `/proyecto preparar-repo`.' : '',
+    p.github ? '-# El responsable puede agregarlas al repo para todos con `/proyecto preparar-repo`.'
+      : '-# Este proyecto aún no tiene repo: el responsable puede crearlo con `/proyecto preparar-repo`.',
   ].filter(Boolean).join('\n'));
 }
 

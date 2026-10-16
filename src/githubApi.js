@@ -26,11 +26,26 @@ let dueñoCache;
 // Cuenta (usuario u organización) donde se crean los repos: GITHUB_OWNER o el dueño del token.
 async function dueño() {
   if (dueñoCache) return dueñoCache;
-  const { ok, datos } = await api('/user');
-  if (!ok) throw new Error('GITHUB_PAT inválido');
+  const { ok, status, datos } = await api('/user');
+  if (!ok) throw new Error(status === 401 ? 'el GITHUB_PAT es inválido o venció' : `GitHub respondió ${status} al leer el dueño del token`);
   const login = process.env.GITHUB_OWNER || datos.login;
-  dueñoCache = { login, esOrg: login.toLowerCase() !== datos.login.toLowerCase() };
+  dueñoCache = {
+    login, esOrg: login.toLowerCase() !== datos.login.toLowerCase(), usuario: datos.login, id: datos.id, nombre: datos.name,
+  };
   return dueñoCache;
+}
+
+// Identidad para los commits del bot: GIT_AUTOR_NOMBRE/GIT_AUTOR_EMAIL, o el dueño del GITHUB_PAT
+// con su correo privado de GitHub (así el commit aparece con su usuario y su foto).
+export async function identidadGit() {
+  if (process.env.GIT_AUTOR_NOMBRE && process.env.GIT_AUTOR_EMAIL) {
+    return { nombre: process.env.GIT_AUTOR_NOMBRE, email: process.env.GIT_AUTOR_EMAIL };
+  }
+  const d = await dueño();
+  return {
+    nombre: process.env.GIT_AUTOR_NOMBRE || d.nombre || d.usuario,
+    email: process.env.GIT_AUTOR_EMAIL || `${d.id}+${d.usuario}@users.noreply.github.com`,
+  };
 }
 
 // Crea el repo (con README inicial). Si ya existe uno con ese nombre en la cuenta, lo reutiliza.
@@ -46,6 +61,12 @@ export async function crearRepo(nombre, descripcion) {
     const existente = await api(`/repos/${login}/${nombre}`);
     if (existente.ok) return { url: existente.datos.html_url, creado: false };
   }
+  if (res.status === 403) {
+    throw new Error(esOrg
+      ? `el GITHUB_PAT no puede crear repos en la organización ${login}: dale acceso a la organización con Administration: Read and write`
+      : 'el GITHUB_PAT no puede crear repos (403): en el token usa "All repositories" y Administration: Read and write, o un token clásico con el scope repo');
+  }
+  if (res.status === 401) throw new Error('el GITHUB_PAT es inválido o venció');
   throw new Error(`GitHub no creó el repo (${res.status}${res.datos?.message ? `: ${res.datos.message}` : ''})`);
 }
 
