@@ -4,7 +4,8 @@ import {
   handleCommand, handleAutocomplete, handleComponent, registrarLink,
 } from './commands/index.js';
 import { extractDriveLinks } from './drive.js';
-import { findProyectoByChannel } from './store.js';
+import { findProyectoByChannel, getDb, save } from './store.js';
+import { refrescarFicha } from './proyectos.js';
 import { guardarArchivo, asignarRespaldo, archivoPorMensaje } from './carpetas.js';
 
 if (!process.env.DISCORD_TOKEN) {
@@ -35,6 +36,15 @@ function registerEvents(client) {
 
   // Registro automático de links de Drive y archivos subidos.
   client.on(Events.MessageCreate, async (message) => {
+    // El primer aviso de GitHub que llega al canal de commits confirma la conexión.
+    if (message.webhookId && message.guild) {
+      const p = Object.values(getDb().proyectos).find((x) => x.commitsId === message.channelId);
+      if (p && !p.githubConectado) {
+        p.githubConectado = true;
+        save();
+        await refrescarFicha(message.guild, p).catch(() => {});
+      }
+    }
     if (message.author.bot || !message.guild) return;
     const { guild } = message;
     const parentId = message.channel.isThread() ? message.channel.parentId : message.channelId;

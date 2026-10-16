@@ -16,6 +16,7 @@ import {
   ESTADOS, UserError, modalCrear, modalMiembros, modalEditar, proyectoEmbed, refrescarFicha,
   crearProyecto, sincronizarMiembros, miembrosElegidos, puedeGestionar, archivarProyecto,
 } from '../proyectos.js';
+import { conectarGithub, instrucciones } from '../github.js';
 
 const COLOR = 0x5865f2;
 const AFK_SEGUNDOS = 900; // 15 minutos
@@ -40,6 +41,8 @@ export const commands = [
     .addSubcommand((s) => s.setName('info').setDescription('Muestra la ficha de un proyecto')
       .addStringOption((o) => proyectoOption(o, false)))
     .addSubcommand((s) => s.setName('miembros').setDescription('Agrega o quita personas de un proyecto')
+      .addStringOption((o) => proyectoOption(o, false)))
+    .addSubcommand((s) => s.setName('github').setDescription('Conecta el repo de GitHub al canal de commits')
       .addStringOption((o) => proyectoOption(o, false)))
     .addSubcommand((s) => s.setName('estado').setDescription('Cambia el estado de un proyecto')
       .addStringOption((o) => o.setName('estado').setDescription('Nuevo estado').setRequired(true)
@@ -111,8 +114,18 @@ function exigirCreador(interaction) {
   }
 }
 
+// Intenta conectar el repo; si no se puede automáticamente, muestra los pasos (solo a quien lo pidió).
+async function responderGithub(interaction, p) {
+  await interaction.deferReply(ephemeral);
+  const { ok } = await conectarGithub(interaction.guild, p);
+  await refrescarFicha(interaction.guild, p);
+  if (ok) return interaction.editReply(`✅ ${p.github} conectado: los commits llegarán a <#${p.commitsId}>.`);
+  if (!p.github) return interaction.editReply('Primero agrega el link del repositorio con el botón ✏️ Editar de la ficha.');
+  return interaction.editReply({ embeds: [instrucciones(p)] });
+}
+
 function proyectoGestionable(interaction, p) {
-  if (!puedeGestionar(interaction, p)) throw new UserError('Solo los miembros del proyecto pueden hacer esto.');
+  if (!puedeGestionar(interaction, p)) throw new UserError('Solo quien creó el proyecto o un administrador puede cambiar esto. Los miembros pueden ver y escribir.');
   return p;
 }
 
@@ -265,6 +278,11 @@ const handlers = {
       return interaction.showModal(modalMiembros(p));
     }
 
+    if (sub === 'github') {
+      const p = proyectoGestionable(interaction, resolverProyecto(interaction));
+      return responderGithub(interaction, p);
+    }
+
     if (sub === 'estado') {
       const p = proyectoGestionable(interaction, resolverProyecto(interaction));
       p.estado = interaction.options.getString('estado');
@@ -388,7 +406,8 @@ function ayudaEmbed() {
     '**Proyectos** (privados: solo los miembros los ven)',
     '`/proyecto crear` o el botón de #crear-proyectos — formulario: nombre, descripción, GitHub, Drive y miembros',
     'Requiere el rol **Creador de proyectos**',
-    'Cada proyecto tiene su rol, chat, carpeta de archivos y canal de voz',
+    'Cada proyecto tiene su rol, chat, carpeta de archivos, canal de voz y canal de commits de GitHub',
+    '`/proyecto github` — conecta el repo para que los commits lleguen al canal',
     '`/proyecto miembros` · `/proyecto lista` · `/proyecto info` · `/proyecto estado` · `/proyecto archivar`',
     '',
     '**Google Drive**',
@@ -443,6 +462,9 @@ const componentes = {
   async 'boton:proyecto-miembros'(interaction, id) {
     return interaction.showModal(modalMiembros(proyectoDeComponente(interaction, id)));
   },
+  async 'boton:proyecto-github'(interaction, id) {
+    return responderGithub(interaction, proyectoDeComponente(interaction, id));
+  },
   async 'boton:proyecto-editar'(interaction, id) {
     return interaction.showModal(modalEditar(proyectoDeComponente(interaction, id)));
   },
@@ -460,7 +482,7 @@ const componentes = {
     };
     if (getDb().proyectos[slug(nombre)]) throw new UserError(`Ya existe el proyecto **${nombre}**.`);
     await interaction.deferReply(ephemeral);
-    const p = await crearProyecto(interaction.guild, interaction.user.id, datos);
+    const { p, github } = await crearProyecto(interaction.guild, interaction.user.id, datos);
     if (p.drive) {
       await registrarLink(interaction.guild, { url: p.drive, titulo: `Carpeta de ${p.nombre}`, proyecto: p.id, autor: interaction.user.id }).catch(() => {});
     }
@@ -472,7 +494,9 @@ const componentes = {
       await findText(interaction.guild, 'ideas-aprobadas')
         ?.send(`✅ La idea **#${idea.id} ${idea.titulo}** ahora es un proyecto (${p.nombre}).`);
     }
-    return interaction.editReply(`✅ Proyecto **${p.nombre}** creado: <#${p.channelId}> · rol <@&${p.roleId}> · ${p.miembros.length} miembro(s)`);
+    const listo = `✅ Proyecto **${p.nombre}** creado: <#${p.channelId}> · rol <@&${p.roleId}> · ${p.miembros.length} miembro(s)`;
+    if (p.github && !github.ok) return interaction.editReply({ content: `${listo}\n\nFalta un paso para recibir los commits:`, embeds: [instrucciones(p)] });
+    return interaction.editReply(listo);
   },
 
   async 'modal:proyecto-miembros'(interaction, id) {
@@ -492,12 +516,19 @@ const componentes = {
     const f = interaction.fields;
     const { github, drive } = leerLinks(f);
     p.descripcion = f.getTextInputValue('descripcion').trim();
+    const repoNuevo = github && github !== p.github;
     p.github = github;
+    if (repoNuevo) p.githubConectado = false;
     const driveNuevo = drive && drive !== p.drive;
     p.drive = drive;
     save();
     await interaction.deferReply(ephemeral);
     if (driveNuevo) await registrarLink(interaction.guild, { url: drive, titulo: `Carpeta de ${p.nombre}`, proyecto: p.id, autor: interaction.user.id });
+    if (repoNuevo) {
+      const { ok } = await conectarGithub(interaction.guild, p);
+      await refrescarFicha(interaction.guild, p);
+      if (!ok) return interaction.editReply({ content: `✏️ **${p.nombre}** actualizado. Conecta el nuevo repo:`, embeds: [instrucciones(p)] });
+    }
     await refrescarFicha(interaction.guild, p);
     return interaction.editReply(`✏️ **${p.nombre}** actualizado.`);
   },

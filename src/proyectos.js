@@ -6,6 +6,7 @@ import {
 import { getDb, slug, addProyecto, save } from './store.js';
 import { driveTipo } from './drive.js';
 import { crearForo, ensureCarpeta } from './carpetas.js';
+import { conectarGithub } from './github.js';
 
 export const ESTADOS = ['💭 Idea', '📝 Planeación', '🚧 En progreso', '⏸️ Pausado', '✅ Terminado'];
 const COLOR = 0x5865f2;
@@ -75,6 +76,11 @@ export function proyectoEmbed(p) {
       { name: '🐙 GitHub', value: p.github ?? '—', inline: true },
       { name: '☁️ Carpeta Drive', value: p.drive ? `[abrir](${p.drive})` : '—', inline: true },
       { name: '📂 Archivos', value: `<#${p.foroId}> (${archivos.length})`, inline: true },
+      {
+        name: '📡 Commits',
+        value: p.commitsId ? `<#${p.commitsId}> ${p.githubConectado ? '✅ conectado' : '⚠️ falta conectar GitHub'}` : '—',
+        inline: true,
+      },
       { name: `👥 Miembros (${p.miembros.length})`, value: p.miembros.map((m) => `<@${m}>`).join(' ') || '—' },
       {
         name: `🔗 Links de Drive (${links.length})`,
@@ -90,6 +96,9 @@ export function fichaComponents(p) {
     new ButtonBuilder().setCustomId(`proyecto-miembros:${p.id}`).setLabel('Miembros').setEmoji('👥').setStyle(ButtonStyle.Primary),
     new ButtonBuilder().setCustomId(`proyecto-editar:${p.id}`).setLabel('Editar').setEmoji('✏️').setStyle(ButtonStyle.Secondary),
   );
+  if (!p.githubConectado) {
+    row.addComponents(new ButtonBuilder().setCustomId(`proyecto-github:${p.id}`).setLabel('Conectar GitHub').setEmoji('📡').setStyle(ButtonStyle.Secondary));
+  }
   if (p.github) row.addComponents(new ButtonBuilder().setURL(p.github).setLabel('GitHub').setEmoji('🐙').setStyle(ButtonStyle.Link));
   if (p.drive) row.addComponents(new ButtonBuilder().setURL(p.drive).setLabel('Drive').setEmoji('☁️').setStyle(ButtonStyle.Link));
   return [row];
@@ -136,13 +145,14 @@ export async function crearProyecto(guild, autorId, { nombre, descripcion, githu
   });
   await sincronizarMiembros(guild, p, todos);
   await ensureCarpeta(guild, p.id);
+  const conexion = await conectarGithub(guild, p);
 
   const ficha = await chat.send({ embeds: [proyectoEmbed(p)], components: fichaComponents(p) });
   await ficha.pin().catch(() => {});
   p.fichaId = ficha.id;
   save();
   await chat.send({ content: `👋 Bienvenidos al proyecto ${p.miembros.map((m) => `<@${m}>`).join(' ')}` });
-  return p;
+  return { p, github: conexion };
 }
 
 // Deja el rol exactamente en las personas indicadas (ids de usuarios, sin bots).
@@ -166,8 +176,10 @@ export async function sincronizarMiembros(guild, p, nuevos) {
 export const miembrosElegidos = (fields) =>
   [...(fields.getSelectedUsers('miembros')?.values() ?? [])].filter((u) => !u.bot).map((u) => u.id);
 
+// Solo quien creó el proyecto y los administradores pueden cambiar sus datos.
+// Los miembros únicamente ven los canales y escriben.
 export function puedeGestionar(interaction, p) {
-  return p.miembros.includes(interaction.user.id)
+  return p.autor === interaction.user.id
     || interaction.memberPermissions?.has(PermissionFlagsBits.ManageRoles);
 }
 
