@@ -23,6 +23,8 @@ export const PROYECTO = {
   chat: `💬${SEP}chat`,
   archivos: `📁${SEP}archivos`,
   commits: `📡${SEP}commits`,
+  tareas: `📋${SEP}tareas`,
+  tareasExtra: `🧩${SEP}tareas-extra`,
   voz: '🎙️ Reunión',
 };
 

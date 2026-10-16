@@ -2,7 +2,8 @@
 // Con VOTOS_NECESARIOS ❌ se elimina; con VOTOS_NECESARIOS ✅ pasa a proyectos aprobados.
 // Las reacciones del bot no cuentan.
 import {
-  EmbedBuilder, LabelBuilder, ModalBuilder, TextInputBuilder, TextInputStyle,
+  ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, LabelBuilder, ModalBuilder,
+  TextInputBuilder, TextInputStyle,
 } from 'discord.js';
 import { getDb, addIdea, save } from './store.js';
 import { COLORES, canal } from './layout.js';
@@ -41,18 +42,38 @@ function ideaEmbed(idea) {
     .setTimestamp(new Date(idea.fecha));
 }
 
-function aprobadaEmbed(idea) {
-  return new EmbedBuilder().setColor(COLORES.exito)
+function aprobadaContenido(idea) {
+  const p = idea.proyecto ? getDb().proyectos[idea.proyecto] : null;
+  const equipo = p?.miembros.length
+    ? p.miembros.map((m) => `<@${m}>`).join(' ')
+    : '*Sin asignar — crea el proyecto con el botón para asignar el equipo*';
+  const embed = new EmbedBuilder().setColor(COLORES.exito)
     .setTitle(`◆ ${idea.titulo}`)
     .setDescription(idea.descripcion)
     .addFields(
       { name: 'Estado', value: idea.etapa, inline: true },
       { name: 'Propuesta por', value: `<@${idea.autor}>`, inline: true },
       { name: 'Aprobada con', value: `${SI} ${idea.votosSi}`, inline: true },
+      { name: `👥 Equipo${p ? ` (${p.miembros.length})` : ''}`, value: equipo },
       { name: 'Progreso', value: barra(idea.progreso) },
     )
-    .setFooter({ text: `Idea #${idea.id} · aprobada` })
+    .setFooter({ text: `Idea #${idea.id} · aprobada${p ? ` · proyecto ${p.nombre}` : ''}` })
     .setTimestamp(new Date(idea.aprobadaEn));
+  const components = p ? [] : [new ActionRowBuilder().addComponents(
+    new ButtonBuilder().setCustomId(`idea-proyecto:${idea.id}`).setLabel('Crear proyecto').setEmoji('🚀').setStyle(ButtonStyle.Success),
+  )];
+  return { embeds: [embed], components, allowedMentions: { parse: [] } };
+}
+
+// Actualiza la tarjeta en proyectos aprobados (equipo, estado, progreso).
+export async function refrescarAprobada(guild, idea) {
+  const destino = canal(guild, 'ideasAprobadas');
+  const msg = idea.aprobadaMessageId && await destino?.messages.fetch(idea.aprobadaMessageId).catch(() => null);
+  await msg?.edit(aprobadaContenido(idea)).catch(() => {});
+}
+
+export async function refrescarAprobadasDeProyecto(guild, proyectoId) {
+  for (const idea of getDb().ideas.filter((i) => i.proyecto === proyectoId)) await refrescarAprobada(guild, idea);
 }
 
 export async function publicarIdea(guild, autor, { titulo, descripcion }) {
@@ -113,7 +134,7 @@ async function aprobar(guild, idea, votosSi) {
     estado: 'aprobada', votosSi, etapa: ETAPA_INICIAL, progreso: PROGRESO_INICIAL, aprobadaEn: new Date().toISOString(),
   });
   const destino = canal(guild, 'ideasAprobadas');
-  const msg = await destino?.send({ embeds: [aprobadaEmbed(idea)], allowedMentions: { parse: [] } });
+  const msg = await destino?.send(aprobadaContenido(idea));
   idea.aprobadaMessageId = msg?.id;
   save();
 }

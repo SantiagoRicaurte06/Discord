@@ -7,6 +7,7 @@ import { getDb, slug, addProyecto, save } from './store.js';
 import { driveTipo } from './drive.js';
 import { crearForo, ensureCarpeta } from './carpetas.js';
 import { conectarGithub } from './github.js';
+import { ensureCanalesTareas } from './tareas.js';
 import { COLORES, PROYECTO } from './layout.js';
 
 export const ESTADOS = ['💭 Idea', '📝 Planeación', '🚧 En progreso', '⏸️ Pausado', '✅ Terminado'];
@@ -32,9 +33,9 @@ const selectorMiembros = (defaults = []) => new LabelBuilder()
     .setPlaceholder('Elige a las personas')
     .setDefaultUsers(defaults.slice(0, 25)));
 
-export function modalCrear({ nombre, descripcion, autorId } = {}) {
+export function modalCrear({ ideaId, nombre, descripcion, autorId } = {}) {
   return new ModalBuilder()
-    .setCustomId('proyecto-crear')
+    .setCustomId(ideaId ? `proyecto-crear:${ideaId}` : 'proyecto-crear')
     .setTitle('Nuevo proyecto')
     .addLabelComponents(
       texto('nombre', 'Nombre del proyecto', { required: true, max: 80, value: nombre }),
@@ -76,6 +77,13 @@ export function proyectoEmbed(p) {
       { name: '🐙 GitHub', value: p.github ?? '—', inline: true },
       { name: '☁️ Carpeta Drive', value: p.drive ? `[abrir](${p.drive})` : '—', inline: true },
       { name: '📂 Archivos', value: `<#${p.foroId}> (${archivos.length})`, inline: true },
+      {
+        name: '📋 Tareas',
+        value: p.tareasId
+          ? `<#${p.tareasId}> · <#${p.extraId}> (${(p.tareas ?? []).filter((t) => t.estado === 'hecha').length}/${(p.tareas ?? []).length})`
+          : '—',
+        inline: true,
+      },
       {
         name: '📡 Commits',
         value: p.commitsId ? `<#${p.commitsId}> ${p.githubConectado ? '✅ conectado' : '⚠️ falta conectar GitHub'}` : '—',
@@ -146,6 +154,7 @@ export async function crearProyecto(guild, autorId, { nombre, descripcion, githu
   await sincronizarMiembros(guild, p, todos);
   await ensureCarpeta(guild, p.id);
   const conexion = await conectarGithub(guild, p);
+  await ensureCanalesTareas(guild, p);
 
   const ficha = await chat.send({ embeds: [proyectoEmbed(p)], components: fichaComponents(p) });
   await ficha.pin().catch(() => {});

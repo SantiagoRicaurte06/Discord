@@ -16,7 +16,12 @@ import {
   ESTADOS, UserError, modalCrear, modalMiembros, modalEditar, proyectoEmbed, refrescarFicha,
   crearProyecto, sincronizarMiembros, miembrosElegidos, puedeGestionar, archivarProyecto,
 } from '../proyectos.js';
-import { modalIdea, publicarIdea, VOTOS_NECESARIOS, SI, NO } from '../ideas.js';
+import {
+  modalIdea, publicarIdea, refrescarAprobada, refrescarAprobadasDeProyecto, VOTOS_NECESARIOS, SI, NO,
+} from '../ideas.js';
+import {
+  ensureCanalesTareas, marcar, modalTareaExtra, agregarTareaExtra, proyectoPorCanalExtra,
+} from '../tareas.js';
 import { conectarGithub, instrucciones } from '../github.js';
 
 const AFK_SEGUNDOS = 900; // 15 minutos
@@ -63,6 +68,10 @@ export const commands = [
   new SlashCommandBuilder()
     .setName('idea-base')
     .setDescription('Propone una idea (solo en el canal de ideas)'),
+
+  new SlashCommandBuilder()
+    .setName('tarea-extra')
+    .setDescription('Agrega una tarea o arreglo (solo en el canal 🧩・tareas-extra de un proyecto)'),
 
   new SlashCommandBuilder()
     .setName('archivo')
@@ -220,6 +229,9 @@ export async function setupServer(guild) {
   await setupFuncionamiento(guild);
   await soloLectura(guild, 'ideas', { reacciones: true });
   await soloLectura(guild, 'ideasAprobadas');
+  for (const p of Object.values(getDb().proyectos)) {
+    if (!p.archivado) await ensureCanalesTareas(guild, p).catch((e) => console.error(`Tareas de ${p.id}:`, e.message));
+  }
   return creados;
 }
 
@@ -321,6 +333,13 @@ const handlers = {
     return interaction.showModal(modalIdea());
   },
 
+  async 'tarea-extra'(interaction) {
+    const p = proyectoPorCanalExtra(interaction.channelId);
+    if (!p) throw new UserError('Este comando solo se usa en el canal 🧩・tareas-extra de un proyecto.');
+    if (!visible(interaction, p.id)) throw new UserError('Solo los miembros del proyecto pueden agregar tareas.');
+    return interaction.showModal(modalTareaExtra());
+  },
+
   async archivo(interaction) {
     const sub = interaction.options.getSubcommand();
     const drive = interaction.options.getString('drive')?.trim();
@@ -405,6 +424,8 @@ function guiaEmbeds(guild) {
       '› `💬・chat` con la ficha fijada (estado, miembros, GitHub, Drive y botones)',
       '› `📁・archivos` carpeta con índice de archivos y respaldos',
       '› `📡・commits` donde llegan los commits, PRs, issues y releases de GitHub',
+      '› `📋・tareas` los issues de GitHub, con un menú para marcarlos como realizados',
+      '› `🧩・tareas-extra` tareas y arreglos que no están en los issues',
       '› `🎙️ Reunión` sala de voz del equipo del proyecto',
     ].join('\n')).addFields(
       { name: '`/proyecto crear`', value: `Abre el formulario: nombre, descripción, GitHub, Drive y miembros. · ${ROL_CREADOR}` },
@@ -413,6 +434,8 @@ function guiaEmbeds(guild) {
       { name: '`/proyecto github`', value: 'Conecta el repositorio al canal de commits. · Creador del proyecto' },
       { name: '`/proyecto archivar`', value: 'Lo marca como terminado y lo pasa a ◇. · Creador del proyecto' },
       { name: '`/proyecto lista` · `/proyecto info`', value: 'Ver tus proyectos o la ficha de uno. · Miembros' },
+      { name: '`/tarea-extra`', value: 'Solo en `🧩・tareas-extra`: agrega una tarea o arreglo. · Miembros' },
+      { name: 'Marcar tareas', value: 'En los dos canales de tareas, el menú **Marcar como realizadas** tacha las tareas y **Reabrir** las devuelve. Los issues se sincronizan con GitHub cada 5 minutos. · Miembros' },
     ),
 
     embed('📁 Archivos y 🔗 Drive', COLORES.archivos).addFields(
@@ -425,6 +448,7 @@ function guiaEmbeds(guild) {
     embed('💡 Ideas, 📡 GitHub y 🎧 Voz', COLORES.ideas).addFields(
       { name: '`/idea-base`', value: `Solo funciona en ${m('ideas')} (ahí no se puede escribir). Abre un formulario con nombre y descripción y publica la idea con ${SI} y ${NO}. · Todos` },
       { name: 'Votación', value: `Con **${VOTOS_NECESARIOS} ${SI}** la idea pasa a ${m('ideasAprobadas')} con su estado y barra de progreso. Con **${VOTOS_NECESARIOS} ${NO}** se elimina. Las reacciones del bot no cuentan.` },
+      { name: 'Proyectos aprobados', value: `Cada tarjeta muestra el equipo asignado. El botón **Crear proyecto** (${ROL_CREADOR}) crea el proyecto privado y asigna las personas.` },
       { name: 'Commits de GitHub', value: 'Al conectar el repo, cada push, PR, issue y release llega a `📡・commits`. Si falta conectarlo, la ficha muestra ⚠️ y el botón **Conectar GitHub** da los pasos.' },
       { name: 'Voz', value: `${m('vozGeneral')} para todo el equipo. Tras **15 minutos** sin actividad, Discord te mueve a ${m('afk')}.` },
       { name: '`/ayuda`', value: 'Muestra esta guía en cualquier canal (solo la ves tú).' },
@@ -475,6 +499,39 @@ const componentes = {
   },
 
   // Formularios
+  async 'boton:idea-proyecto'(interaction, ideaId) {
+    exigirCreador(interaction);
+    const idea = getDb().ideas.find((i) => String(i.id) === ideaId && i.estado === 'aprobada');
+    if (!idea) throw new UserError('Esa idea ya no está disponible.');
+    if (idea.proyecto) throw new UserError('Esa idea ya tiene proyecto.');
+    return interaction.showModal(modalCrear({
+      ideaId: idea.id, nombre: idea.titulo, descripcion: idea.descripcion.slice(0, 1000), autorId: interaction.user.id,
+    }));
+  },
+
+  async 'select:tarea-hecha'(interaction, proyectoId) {
+    return cambiarTareas(interaction, proyectoId, true);
+  },
+
+  async 'select:tarea-reabrir'(interaction, proyectoId) {
+    return cambiarTareas(interaction, proyectoId, false);
+  },
+
+  async 'modal:tarea-extra'(interaction) {
+    const p = proyectoPorCanalExtra(interaction.channelId);
+    if (!p || !visible(interaction, p.id)) throw new UserError('Solo los miembros del proyecto pueden agregar tareas.');
+    const f = interaction.fields;
+    await interaction.deferReply(ephemeral);
+    const t = await agregarTareaExtra(interaction.guild, p, {
+      titulo: f.getTextInputValue('titulo').trim(),
+      tipo: f.getStringSelectValues('tipo')?.[0] ?? 'tarea',
+      detalle: f.getTextInputValue('detalle')?.trim(),
+      autor: interaction.user.id,
+    });
+    await refrescarFicha(interaction.guild, p);
+    return interaction.editReply(`🧩 Agregada: **${t.titulo}**`);
+  },
+
   async 'modal:idea-base'(interaction) {
     await interaction.deferReply(ephemeral);
     const { idea } = await publicarIdea(interaction.guild, interaction.member ?? interaction.user, {
@@ -484,7 +541,7 @@ const componentes = {
     return interaction.editReply(`💡 Idea **#${idea.id}** publicada. Con ${VOTOS_NECESARIOS} ${SI} pasa a ${mencion(interaction.guild, 'ideasAprobadas')}; con ${VOTOS_NECESARIOS} ${NO} se descarta.`);
   },
 
-  async 'modal:proyecto-crear'(interaction) {
+  async 'modal:proyecto-crear'(interaction, ideaId) {
     exigirCreador(interaction);
     const f = interaction.fields;
     const nombre = f.getTextInputValue('nombre').trim();
@@ -500,6 +557,12 @@ const componentes = {
     if (p.drive) {
       await registrarLink(interaction.guild, { url: p.drive, titulo: `Carpeta de ${p.nombre}`, proyecto: p.id, autor: interaction.user.id }).catch(() => {});
     }
+    const idea = ideaId && getDb().ideas.find((i) => String(i.id) === ideaId);
+    if (idea && !idea.proyecto) {
+      idea.proyecto = p.id;
+      save();
+      await refrescarAprobada(interaction.guild, idea);
+    }
     const listo = `✅ Proyecto **${p.nombre}** creado: <#${p.channelId}> · rol <@&${p.roleId}> · ${p.miembros.length} miembro(s)`;
     if (p.github && !github.ok) return interaction.editReply({ content: `${listo}\n\nFalta un paso para recibir los commits:`, embeds: [instrucciones(p)] });
     return interaction.editReply(listo);
@@ -510,6 +573,7 @@ const componentes = {
     await interaction.deferReply(ephemeral);
     const { agregar, quitar } = await sincronizarMiembros(interaction.guild, p, miembrosElegidos(interaction.fields));
     await refrescarFicha(interaction.guild, p);
+    await refrescarAprobadasDeProyecto(interaction.guild, p.id);
     if (agregar.length) {
       const chat = await interaction.guild.channels.fetch(p.channelId).catch(() => null);
       await chat?.send(`👋 Bienvenidos al proyecto ${agregar.map((m) => `<@${m}>`).join(' ')}`);
@@ -549,13 +613,27 @@ function leerLinks(fields) {
   return { github, drive };
 }
 
+// Marcar o reabrir tareas desde los menús del tablero (solo miembros del proyecto).
+async function cambiarTareas(interaction, proyectoId, hecha) {
+  const p = getDb().proyectos[proyectoId];
+  if (!p || !visible(interaction, p.id)) throw new UserError('Solo los miembros del proyecto pueden cambiar tareas.');
+  await interaction.deferReply(ephemeral);
+  const cambiadas = await marcar(interaction.guild, p, interaction.values, interaction.user.id, hecha);
+  await refrescarFicha(interaction.guild, p);
+  const sinGithub = cambiadas.some((t) => t.origen === 'github' && !t.enGithub);
+  return interaction.editReply([
+    `${hecha ? '✅ Realizadas' : '↩️ Reabiertas'}: ${cambiadas.map((t) => `**${t.titulo}**`).join(', ')}`,
+    sinGithub ? `-# El issue no se ${hecha ? 'cerró' : 'reabrió'} en GitHub (falta GITHUB_PAT); si GitHub no cambia, la próxima sincronización lo revertirá.` : '',
+  ].join('\n'));
+}
+
 export async function handleComponent(interaction) {
-  const tipo = interaction.isModalSubmit() ? 'modal' : 'boton';
-  const [accion, arg] = interaction.customId.split(':');
+  const tipo = interaction.isModalSubmit() ? 'modal' : interaction.isStringSelectMenu() ? 'select' : 'boton';
+  const [accion, ...args] = interaction.customId.split(':');
   const handler = componentes[`${tipo}:${accion}`];
   if (!handler) return;
   try {
-    await handler(interaction, arg);
+    await handler(interaction, ...args);
   } catch (err) {
     await responderError(interaction, err);
   }

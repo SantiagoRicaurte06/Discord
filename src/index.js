@@ -7,6 +7,7 @@ import { extractDriveLinks } from './drive.js';
 import { findProyectoByChannel, getDb, save } from './store.js';
 import { refrescarFicha } from './proyectos.js';
 import { procesarVoto } from './ideas.js';
+import { iniciarSincronizacion } from './tareas.js';
 import { guardarArchivo, asignarRespaldo, archivoPorMensaje } from './carpetas.js';
 
 if (!process.env.DISCORD_TOKEN) {
@@ -27,12 +28,13 @@ function createClient(intents) {
 function registerEvents(client) {
   client.once(Events.ClientReady, (c) => {
     console.log(`✅ Conectado como ${c.user.tag} en ${c.guilds.cache.size} servidor(es)`);
+    if (process.env.GUILD_ID) iniciarSincronizacion(c, process.env.GUILD_ID);
   });
 
   client.on(Events.InteractionCreate, async (interaction) => {
     if (interaction.isChatInputCommand()) return handleCommand(interaction);
     if (interaction.isAutocomplete()) return handleAutocomplete(interaction);
-    if (interaction.isButton() || interaction.isModalSubmit()) return handleComponent(interaction);
+    if (interaction.isButton() || interaction.isModalSubmit() || interaction.isStringSelectMenu()) return handleComponent(interaction);
   });
 
   // Votación de ideas.
