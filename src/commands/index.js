@@ -146,23 +146,27 @@ export async function registrarLink(guild, { url, titulo, proyecto, autor, orige
   return true;
 }
 
+// Crea categorías y canales base; devuelve los canales creados.
+export async function setupServer(guild) {
+  const creados = [];
+  for (const { categoria, canales } of LAYOUT) {
+    const cat = await ensureCategory(guild, categoria);
+    for (const c of canales) {
+      if (findText(guild, c.nombre)) continue;
+      await guild.channels.create({ name: c.nombre, type: ChannelType.GuildText, parent: cat.id, topic: c.tema });
+      creados.push(`#${c.nombre}`);
+    }
+  }
+  if (creados.includes('#bienvenida')) await findText(guild, 'bienvenida').send({ embeds: [ayudaEmbed()] });
+  return creados;
+}
+
 // ---------- handlers ----------
 
 const handlers = {
   async setup(interaction) {
     await interaction.deferReply(ephemeral);
-    const { guild } = interaction;
-    const creados = [];
-    for (const { categoria, canales } of LAYOUT) {
-      const cat = await ensureCategory(guild, categoria);
-      for (const c of canales) {
-        if (findText(guild, c.nombre)) continue;
-        await guild.channels.create({ name: c.nombre, type: ChannelType.GuildText, parent: cat.id, topic: c.tema });
-        creados.push(`#${c.nombre}`);
-      }
-    }
-    const bienvenida = findText(guild, 'bienvenida');
-    if (creados.includes('#bienvenida')) await bienvenida.send({ embeds: [ayudaEmbed()] });
+    const creados = await setupServer(interaction.guild);
     await interaction.editReply(creados.length
       ? `✅ Servidor organizado. Canales creados: ${creados.join(', ')}`
       : '✅ La estructura ya existía, no hubo cambios.');
