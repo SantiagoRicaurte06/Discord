@@ -22,12 +22,13 @@ export const LAYOUT = [
     categoria: '🔗 RECURSOS',
     canales: [
       { nombre: 'links-drive', tema: 'Registro automático de todos los links de Google Drive' },
-      { nombre: 'archivos', tema: 'Registro automático de archivos subidos en los proyectos' },
     ],
   },
   { categoria: '🗄️ ARCHIVADOS', canales: [] },
 ];
 
+export const FORO_ARCHIVOS = 'archivos';
+export const CAT_RECURSOS = '🔗 RECURSOS';
 export const CAT_PROYECTOS = '📁 PROYECTOS';
 export const CAT_ARCHIVADOS = '🗄️ ARCHIVADOS';
 

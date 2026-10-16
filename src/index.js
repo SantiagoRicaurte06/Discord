@@ -1,9 +1,9 @@
 import 'dotenv/config';
-import { Client, GatewayIntentBits, Events, EmbedBuilder, Partials } from 'discord.js';
+import { Client, GatewayIntentBits, Events, Partials } from 'discord.js';
 import { handleCommand, handleAutocomplete, registrarLink } from './commands/index.js';
 import { extractDriveLinks } from './drive.js';
-import { findProyectoByChannel, addArchivo } from './store.js';
-import { findText } from './layout.js';
+import { findProyectoByChannel } from './store.js';
+import { guardarArchivo, asignarRespaldo, archivoPorMensaje } from './carpetas.js';
 
 if (!process.env.DISCORD_TOKEN) {
   console.error('Falta DISCORD_TOKEN en .env');
@@ -47,17 +47,21 @@ function registerEvents(client) {
       }
       if (registrado) await message.react('📎');
 
+      // Archivos subidos en canales de proyecto → carpeta General de #archivos.
       if (proyecto && message.attachments.size) {
-        const log = findText(guild, 'archivos');
-        for (const a of message.attachments.values()) {
-          addArchivo({ nombre: a.name, url: a.url, tamaño: a.size, proyecto: proyecto.id, autor: message.author.id, mensaje: message.url });
-          await log?.send({
-            embeds: [new EmbedBuilder().setColor(0xeb459e).setTitle(`📄 ${a.name}`.slice(0, 256)).setURL(message.url)
-              .setDescription(`Proyecto: **${proyecto.nombre}** (<#${proyecto.channelId}>)\nSubido por <@${message.author.id}> · ${(a.size / 1024).toFixed(1)} KB`)
-              .setTimestamp()],
-          });
+        const drive = extractDriveLinks(message.content)[0];
+        for (const attachment of message.attachments.values()) {
+          await guardarArchivo(guild, { attachment, drive, autor: message.author.id, origen: message.url });
         }
         await message.react('🗂️');
+      }
+
+      // Responder a un archivo dentro de una carpeta con un link de Drive = asignar respaldo.
+      const respondido = message.reference?.messageId && archivoPorMensaje(message.reference.messageId);
+      const drive = extractDriveLinks(message.content)[0];
+      if (respondido && drive) {
+        await asignarRespaldo(guild, respondido, drive);
+        await message.react('☁️');
       }
     } catch (err) {
       console.error('Error procesando mensaje:', err);

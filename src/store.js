@@ -4,7 +4,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const DB_PATH = join(dirname(fileURLToPath(import.meta.url)), '..', 'data', 'db.json');
-const EMPTY = { proyectos: {}, links: [], ideas: [], archivos: [] };
+const EMPTY = { proyectos: {}, links: [], ideas: [], archivos: [], carpetas: {} };
 
 function load() {
   if (!existsSync(DB_PATH)) return structuredClone(EMPTY);
@@ -53,6 +53,9 @@ export function addIdea(idea) {
 }
 
 export function addArchivo(a) {
-  db.archivos.push({ ...a, fecha: new Date().toISOString() });
+  const id = (db.archivos.at(-1)?.id ?? 0) + 1;
+  const archivo = { id, ...a, fecha: new Date().toISOString() };
+  db.archivos.push(archivo);
   save();
+  return archivo;
 }

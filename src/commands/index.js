@@ -6,6 +6,9 @@ import {
 } from '../store.js';
 import { isDriveLink, driveTipo } from '../drive.js';
 import {
+  ensureForo, ensureCarpeta, guardarArchivo, asignarRespaldo, GENERAL,
+} from '../carpetas.js';
+import {
   LAYOUT, CAT_PROYECTOS, CAT_ARCHIVADOS, findText, ensureCategory,
 } from '../layout.js';
 
@@ -61,6 +64,17 @@ export const commands = [
     .addSubcommand((s) => s.setName('lista').setDescription('Lista las ideas'))
     .addSubcommand((s) => s.setName('aprobar').setDescription('Convierte una idea en proyecto')
       .addIntegerOption((o) => o.setName('id').setDescription('Número de la idea').setRequired(true))),
+
+  new SlashCommandBuilder()
+    .setName('archivo')
+    .setDescription('Archivos y sus respaldos en Drive')
+    .addSubcommand((s) => s.setName('subir').setDescription('Guarda un archivo en la carpeta General de #archivos')
+      .addAttachmentOption((o) => o.setName('archivo').setDescription('El archivo').setRequired(true))
+      .addStringOption((o) => o.setName('drive').setDescription('Link de respaldo en Google Drive'))
+      .addStringOption((o) => o.setName('descripcion').setDescription('Nota corta sobre el archivo').setMaxLength(200)))
+    .addSubcommand((s) => s.setName('respaldo').setDescription('Agrega o cambia el link de Drive de un archivo')
+      .addStringOption((o) => o.setName('archivo').setDescription('Archivo').setRequired(true).setAutocomplete(true))
+      .addStringOption((o) => o.setName('drive').setDescription('Link de respaldo en Google Drive').setRequired(true))),
 
   new SlashCommandBuilder().setName('ayuda').setDescription('Muestra cómo usar el bot'),
 ];
@@ -157,6 +171,8 @@ export async function setupServer(guild) {
       creados.push(`#${c.nombre}`);
     }
   }
+  await ensureForo(guild);
+  await ensureCarpeta(guild, GENERAL);
   if (creados.includes('#bienvenida')) await findText(guild, 'bienvenida').send({ embeds: [ayudaEmbed()] });
   return creados;
 }
@@ -297,6 +313,30 @@ const handlers = {
     }
   },
 
+  async archivo(interaction) {
+    const sub = interaction.options.getSubcommand();
+    const drive = interaction.options.getString('drive')?.trim();
+    if (drive && !isDriveLink(drive)) throw new UserError('El link de respaldo debe ser de Google Drive/Docs.');
+
+    if (sub === 'subir') {
+      await interaction.deferReply(ephemeral);
+      const { archivo, thread } = await guardarArchivo(interaction.guild, {
+        attachment: interaction.options.getAttachment('archivo'),
+        drive, descripcion: interaction.options.getString('descripcion'), autor: interaction.user.id,
+      });
+      return interaction.editReply(`✅ **${archivo.nombre}** guardado en <#${thread.id}>${drive ? '' : '\n⚠️ Sin respaldo en Drive: agrégalo con `/archivo respaldo`'}`);
+    }
+
+    if (sub === 'respaldo') {
+      const valor = interaction.options.getString('archivo');
+      const archivo = getDb().archivos.find((a) => String(a.id) === valor || a.nombre === valor);
+      if (!archivo) throw new UserError('No encontré ese archivo.');
+      await interaction.deferReply(ephemeral);
+      await asignarRespaldo(interaction.guild, archivo, drive);
+      return interaction.editReply(`☁️ Respaldo de **${archivo.nombre}** actualizado.`);
+    }
+  },
+
   async ayuda(interaction) {
     return interaction.reply({ embeds: [ayudaEmbed()], ...ephemeral });
   },
@@ -317,7 +357,10 @@ function ayudaEmbed() {
     '`/idea nueva` — publica en #ideas con votación e hilo de discusión',
     '`/idea lista` · `/idea aprobar` — convierte una idea en proyecto',
     '',
-    '**Archivos**: lo que subas en el canal de un proyecto queda registrado en #archivos.',
+    '**Archivos** (foro #archivos, carpeta 📂 General)',
+    '`/archivo subir` — guarda un archivo con su link de respaldo en Drive',
+    '`/archivo respaldo` — agrega el link de Drive a un archivo que no lo tiene',
+    'El índice al inicio de la carpeta lista todo ordenado por tipo y marca ⚠️ lo que no tiene respaldo.',
   ].join('\n'));
 }
 
@@ -335,10 +378,20 @@ export async function handleCommand(interaction) {
 }
 
 export async function handleAutocomplete(interaction) {
-  const q = slug(interaction.options.getFocused() ?? '');
-  const opciones = Object.values(getDb().proyectos)
-    .filter((p) => p.id.includes(q))
-    .slice(0, 25)
-    .map((p) => ({ name: p.nombre.slice(0, 100), value: p.nombre.slice(0, 100) }));
+  const focused = interaction.options.getFocused(true);
+  const q = slug(focused.value ?? '');
+  let opciones;
+  if (interaction.commandName === 'archivo') {
+    opciones = getDb().archivos
+      .filter((a) => slug(a.nombre).includes(q))
+      .sort((a, b) => Number(!!a.drive) - Number(!!b.drive) || b.id - a.id)
+      .slice(0, 25)
+      .map((a) => ({ name: `${a.drive ? '☁️' : '⚠️'} #${a.id} ${a.nombre}`.slice(0, 100), value: String(a.id) }));
+  } else {
+    opciones = Object.values(getDb().proyectos)
+      .filter((p) => p.id.includes(q))
+      .slice(0, 25)
+      .map((p) => ({ name: p.nombre.slice(0, 100), value: p.nombre.slice(0, 100) }));
+  }
   await interaction.respond(opciones).catch(() => {});
 }
