@@ -1,3 +1,5 @@
 node_modules/
 .env
-data/*.json
+# Datos del bot (base, copias): nunca al repo
+data/*
+!data/.gitkeep
