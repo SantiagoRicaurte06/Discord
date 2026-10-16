@@ -7,9 +7,9 @@ import { getDb, slug, addProyecto, save } from './store.js';
 import { driveTipo } from './drive.js';
 import { crearForo, ensureCarpeta } from './carpetas.js';
 import { conectarGithub } from './github.js';
+import { COLORES, PROYECTO } from './layout.js';
 
 export const ESTADOS = ['💭 Idea', '📝 Planeación', '🚧 En progreso', '⏸️ Pausado', '✅ Terminado'];
-const COLOR = 0x5865f2;
 
 // Errores esperados que se muestran al usuario sin ensuciar la consola.
 export class UserError extends Error {}
@@ -66,8 +66,8 @@ export function proyectoEmbed(p) {
   const links = db.links.filter((l) => l.proyecto === p.id);
   const archivos = db.archivos.filter((a) => a.proyecto === p.id);
   return new EmbedBuilder()
-    .setColor(COLOR)
-    .setTitle(`📁 ${p.nombre}`)
+    .setColor(COLORES.primario)
+    .setTitle(`◆ ${p.nombre}`)
     .setDescription(p.descripcion)
     .addFields(
       { name: 'Estado', value: p.estado, inline: true },
@@ -124,19 +124,19 @@ export async function crearProyecto(guild, autorId, { nombre, descripcion, githu
   if (getDb().proyectos[id]) throw new UserError(`Ya existe el proyecto **${nombre}**.`);
   const todos = [...new Set([autorId, ...miembros])];
 
-  const role = await guild.roles.create({ name: `📁 ${nombre}`.slice(0, 100), mentionable: true, reason: `Proyecto ${nombre}` });
+  const role = await guild.roles.create({ name: PROYECTO.rol(nombre).slice(0, 100), mentionable: true, reason: `Proyecto ${nombre}` });
   const overwrites = [
     { id: guild.roles.everyone.id, deny: [VER] },
     { id: role.id, allow: MIEMBRO },
     { id: guild.members.me.id, allow: [VER, PermissionFlagsBits.ManageChannels, PermissionFlagsBits.ManageThreads] },
   ];
-  const cat = await guild.channels.create({ name: `📁 ${nombre}`.slice(0, 100), type: ChannelType.GuildCategory, permissionOverwrites: overwrites });
+  const cat = await guild.channels.create({ name: PROYECTO.categoria(nombre).slice(0, 100), type: ChannelType.GuildCategory, permissionOverwrites: overwrites });
   const chat = await guild.channels.create({
-    name: id, type: ChannelType.GuildText, parent: cat.id, permissionOverwrites: overwrites,
+    name: PROYECTO.chat, type: ChannelType.GuildText, parent: cat.id, permissionOverwrites: overwrites,
     topic: `${descripcion.slice(0, 800)}${github ? ` | GitHub: ${github}` : ''}`,
   });
-  const foro = await crearForo(guild, { name: `archivos-${id}`.slice(0, 100), parent: cat.id, permissionOverwrites: overwrites });
-  const voz = await guild.channels.create({ name: `🔊 ${nombre}`.slice(0, 100), type: ChannelType.GuildVoice, parent: cat.id, permissionOverwrites: overwrites });
+  const foro = await crearForo(guild, { name: PROYECTO.archivos, parent: cat.id, permissionOverwrites: overwrites });
+  const voz = await guild.channels.create({ name: PROYECTO.voz, type: ChannelType.GuildVoice, parent: cat.id, permissionOverwrites: overwrites });
 
   const p = addProyecto({
     id, nombre, descripcion, github: github ?? null, drive: drive ?? null, estado: ESTADOS[1],
@@ -185,8 +185,8 @@ export function puedeGestionar(interaction, p) {
 
 export async function archivarProyecto(guild, p) {
   const cat = await guild.channels.fetch(p.categoryId).catch(() => null);
-  if (cat && !cat.name.startsWith('🗄️')) {
-    await cat.setName(`🗄️ ${p.nombre}`.slice(0, 100));
+  if (cat && cat.name !== PROYECTO.archivada(p.nombre)) {
+    await cat.setName(PROYECTO.archivada(p.nombre).slice(0, 100));
     await cat.setPosition(guild.channels.cache.filter((c) => c.type === ChannelType.GuildCategory).size);
   }
   p.archivado = true;

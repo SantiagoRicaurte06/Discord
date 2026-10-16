@@ -3,6 +3,7 @@
 // Con GITHUB_PAT en .env el bot registra el webhook en el repo; si no, muestra los pasos para hacerlo a mano.
 import { ChannelType, EmbedBuilder, PermissionFlagsBits } from 'discord.js';
 import { save } from './store.js';
+import { COLORES, PROYECTO } from './layout.js';
 
 const EVENTOS = ['push', 'pull_request', 'pull_request_review', 'issues', 'issue_comment', 'release', 'create', 'delete'];
 
@@ -18,7 +19,7 @@ export async function ensureCanalCommits(guild, p) {
   let canal = p.commitsId && await guild.channels.fetch(p.commitsId).catch(() => null);
   if (!canal) {
     canal = await guild.channels.create({
-      name: `commits-${p.id}`.slice(0, 100),
+      name: PROYECTO.commits,
       type: ChannelType.GuildText,
       parent: p.categoryId,
       topic: `Commits, PRs, issues y releases de ${p.github ?? 'GitHub'}`,
@@ -69,7 +70,7 @@ async function registrarEnGithub(p) {
 export function instrucciones(p) {
   const repo = parseRepo(p.github);
   const ajustes = repo ? `https://github.com/${repo.owner}/${repo.repo}/settings/hooks/new` : 'tu repositorio → Settings → Webhooks → Add webhook';
-  return new EmbedBuilder().setColor(0x24292f).setTitle(`🐙 Conectar GitHub · ${p.nombre}`).setDescription([
+  return new EmbedBuilder().setColor(COLORES.github).setTitle(`🐙 Conectar GitHub · ${p.nombre}`).setDescription([
     `1. Abre ${ajustes}`,
     '2. **Payload URL:** copia la URL de abajo (es secreta, no la compartas)',
     '3. **Content type:** `application/json`',

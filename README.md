@@ -6,7 +6,7 @@ Bot para organizar **proyectos, ideas, archivos y links de Google Drive** en un 
 
 | Comando | Qué hace |
 |---|---|
-| `/setup` | Crea la estructura del servidor: 📌 GENERAL, 💡 IDEAS, 📁 PROYECTOS, 🔗 RECURSOS, 🗄️ ARCHIVADOS |
+| `/setup` | Crea o actualiza la estructura y el estilo del servidor (nombres, íconos y orden en `src/layout.js`) |
 | `/proyecto crear` | Crea un canal para el proyecto con una ficha fijada (descripción, estado, carpeta de Drive, links) |
 | `/proyecto lista` · `info` · `estado` · `archivar` | Gestión de proyectos (con autocompletado de nombres) |
 | `/drive agregar` · `lista` | Guarda y lista links de Drive/Docs/Sheets/Slides, por proyecto o globales |

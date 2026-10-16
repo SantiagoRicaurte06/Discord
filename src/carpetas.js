@@ -1,10 +1,8 @@
 // Foro #archivos: cada publicación es una carpeta (una por proyecto + "General").
 // El primer mensaje de cada carpeta es un índice ordenado de sus archivos con su respaldo en Drive.
-import {
-  ChannelType, EmbedBuilder, ForumLayoutType, SortOrderType, AttachmentBuilder,
-} from 'discord.js';
+import { ChannelType, EmbedBuilder, AttachmentBuilder } from 'discord.js';
 import { getDb, save, addArchivo } from './store.js';
-import { FORO_ARCHIVOS, CAT_RECURSOS, ensureCategory } from './layout.js';
+import { COLORES, FORO_OPCIONES, ensureCanal } from './layout.js';
 
 const GENERAL = 'general';
 
@@ -32,26 +30,11 @@ function formatSize(bytes) {
   return bytes > 1024 * 1024 ? `${(bytes / 1024 / 1024).toFixed(1)} MB` : `${Math.ceil(bytes / 1024)} KB`;
 }
 
-export function findForo(guild) {
-  return guild.channels.cache.find((c) => c.type === ChannelType.GuildForum && c.name === FORO_ARCHIVOS);
-}
-
 export const crearForo = (guild, { name, parent, permissionOverwrites }) => guild.channels.create({
-  name,
-  type: ChannelType.GuildForum,
-  parent,
-  permissionOverwrites,
-  topic: 'El primer mensaje de cada carpeta es el índice con los archivos y su respaldo en Drive. Sube archivos con /archivo subir.',
-  defaultForumLayout: ForumLayoutType.ListView,
-  defaultSortOrder: SortOrderType.CreationDate,
+  name, type: ChannelType.GuildForum, parent, permissionOverwrites, ...FORO_OPCIONES,
 });
 
-export async function ensureForo(guild) {
-  const existente = findForo(guild);
-  if (existente) return existente;
-  const cat = await ensureCategory(guild, CAT_RECURSOS);
-  return crearForo(guild, { name: FORO_ARCHIVOS, parent: cat.id });
-}
+export const ensureForo = async (guild) => (await ensureCanal(guild, 'archivos')).canal;
 
 // Foro donde vive la carpeta: el general o el privado del proyecto.
 async function foroDe(guild, key) {
@@ -106,7 +89,7 @@ export function indiceEmbeds(key) {
   embeds.push(actual);
 
   return embeds.slice(0, 9).map((desc, i) => {
-    const e = new EmbedBuilder().setColor(0xeb459e).setDescription(i === 0 ? `${cabecera}\n\n${desc}` : desc);
+    const e = new EmbedBuilder().setColor(COLORES.archivos).setDescription(i === 0 ? `${cabecera}\n\n${desc}` : desc);
     if (i === 0) e.setTitle(`📂 ${nombreCarpeta(key)}`);
     return e;
   }).map((e, i, arr) => (i === arr.length - 1

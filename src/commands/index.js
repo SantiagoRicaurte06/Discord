@@ -7,10 +7,10 @@ import {
 } from '../store.js';
 import { isDriveLink, driveTipo } from '../drive.js';
 import {
-  ensureForo, ensureCarpeta, guardarArchivo, asignarRespaldo, GENERAL,
+  ensureCarpeta, guardarArchivo, asignarRespaldo, GENERAL,
 } from '../carpetas.js';
 import {
-  LAYOUT, VOZ, findText, findCategory, ensureCategory,
+  CANALES, COLORES, canal, ensureCanal, ordenar, mencion,
 } from '../layout.js';
 import {
   ESTADOS, UserError, modalCrear, modalMiembros, modalEditar, proyectoEmbed, refrescarFicha,
@@ -18,10 +18,8 @@ import {
 } from '../proyectos.js';
 import { conectarGithub, instrucciones } from '../github.js';
 
-const COLOR = 0x5865f2;
 const AFK_SEGUNDOS = 900; // 15 minutos
 const ROL_CREADOR = 'Creador de proyectos';
-const CANAL_CREAR = 'crear-proyectos';
 const ephemeral = { flags: MessageFlags.Ephemeral };
 
 const proyectoOption = (o, required = true) =>
@@ -134,9 +132,9 @@ export async function registrarLink(guild, { url, titulo, proyecto, autor, orige
   if (!saved) return false;
   const p = proyecto ? getDb().proyectos[proyecto] : null;
   // Los links de proyectos privados se anuncian en su propio chat, no en el canal público.
-  const log = p ? await guild.channels.fetch(p.channelId).catch(() => null) : findText(guild, 'links-drive');
+  const log = p ? await guild.channels.fetch(p.channelId).catch(() => null) : canal(guild, 'linksDrive');
   await log?.send({
-    embeds: [new EmbedBuilder().setColor(0x0f9d58)
+    embeds: [new EmbedBuilder().setColor(COLORES.drive)
       .setTitle(`${driveTipo(url)} · ${titulo}`.slice(0, 256)).setURL(url)
       .setDescription([
         p ? `Guardado en la ficha de **${p.nombre}**` : 'Sin proyecto',
@@ -151,90 +149,76 @@ export async function registrarLink(guild, { url, titulo, proyecto, autor, orige
 
 // Canal de voz general + AFK a los 15 minutos.
 async function setupVoz(guild) {
-  const cat = findCategory(guild, VOZ) ?? findCategory(guild, 'Canales de voz');
-  const categoria = cat ? await cat.setName(VOZ) : await ensureCategory(guild, VOZ);
-  const voces = guild.channels.cache.filter((c) => c.type === ChannelType.GuildVoice);
-
-  let general = voces.find((c) => c.name === '🔊 General') ?? voces.find((c) => c.name === 'General' && !c.parent?.name.startsWith('📁'));
-  if (general) {
-    if (general.name !== '🔊 General' || general.parentId !== categoria.id) {
-      await general.edit({ name: '🔊 General', parent: categoria.id });
-    }
-  } else {
-    general = await guild.channels.create({ name: '🔊 General', type: ChannelType.GuildVoice, parent: categoria.id });
-  }
-
-  const afk = voces.find((c) => c.name === '💤 AFK') ?? await guild.channels.create({
-    name: '💤 AFK', type: ChannelType.GuildVoice, parent: categoria.id,
+  await ensureCanal(guild, 'vozGeneral');
+  const { canal: afk } = await ensureCanal(guild, 'afk', {
     permissionOverwrites: [{ id: guild.roles.everyone.id, deny: [PermissionFlagsBits.Speak] }],
   });
   if (guild.afkChannelId !== afk.id) await guild.setAFKChannel(afk);
   if (guild.afkTimeout !== AFK_SEGUNDOS) await guild.setAFKTimeout(AFK_SEGUNDOS);
 }
 
-// #crear-proyectos: todos lo ven, solo el rol "Creador de proyectos" escribe. Tiene el panel con el botón.
+// Crear proyectos: todos ven el canal, solo el rol "Creador de proyectos" escribe. Tiene el panel con el botón.
 async function setupCrearProyectos(guild) {
   const rol = guild.roles.cache.find((r) => r.name === ROL_CREADOR)
-    ?? await guild.roles.create({ name: ROL_CREADOR, color: 0x57f287, mentionable: true, reason: 'Puede crear proyectos y escribir en #crear-proyectos' });
-  const overwrites = [
+    ?? await guild.roles.create({ name: ROL_CREADOR, color: COLORES.exito, mentionable: true, reason: 'Puede crear proyectos' });
+  const { canal: c } = await ensureCanal(guild, 'crear');
+  await c.permissionOverwrites.set([
     { id: guild.roles.everyone.id, deny: [PermissionFlagsBits.SendMessages, PermissionFlagsBits.CreatePublicThreads, PermissionFlagsBits.AddReactions] },
     { id: rol.id, allow: [PermissionFlagsBits.SendMessages, PermissionFlagsBits.AttachFiles, PermissionFlagsBits.AddReactions] },
-  ];
-  let canal = findText(guild, CANAL_CREAR);
-  if (canal) {
-    await canal.permissionOverwrites.set(overwrites);
-  } else {
-    const cat = await ensureCategory(guild, LAYOUT[0].categoria);
-    canal = await guild.channels.create({
-      name: CANAL_CREAR, type: ChannelType.GuildText, parent: cat.id, permissionOverwrites: overwrites,
-      topic: `Crea proyectos con el botón o /proyecto crear. Solo el rol ${ROL_CREADOR} puede escribir aquí.`,
-    });
-  }
+  ]);
+  await c.setTopic(`Crea proyectos con el botón o /proyecto crear. Solo ${ROL_CREADOR} puede escribir aquí.`);
 
-  const db = getDb();
-  const panel = db.panelCrear && await canal.messages.fetch(db.panelCrear).catch(() => null);
   const contenido = {
-    embeds: [new EmbedBuilder().setColor(0x57f287).setTitle('🚀 Crear un proyecto').setDescription([
-      'Pulsa el botón para abrir el formulario:',
-      '• Nombre y descripción',
-      '• Repositorio de GitHub',
-      '• Carpeta de Google Drive',
-      '• Miembros del equipo',
+    embeds: [new EmbedBuilder().setColor(COLORES.exito).setTitle('Crear un proyecto').setDescription([
+      'Pulsa **Crear proyecto** para abrir el formulario.',
       '',
-      'Se creará un **rol** y una **categoría privada** con chat, carpeta de archivos y canal de voz.',
-      `Solo <@&${rol.id}> puede crear proyectos y escribir en este canal.`,
+      '**El formulario pide**',
+      '› Nombre y descripción',
+      '› Repositorio de GitHub',
+      '› Carpeta de Google Drive',
+      '› Miembros del equipo',
+      '',
+      '**Se crea automáticamente**',
+      '› Un rol y una categoría privada para el equipo',
+      `› ${PROYECTO_CANALES}`,
+      '',
+      `-# Solo <@&${rol.id}> puede crear proyectos y escribir en este canal.`,
     ].join('\n'))],
     components: [new ActionRowBuilder().addComponents(
-      new ButtonBuilder().setCustomId('proyecto-panel').setLabel('Crear proyecto').setEmoji('➕').setStyle(ButtonStyle.Success),
+      new ButtonBuilder().setCustomId('proyecto-panel').setLabel('Crear proyecto').setEmoji('🚀').setStyle(ButtonStyle.Success),
     )],
     allowedMentions: { parse: [] },
   };
-  if (panel) await panel.edit(contenido);
-  else {
-    const msg = await canal.send(contenido);
-    await msg.pin().catch(() => {});
-    db.panelCrear = msg.id;
-    save();
-  }
-  return canal;
+  await publicarFijo(c, 'panelCrear', contenido);
 }
 
-// Crea categorías y canales base; devuelve los canales creados.
+// Publica o actualiza un mensaje fijo del bot (guardando su ID en la base).
+async function publicarFijo(c, clave, contenido) {
+  const db = getDb();
+  const previo = db[clave] && await c.messages.fetch(db[clave]).catch(() => null);
+  if (previo) return previo.edit(contenido);
+  const msg = await c.send(contenido);
+  await msg.pin().catch(() => {});
+  db[clave] = msg.id;
+  save();
+  return msg;
+}
+
+const PROYECTO_CANALES = 'Chat, carpeta de archivos, canal de commits de GitHub y sala de voz';
+
+// Crea o actualiza toda la estructura base con el estilo actual; devuelve los canales creados.
 export async function setupServer(guild) {
   const creados = [];
-  for (const { categoria, canales } of LAYOUT) {
-    const cat = await ensureCategory(guild, categoria);
-    for (const c of canales) {
-      if (findText(guild, c.nombre)) continue;
-      await guild.channels.create({ name: c.nombre, type: ChannelType.GuildText, parent: cat.id, topic: c.tema });
-      creados.push(`#${c.nombre}`);
-    }
+  for (const key of Object.keys(CANALES)) {
+    if (['crear', 'vozGeneral', 'afk'].includes(key)) continue;
+    const { creado } = await ensureCanal(guild, key);
+    if (creado) creados.push(CANALES[key].nombre);
   }
-  await ensureForo(guild);
   await ensureCarpeta(guild, GENERAL);
   await setupVoz(guild);
   await setupCrearProyectos(guild);
-  if (creados.includes('#bienvenida')) await findText(guild, 'bienvenida').send({ embeds: [ayudaEmbed()] });
+  await ordenar(guild);
+  await publicarFijo(canal(guild, 'bienvenida'), 'mensajeBienvenida', { embeds: [ayudaEmbed(guild)] });
   return creados;
 }
 
@@ -246,7 +230,7 @@ const handlers = {
     const creados = await setupServer(interaction.guild);
     await interaction.editReply(creados.length
       ? `✅ Servidor organizado. Canales creados: ${creados.join(', ')}`
-      : '✅ Estructura verificada (voz general y AFK de 15 min incluidos).');
+      : '✅ Estructura verificada y actualizada al estilo actual.');
   },
 
   async proyecto(interaction) {
@@ -263,7 +247,7 @@ const handlers = {
       if (!ps.length) return interaction.reply({ content: 'No tienes proyectos aún. Crea uno con `/proyecto crear`.', ...ephemeral });
       const lineas = ps.map((p) => `${p.estado} — **${p.nombre}** <#${p.channelId}>${p.github ? ` · [GitHub](${p.github})` : ''}${p.drive ? ` · [Drive](${p.drive})` : ''}`);
       return interaction.reply({
-        embeds: [new EmbedBuilder().setColor(COLOR).setTitle(`📁 Tus proyectos (${ps.length})`).setDescription(lineas.join('\n').slice(0, 4000))],
+        embeds: [new EmbedBuilder().setColor(COLORES.primario).setTitle(`◆ Tus proyectos (${ps.length})`).setDescription(lineas.join('\n').slice(0, 4000))],
         ...ephemeral,
       });
     }
@@ -322,7 +306,7 @@ const handlers = {
         return `${driveTipo(l.url)} [${l.titulo}](${l.url})${!p && pr ? ` — *${pr}*` : ''}`;
       });
       return interaction.reply({
-        embeds: [new EmbedBuilder().setColor(0x0f9d58)
+        embeds: [new EmbedBuilder().setColor(COLORES.drive)
           .setTitle(`🔗 Links de Drive${p ? ` · ${p.nombre}` : ''} (${links.length})`)
           .setDescription(lineas.join('\n').slice(0, 4000))],
         ...ephemeral,
@@ -337,10 +321,10 @@ const handlers = {
     if (sub === 'nueva') {
       const titulo = interaction.options.getString('titulo');
       const descripcion = interaction.options.getString('descripcion') ?? '';
-      const canal = findText(interaction.guild, 'ideas') ?? interaction.channel;
+      const destino = canal(interaction.guild, 'ideas') ?? interaction.channel;
       const id = addIdea({ titulo, descripcion, autor: interaction.user.id, estado: 'abierta' });
-      const msg = await canal.send({
-        embeds: [new EmbedBuilder().setColor(0xfee75c).setTitle(`💡 #${id} · ${titulo}`)
+      const msg = await destino.send({
+        embeds: [new EmbedBuilder().setColor(COLORES.ideas).setTitle(`💡 #${id} · ${titulo}`)
           .setDescription(descripcion || '—').setFooter({ text: `Para convertirla en proyecto: /idea aprobar id:${id}` })
           .setAuthor({ name: interaction.user.displayName, iconURL: interaction.user.displayAvatarURL() })],
       });
@@ -349,15 +333,15 @@ const handlers = {
       await msg.startThread({ name: `💬 ${titulo}`.slice(0, 100) }).catch(() => {});
       const idea = db.ideas.find((i) => i.id === id);
       idea.messageId = msg.id;
-      idea.channelId = canal.id;
+      idea.channelId = destino.id;
       save();
-      return interaction.reply({ content: `💡 Idea #${id} publicada en <#${canal.id}>`, ...ephemeral });
+      return interaction.reply({ content: `💡 Idea #${id} publicada en <#${destino.id}>`, ...ephemeral });
     }
 
     if (sub === 'lista') {
       if (!db.ideas.length) return interaction.reply('No hay ideas aún. Usa `/idea nueva`.');
       const lineas = db.ideas.slice(-30).map((i) => `${i.estado === 'aprobada' ? '✅' : '💡'} **#${i.id}** ${i.titulo}`);
-      return interaction.reply({ embeds: [new EmbedBuilder().setColor(0xfee75c).setTitle('💡 Ideas').setDescription(lineas.join('\n'))] });
+      return interaction.reply({ embeds: [new EmbedBuilder().setColor(COLORES.ideas).setTitle('💡 Ideas').setDescription(lineas.join('\n'))] });
     }
 
     if (sub === 'aprobar') {
@@ -397,34 +381,45 @@ const handlers = {
   },
 
   async ayuda(interaction) {
-    return interaction.reply({ embeds: [ayudaEmbed()], ...ephemeral });
+    return interaction.reply({ embeds: [ayudaEmbed(interaction.guild)], ...ephemeral });
   },
 };
 
-function ayudaEmbed() {
-  return new EmbedBuilder().setColor(COLOR).setTitle('🤖 Cómo funciona este servidor').setDescription([
-    '**Proyectos** (privados: solo los miembros los ven)',
-    '`/proyecto crear` o el botón de #crear-proyectos — formulario: nombre, descripción, GitHub, Drive y miembros',
-    'Requiere el rol **Creador de proyectos**',
-    'Cada proyecto tiene su rol, chat, carpeta de archivos, canal de voz y canal de commits de GitHub',
-    '`/proyecto github` — conecta el repo para que los commits lleguen al canal',
-    '`/proyecto miembros` · `/proyecto lista` · `/proyecto info` · `/proyecto estado` · `/proyecto archivar`',
-    '',
-    '**Google Drive**',
-    '`/drive agregar` — guarda un link (carpeta, doc, hoja, presentación)',
-    '`/drive lista` — ver links (de un proyecto o todos)',
-    '',
-    '**Ideas**',
-    '`/idea nueva` — publica en #ideas con votación e hilo de discusión',
-    '`/idea lista` · `/idea aprobar` — convierte una idea en proyecto',
-    '',
-    '**Archivos**',
-    '`/archivo subir` — guarda un archivo (en General o en un proyecto) con su respaldo en Drive',
-    '`/archivo respaldo` — agrega el link de Drive a un archivo que no lo tiene',
-    'El índice al inicio de cada carpeta lista todo ordenado por tipo y marca ⚠️ lo que no tiene respaldo.',
-    '',
-    '**Voz**: 🔊 General para todos · 💤 AFK tras 15 min sin actividad',
-  ].join('\n'));
+function ayudaEmbed(guild) {
+  const m = (key) => mencion(guild, key);
+  return new EmbedBuilder().setColor(COLORES.primario).setTitle('Guía del servidor')
+    .setDescription('Así se organiza el trabajo aquí. Escribe `/` en cualquier canal para ver los comandos.')
+    .addFields(
+      {
+        name: '◆ Proyectos',
+        value: [
+          `Se crean en ${m('crear')} o con \`/proyecto crear\` (rol **${ROL_CREADOR}**).`,
+          'Cada uno es privado: solo sus miembros ven su chat, archivos, commits y sala de voz.',
+          '`/proyecto lista` · `info` · `miembros` · `estado` · `github` · `archivar`',
+        ].join('\n'),
+      },
+      {
+        name: '📁 Archivos',
+        value: [
+          `\`/archivo subir\` guarda un archivo en ${m('archivos')} o en la carpeta de su proyecto.`,
+          '`/archivo respaldo` le asigna su copia en Google Drive.',
+          'Cada carpeta abre con un índice ordenado por tipo; ⚠️ marca lo que no tiene respaldo.',
+        ].join('\n'),
+      },
+      {
+        name: '🔗 Google Drive',
+        value: `\`/drive agregar\` · \`/drive lista\` — los links generales quedan en ${m('linksDrive')}.`,
+      },
+      {
+        name: '💡 Ideas',
+        value: `\`/idea nueva\` publica en ${m('ideas')} con votación e hilo · \`/idea aprobar\` la convierte en proyecto.`,
+      },
+      {
+        name: '🎧 Voz',
+        value: `${m('vozGeneral')} para todos · ${m('afk')} tras 15 minutos de inactividad.`,
+      },
+    )
+    .setFooter({ text: guild?.name ?? 'Servidor' });
 }
 
 async function responderError(interaction, err) {
@@ -491,7 +486,7 @@ const componentes = {
       idea.estado = 'aprobada';
       idea.proyecto = p.id;
       save();
-      await findText(interaction.guild, 'ideas-aprobadas')
+      await canal(interaction.guild, 'ideasAprobadas')
         ?.send(`✅ La idea **#${idea.id} ${idea.titulo}** ahora es un proyecto (${p.nombre}).`);
     }
     const listo = `✅ Proyecto **${p.nombre}** creado: <#${p.channelId}> · rol <@&${p.roleId}> · ${p.miembros.length} miembro(s)`;
