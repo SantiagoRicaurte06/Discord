@@ -17,20 +17,17 @@ export const LAYOUT = [
       { nombre: 'ideas-aprobadas', tema: 'Ideas que pasan a ser proyecto' },
     ],
   },
-  { categoria: '📁 PROYECTOS', canales: [] },
   {
     categoria: '🔗 RECURSOS',
     canales: [
       { nombre: 'links-drive', tema: 'Registro automático de todos los links de Google Drive' },
     ],
   },
-  { categoria: '🗄️ ARCHIVADOS', canales: [] },
 ];
 
 export const FORO_ARCHIVOS = 'archivos';
 export const CAT_RECURSOS = '🔗 RECURSOS';
-export const CAT_PROYECTOS = '📁 PROYECTOS';
-export const CAT_ARCHIVADOS = '🗄️ ARCHIVADOS';
+export const VOZ = '🔊 VOZ';
 
 export function findCategory(guild, nombre) {
   return guild.channels.cache.find((c) => c.type === ChannelType.GuildCategory && c.name === nombre);

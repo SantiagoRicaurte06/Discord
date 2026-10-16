@@ -1,6 +1,8 @@
 import 'dotenv/config';
 import { Client, GatewayIntentBits, Events, Partials } from 'discord.js';
-import { handleCommand, handleAutocomplete, registrarLink } from './commands/index.js';
+import {
+  handleCommand, handleAutocomplete, handleComponent, registrarLink,
+} from './commands/index.js';
 import { extractDriveLinks } from './drive.js';
 import { findProyectoByChannel } from './store.js';
 import { guardarArchivo, asignarRespaldo, archivoPorMensaje } from './carpetas.js';
@@ -28,6 +30,7 @@ function registerEvents(client) {
   client.on(Events.InteractionCreate, async (interaction) => {
     if (interaction.isChatInputCommand()) return handleCommand(interaction);
     if (interaction.isAutocomplete()) return handleAutocomplete(interaction);
+    if (interaction.isButton() || interaction.isModalSubmit()) return handleComponent(interaction);
   });
 
   // Registro automático de links de Drive y archivos subidos.
@@ -47,11 +50,11 @@ function registerEvents(client) {
       }
       if (registrado) await message.react('📎');
 
-      // Archivos subidos en canales de proyecto → carpeta General de #archivos.
+      // Archivos subidos en el chat de un proyecto → su carpeta de archivos.
       if (proyecto && message.attachments.size) {
         const drive = extractDriveLinks(message.content)[0];
         for (const attachment of message.attachments.values()) {
-          await guardarArchivo(guild, { attachment, drive, autor: message.author.id, origen: message.url });
+          await guardarArchivo(guild, { attachment, drive, proyecto: proyecto.id, autor: message.author.id, origen: message.url });
         }
         await message.react('🗂️');
       }

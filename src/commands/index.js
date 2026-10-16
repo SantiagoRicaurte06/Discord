@@ -2,22 +2,23 @@ import {
   SlashCommandBuilder, EmbedBuilder, ChannelType, PermissionFlagsBits, MessageFlags,
 } from 'discord.js';
 import {
-  getDb, slug, addProyecto, findProyecto, findProyectoByChannel, addIdea, save,
+  getDb, slug, findProyecto, findProyectoByChannel, addLink, addIdea, save,
 } from '../store.js';
 import { isDriveLink, driveTipo } from '../drive.js';
 import {
   ensureForo, ensureCarpeta, guardarArchivo, asignarRespaldo, GENERAL,
 } from '../carpetas.js';
 import {
-  LAYOUT, CAT_PROYECTOS, CAT_ARCHIVADOS, findText, ensureCategory,
+  LAYOUT, VOZ, findText, findCategory, ensureCategory,
 } from '../layout.js';
+import {
+  ESTADOS, UserError, modalCrear, modalMiembros, modalEditar, proyectoEmbed, refrescarFicha,
+  crearProyecto, sincronizarMiembros, miembrosElegidos, puedeGestionar, archivarProyecto,
+} from '../proyectos.js';
 
-const ESTADOS = ['💭 Idea', '📝 Planeación', '🚧 En progreso', '⏸️ Pausado', '✅ Terminado'];
 const COLOR = 0x5865f2;
+const AFK_SEGUNDOS = 900; // 15 minutos
 const ephemeral = { flags: MessageFlags.Ephemeral };
-
-// Errores esperados que se muestran al usuario sin ensuciar la consola.
-class UserError extends Error {}
 
 const proyectoOption = (o, required = true) =>
   o.setName('proyecto').setDescription('Nombre del proyecto').setRequired(required).setAutocomplete(true);
@@ -31,19 +32,18 @@ export const commands = [
   new SlashCommandBuilder()
     .setName('proyecto')
     .setDescription('Gestiona proyectos')
-    .addSubcommand((s) => s.setName('crear').setDescription('Crea un proyecto con su propio canal')
-      .addStringOption((o) => o.setName('nombre').setDescription('Nombre del proyecto').setRequired(true).setMaxLength(80))
-      .addStringOption((o) => o.setName('descripcion').setDescription('De qué trata').setRequired(true).setMaxLength(1000))
-      .addStringOption((o) => o.setName('drive').setDescription('Link de la carpeta de Google Drive del proyecto')))
-    .addSubcommand((s) => s.setName('lista').setDescription('Lista todos los proyectos'))
+    .addSubcommand((s) => s.setName('crear').setDescription('Abre el formulario para crear un proyecto'))
+    .addSubcommand((s) => s.setName('lista').setDescription('Lista los proyectos'))
     .addSubcommand((s) => s.setName('info').setDescription('Muestra la ficha de un proyecto')
       .addStringOption((o) => proyectoOption(o, false)))
+    .addSubcommand((s) => s.setName('miembros').setDescription('Agrega o quita personas de un proyecto')
+      .addStringOption((o) => proyectoOption(o, false)))
     .addSubcommand((s) => s.setName('estado').setDescription('Cambia el estado de un proyecto')
-      .addStringOption((o) => proyectoOption(o))
       .addStringOption((o) => o.setName('estado').setDescription('Nuevo estado').setRequired(true)
-        .addChoices(...ESTADOS.map((e) => ({ name: e, value: e })))))
-    .addSubcommand((s) => s.setName('archivar').setDescription('Mueve el canal del proyecto a ARCHIVADOS')
-      .addStringOption((o) => proyectoOption(o))),
+        .addChoices(...ESTADOS.map((e) => ({ name: e, value: e }))))
+      .addStringOption((o) => proyectoOption(o, false)))
+    .addSubcommand((s) => s.setName('archivar').setDescription('Marca el proyecto como terminado y lo manda al final')
+      .addStringOption((o) => proyectoOption(o, false))),
 
   new SlashCommandBuilder()
     .setName('drive')
@@ -59,8 +59,8 @@ export const commands = [
     .setName('idea')
     .setDescription('Ideas')
     .addSubcommand((s) => s.setName('nueva').setDescription('Publica una idea para discutir y votar')
-      .addStringOption((o) => o.setName('titulo').setDescription('Título corto').setRequired(true).setMaxLength(90))
-      .addStringOption((o) => o.setName('descripcion').setDescription('Detalles').setMaxLength(1500)))
+      .addStringOption((o) => o.setName('titulo').setDescription('Título corto').setRequired(true).setMaxLength(80))
+      .addStringOption((o) => o.setName('descripcion').setDescription('Detalles').setMaxLength(1000)))
     .addSubcommand((s) => s.setName('lista').setDescription('Lista las ideas'))
     .addSubcommand((s) => s.setName('aprobar').setDescription('Convierte una idea en proyecto')
       .addIntegerOption((o) => o.setName('id').setDescription('Número de la idea').setRequired(true))),
@@ -68,10 +68,11 @@ export const commands = [
   new SlashCommandBuilder()
     .setName('archivo')
     .setDescription('Archivos y sus respaldos en Drive')
-    .addSubcommand((s) => s.setName('subir').setDescription('Guarda un archivo en la carpeta General de #archivos')
+    .addSubcommand((s) => s.setName('subir').setDescription('Guarda un archivo en una carpeta de archivos')
       .addAttachmentOption((o) => o.setName('archivo').setDescription('El archivo').setRequired(true))
       .addStringOption((o) => o.setName('drive').setDescription('Link de respaldo en Google Drive'))
-      .addStringOption((o) => o.setName('descripcion').setDescription('Nota corta sobre el archivo').setMaxLength(200)))
+      .addStringOption((o) => o.setName('descripcion').setDescription('Nota corta sobre el archivo').setMaxLength(200))
+      .addStringOption((o) => proyectoOption(o, false).setDescription('Proyecto (vacío = carpeta General)')))
     .addSubcommand((s) => s.setName('respaldo').setDescription('Agrega o cambia el link de Drive de un archivo')
       .addStringOption((o) => o.setName('archivo').setDescription('Archivo').setRequired(true).setAutocomplete(true))
       .addStringOption((o) => o.setName('drive').setDescription('Link de respaldo en Google Drive').setRequired(true))),
@@ -81,83 +82,70 @@ export const commands = [
 
 // ---------- helpers ----------
 
-function proyectoEmbed(p) {
-  const links = getDb().links.filter((l) => l.proyecto === p.id);
-  const archivos = getDb().archivos.filter((a) => a.proyecto === p.id);
-  return new EmbedBuilder()
-    .setColor(COLOR)
-    .setTitle(`📁 ${p.nombre}`)
-    .setDescription(p.descripcion)
-    .addFields(
-      { name: 'Estado', value: p.estado, inline: true },
-      { name: 'Canal', value: `<#${p.channelId}>`, inline: true },
-      { name: 'Creado por', value: `<@${p.autor}>`, inline: true },
-      { name: 'Carpeta Drive', value: p.drive ?? '—' },
-      {
-        name: `Links (${links.length})`,
-        value: links.slice(-8).map((l) => `${driveTipo(l.url)} [${l.titulo}](${l.url})`).join('\n') || '—',
-      },
-      { name: 'Archivos subidos', value: String(archivos.length), inline: true },
-    )
-    .setFooter({ text: `id: ${p.id}` })
-    .setTimestamp(new Date(p.fecha));
-}
+const esAdmin = (interaction) => interaction.memberPermissions?.has(PermissionFlagsBits.ManageRoles);
 
-async function crearProyecto(interaction, { nombre, descripcion, drive }) {
-  const { guild } = interaction;
-  const id = slug(nombre);
-  if (!id) throw new UserError('Nombre inválido.');
-  if (getDb().proyectos[id]) throw new UserError(`Ya existe el proyecto **${nombre}**.`);
-  if (drive && !isDriveLink(drive)) throw new UserError('El link de Drive no es válido (debe ser drive.google.com o docs.google.com).');
-
-  const cat = await ensureCategory(guild, CAT_PROYECTOS);
-  const channel = await guild.channels.create({
-    name: id, type: ChannelType.GuildText, parent: cat.id,
-    topic: `${descripcion.slice(0, 900)}${drive ? ` | Drive: ${drive}` : ''}`,
-  });
-  const p = addProyecto({
-    id, nombre, descripcion, drive: drive ?? null, estado: ESTADOS[1],
-    channelId: channel.id, autor: interaction.user.id, fecha: new Date().toISOString(),
-  });
-  const ficha = await channel.send({ embeds: [proyectoEmbed(p)] });
-  await ficha.pin().catch(() => {});
-  p.fichaId = ficha.id;
-  save();
-  return p;
-}
-
-async function refrescarFicha(guild, p) {
-  const channel = guild.channels.cache.get(p.channelId);
-  if (!channel || !p.fichaId) return;
-  const msg = await channel.messages.fetch(p.fichaId).catch(() => null);
-  await msg?.edit({ embeds: [proyectoEmbed(p)] }).catch(() => {});
-}
+// Un proyecto es visible para sus miembros y para quien gestiona roles.
+const visible = (interaction, proyectoId) => {
+  if (!proyectoId) return true;
+  const p = getDb().proyectos[proyectoId];
+  return !p || esAdmin(interaction) || p.miembros.includes(interaction.user.id);
+};
 
 function resolverProyecto(interaction, required = true) {
   const nombre = interaction.options.getString('proyecto');
   const p = nombre ? findProyecto(nombre) : findProyectoByChannel(interaction.channelId);
-  if (!p && (required || nombre)) {
+  if ((!p && (required || nombre)) || (p && !visible(interaction, p.id))) {
     throw new UserError(nombre ? `No encontré el proyecto **${nombre}**.` : 'Indica el proyecto o usa el comando dentro de su canal.');
   }
+  return p;
+}
+
+function proyectoGestionable(interaction, p) {
+  if (!puedeGestionar(interaction, p)) throw new UserError('Solo los miembros del proyecto pueden hacer esto.');
   return p;
 }
 
 export async function registrarLink(guild, { url, titulo, proyecto, autor, origen }) {
   const saved = addLink({ url, titulo, proyecto: proyecto ?? null, autor });
   if (!saved) return false;
-  const log = findText(guild, 'links-drive');
   const p = proyecto ? getDb().proyectos[proyecto] : null;
+  // Los links de proyectos privados se anuncian en su propio chat, no en el canal público.
+  const log = p ? await guild.channels.fetch(p.channelId).catch(() => null) : findText(guild, 'links-drive');
   await log?.send({
     embeds: [new EmbedBuilder().setColor(0x0f9d58)
       .setTitle(`${driveTipo(url)} · ${titulo}`.slice(0, 256)).setURL(url)
       .setDescription([
-        p ? `Proyecto: **${p.nombre}** (<#${p.channelId}>)` : 'Sin proyecto',
+        p ? `Guardado en la ficha de **${p.nombre}**` : 'Sin proyecto',
         `Agregado por <@${autor}>`, origen ? `Origen: ${origen}` : null,
       ].filter(Boolean).join('\n'))
       .setTimestamp()],
+    allowedMentions: { parse: [] },
   });
   if (p) await refrescarFicha(guild, p);
   return true;
+}
+
+// Canal de voz general + AFK a los 15 minutos.
+async function setupVoz(guild) {
+  const cat = findCategory(guild, VOZ) ?? findCategory(guild, 'Canales de voz');
+  const categoria = cat ? await cat.setName(VOZ) : await ensureCategory(guild, VOZ);
+  const voces = guild.channels.cache.filter((c) => c.type === ChannelType.GuildVoice);
+
+  let general = voces.find((c) => c.name === '🔊 General') ?? voces.find((c) => c.name === 'General' && !c.parent?.name.startsWith('📁'));
+  if (general) {
+    if (general.name !== '🔊 General' || general.parentId !== categoria.id) {
+      await general.edit({ name: '🔊 General', parent: categoria.id });
+    }
+  } else {
+    general = await guild.channels.create({ name: '🔊 General', type: ChannelType.GuildVoice, parent: categoria.id });
+  }
+
+  const afk = voces.find((c) => c.name === '💤 AFK') ?? await guild.channels.create({
+    name: '💤 AFK', type: ChannelType.GuildVoice, parent: categoria.id,
+    permissionOverwrites: [{ id: guild.roles.everyone.id, deny: [PermissionFlagsBits.Speak] }],
+  });
+  if (guild.afkChannelId !== afk.id) await guild.setAFKChannel(afk);
+  if (guild.afkTimeout !== AFK_SEGUNDOS) await guild.setAFKTimeout(AFK_SEGUNDOS);
 }
 
 // Crea categorías y canales base; devuelve los canales creados.
@@ -173,11 +161,12 @@ export async function setupServer(guild) {
   }
   await ensureForo(guild);
   await ensureCarpeta(guild, GENERAL);
+  await setupVoz(guild);
   if (creados.includes('#bienvenida')) await findText(guild, 'bienvenida').send({ embeds: [ayudaEmbed()] });
   return creados;
 }
 
-// ---------- handlers ----------
+// ---------- slash commands ----------
 
 const handlers = {
   async setup(interaction) {
@@ -185,43 +174,37 @@ const handlers = {
     const creados = await setupServer(interaction.guild);
     await interaction.editReply(creados.length
       ? `✅ Servidor organizado. Canales creados: ${creados.join(', ')}`
-      : '✅ La estructura ya existía, no hubo cambios.');
+      : '✅ Estructura verificada (voz general y AFK de 15 min incluidos).');
   },
 
   async proyecto(interaction) {
     const sub = interaction.options.getSubcommand();
     const db = getDb();
 
-    if (sub === 'crear') {
-      await interaction.deferReply();
-      const p = await crearProyecto(interaction, {
-        nombre: interaction.options.getString('nombre'),
-        descripcion: interaction.options.getString('descripcion'),
-        drive: interaction.options.getString('drive') ?? undefined,
-      });
-      if (p.drive) {
-        await registrarLink(interaction.guild, { url: p.drive, titulo: `Carpeta de ${p.nombre}`, proyecto: p.id, autor: interaction.user.id })
-          .catch(() => {});
-      }
-      return interaction.editReply(`✅ Proyecto **${p.nombre}** creado en <#${p.channelId}>`);
-    }
+    if (sub === 'crear') return interaction.showModal(modalCrear({ autorId: interaction.user.id }));
 
     if (sub === 'lista') {
-      const ps = Object.values(db.proyectos);
-      if (!ps.length) return interaction.reply('No hay proyectos aún. Crea uno con `/proyecto crear`.');
-      const lineas = ps.map((p) => `${p.estado} — **${p.nombre}** <#${p.channelId}>${p.drive ? ` · [Drive](${p.drive})` : ''}`);
+      const ps = Object.values(db.proyectos).filter((p) => visible(interaction, p.id));
+      if (!ps.length) return interaction.reply({ content: 'No tienes proyectos aún. Crea uno con `/proyecto crear`.', ...ephemeral });
+      const lineas = ps.map((p) => `${p.estado} — **${p.nombre}** <#${p.channelId}>${p.github ? ` · [GitHub](${p.github})` : ''}${p.drive ? ` · [Drive](${p.drive})` : ''}`);
       return interaction.reply({
-        embeds: [new EmbedBuilder().setColor(COLOR).setTitle(`📁 Proyectos (${ps.length})`).setDescription(lineas.join('\n').slice(0, 4000))],
+        embeds: [new EmbedBuilder().setColor(COLOR).setTitle(`📁 Tus proyectos (${ps.length})`).setDescription(lineas.join('\n').slice(0, 4000))],
+        ...ephemeral,
       });
     }
 
     if (sub === 'info') {
       const p = resolverProyecto(interaction);
-      return interaction.reply({ embeds: [proyectoEmbed(p)] });
+      return interaction.reply({ embeds: [proyectoEmbed(p)], ...ephemeral });
+    }
+
+    if (sub === 'miembros') {
+      const p = proyectoGestionable(interaction, resolverProyecto(interaction));
+      return interaction.showModal(modalMiembros(p));
     }
 
     if (sub === 'estado') {
-      const p = resolverProyecto(interaction);
+      const p = proyectoGestionable(interaction, resolverProyecto(interaction));
       p.estado = interaction.options.getString('estado');
       save();
       await refrescarFicha(interaction.guild, p);
@@ -229,12 +212,10 @@ const handlers = {
     }
 
     if (sub === 'archivar') {
-      const p = resolverProyecto(interaction);
-      const cat = await ensureCategory(interaction.guild, CAT_ARCHIVADOS);
-      await interaction.guild.channels.cache.get(p.channelId)?.setParent(cat.id, { lockPermissions: false });
-      p.archivado = true;
-      save();
-      return interaction.reply(`🗄️ **${p.nombre}** archivado.`);
+      const p = proyectoGestionable(interaction, resolverProyecto(interaction));
+      await interaction.deferReply();
+      await archivarProyecto(interaction.guild, p);
+      return interaction.editReply(`🗄️ **${p.nombre}** archivado.`);
     }
   },
 
@@ -248,13 +229,13 @@ const handlers = {
       const titulo = interaction.options.getString('titulo') ?? driveTipo(url).slice(2).trim();
       const ok = await registrarLink(interaction.guild, { url, titulo, proyecto: p?.id, autor: interaction.user.id });
       return interaction.reply(ok
-        ? `✅ Link guardado${p ? ` en **${p.nombre}**` : ''}: ${driveTipo(url)} [${titulo}](<${url}>)`
+        ? { content: `✅ Link guardado${p ? ` en **${p.nombre}**` : ''}: ${driveTipo(url)} [${titulo}](<${url}>)`, ...(p ? ephemeral : {}) }
         : { content: 'Ese link ya estaba guardado.', ...ephemeral });
     }
 
     if (sub === 'lista') {
       const p = resolverProyecto(interaction, false);
-      const links = getDb().links.filter((l) => !p || l.proyecto === p.id);
+      const links = getDb().links.filter((l) => (p ? l.proyecto === p.id : visible(interaction, l.proyecto)));
       if (!links.length) return interaction.reply({ content: 'No hay links guardados.', ...ephemeral });
       const lineas = links.slice(-30).map((l) => {
         const pr = l.proyecto ? getDb().proyectos[l.proyecto]?.nombre : null;
@@ -264,6 +245,7 @@ const handlers = {
         embeds: [new EmbedBuilder().setColor(0x0f9d58)
           .setTitle(`🔗 Links de Drive${p ? ` · ${p.nombre}` : ''} (${links.length})`)
           .setDescription(lineas.join('\n').slice(0, 4000))],
+        ...ephemeral,
       });
     }
   },
@@ -302,14 +284,9 @@ const handlers = {
       const idea = db.ideas.find((i) => i.id === interaction.options.getInteger('id'));
       if (!idea) throw new UserError('No existe esa idea.');
       if (idea.estado === 'aprobada') throw new UserError('Esa idea ya es un proyecto.');
-      await interaction.deferReply();
-      const p = await crearProyecto(interaction, { nombre: idea.titulo, descripcion: idea.descripcion || idea.titulo });
-      idea.estado = 'aprobada';
-      idea.proyecto = p.id;
-      save();
-      await findText(interaction.guild, 'ideas-aprobadas')
-        ?.send(`✅ La idea **#${idea.id} ${idea.titulo}** ahora es el proyecto <#${p.channelId}>`);
-      return interaction.editReply(`✅ Idea #${idea.id} convertida en proyecto: <#${p.channelId}>`);
+      return interaction.showModal(modalCrear({
+        ideaId: idea.id, nombre: idea.titulo, descripcion: idea.descripcion || idea.titulo, autorId: interaction.user.id,
+      }));
     }
   },
 
@@ -319,9 +296,10 @@ const handlers = {
     if (drive && !isDriveLink(drive)) throw new UserError('El link de respaldo debe ser de Google Drive/Docs.');
 
     if (sub === 'subir') {
+      const p = interaction.options.getString('proyecto') ? resolverProyecto(interaction) : null;
       await interaction.deferReply(ephemeral);
       const { archivo, thread } = await guardarArchivo(interaction.guild, {
-        attachment: interaction.options.getAttachment('archivo'),
+        attachment: interaction.options.getAttachment('archivo'), proyecto: p?.id,
         drive, descripcion: interaction.options.getString('descripcion'), autor: interaction.user.id,
       });
       return interaction.editReply(`✅ **${archivo.nombre}** guardado en <#${thread.id}>${drive ? '' : '\n⚠️ Sin respaldo en Drive: agrégalo con `/archivo respaldo`'}`);
@@ -330,7 +308,7 @@ const handlers = {
     if (sub === 'respaldo') {
       const valor = interaction.options.getString('archivo');
       const archivo = getDb().archivos.find((a) => String(a.id) === valor || a.nombre === valor);
-      if (!archivo) throw new UserError('No encontré ese archivo.');
+      if (!archivo || !visible(interaction, archivo.proyecto)) throw new UserError('No encontré ese archivo.');
       await interaction.deferReply(ephemeral);
       await asignarRespaldo(interaction.guild, archivo, drive);
       return interaction.editReply(`☁️ Respaldo de **${archivo.nombre}** actualizado.`);
@@ -344,24 +322,33 @@ const handlers = {
 
 function ayudaEmbed() {
   return new EmbedBuilder().setColor(COLOR).setTitle('🤖 Cómo funciona este servidor').setDescription([
-    '**Proyectos**',
-    '`/proyecto crear` — crea un canal para el proyecto con su ficha fijada',
-    '`/proyecto lista` · `/proyecto info` · `/proyecto estado` · `/proyecto archivar`',
+    '**Proyectos** (privados: solo los miembros los ven)',
+    '`/proyecto crear` — formulario: nombre, descripción, GitHub, Drive y miembros',
+    'Cada proyecto tiene su rol, chat, carpeta de archivos y canal de voz',
+    '`/proyecto miembros` · `/proyecto lista` · `/proyecto info` · `/proyecto estado` · `/proyecto archivar`',
     '',
     '**Google Drive**',
     '`/drive agregar` — guarda un link (carpeta, doc, hoja, presentación)',
     '`/drive lista` — ver links (de un proyecto o todos)',
-    'Además, cualquier link de Drive que pegues en un canal se registra solo en #links-drive 📎',
     '',
     '**Ideas**',
     '`/idea nueva` — publica en #ideas con votación e hilo de discusión',
     '`/idea lista` · `/idea aprobar` — convierte una idea en proyecto',
     '',
-    '**Archivos** (foro #archivos, carpeta 📂 General)',
-    '`/archivo subir` — guarda un archivo con su link de respaldo en Drive',
+    '**Archivos**',
+    '`/archivo subir` — guarda un archivo (en General o en un proyecto) con su respaldo en Drive',
     '`/archivo respaldo` — agrega el link de Drive a un archivo que no lo tiene',
-    'El índice al inicio de la carpeta lista todo ordenado por tipo y marca ⚠️ lo que no tiene respaldo.',
+    'El índice al inicio de cada carpeta lista todo ordenado por tipo y marca ⚠️ lo que no tiene respaldo.',
+    '',
+    '**Voz**: 🔊 General para todos · 💤 AFK tras 15 min sin actividad',
   ].join('\n'));
+}
+
+async function responderError(interaction, err) {
+  const content = err instanceof UserError ? `⚠️ ${err.message}` : '⚠️ Ocurrió un error inesperado.';
+  if (interaction.deferred || interaction.replied) await interaction.editReply(content).catch(() => {});
+  else await interaction.reply({ content, ...ephemeral }).catch(() => {});
+  if (!(err instanceof UserError)) console.error(err);
 }
 
 export async function handleCommand(interaction) {
@@ -370,26 +357,118 @@ export async function handleCommand(interaction) {
   try {
     await handler(interaction);
   } catch (err) {
-    const content = err instanceof UserError ? `⚠️ ${err.message}` : '⚠️ Ocurrió un error inesperado.';
-    if (interaction.deferred || interaction.replied) await interaction.editReply(content).catch(() => {});
-    else await interaction.reply({ content, ...ephemeral }).catch(() => {});
-    if (!(err instanceof UserError)) console.error(err);
+    await responderError(interaction, err);
   }
 }
+
+// ---------- botones y formularios ----------
+
+function proyectoDeComponente(interaction, id) {
+  const p = getDb().proyectos[id];
+  if (!p) throw new UserError('Ese proyecto ya no existe.');
+  return proyectoGestionable(interaction, p);
+}
+
+const componentes = {
+  // Botones de la ficha
+  async 'boton:proyecto-miembros'(interaction, id) {
+    return interaction.showModal(modalMiembros(proyectoDeComponente(interaction, id)));
+  },
+  async 'boton:proyecto-editar'(interaction, id) {
+    return interaction.showModal(modalEditar(proyectoDeComponente(interaction, id)));
+  },
+
+  // Formularios
+  async 'modal:proyecto-crear'(interaction, ideaId) {
+    const f = interaction.fields;
+    const nombre = f.getTextInputValue('nombre').trim();
+    const datos = {
+      nombre,
+      descripcion: f.getTextInputValue('descripcion').trim(),
+      ...leerLinks(f),
+      miembros: miembrosElegidos(f),
+    };
+    if (getDb().proyectos[slug(nombre)]) throw new UserError(`Ya existe el proyecto **${nombre}**.`);
+    await interaction.deferReply(ephemeral);
+    const p = await crearProyecto(interaction.guild, interaction.user.id, datos);
+    if (p.drive) {
+      await registrarLink(interaction.guild, { url: p.drive, titulo: `Carpeta de ${p.nombre}`, proyecto: p.id, autor: interaction.user.id }).catch(() => {});
+    }
+    const idea = ideaId && getDb().ideas.find((i) => String(i.id) === ideaId);
+    if (idea) {
+      idea.estado = 'aprobada';
+      idea.proyecto = p.id;
+      save();
+      await findText(interaction.guild, 'ideas-aprobadas')
+        ?.send(`✅ La idea **#${idea.id} ${idea.titulo}** ahora es un proyecto (${p.nombre}).`);
+    }
+    return interaction.editReply(`✅ Proyecto **${p.nombre}** creado: <#${p.channelId}> · rol <@&${p.roleId}> · ${p.miembros.length} miembro(s)`);
+  },
+
+  async 'modal:proyecto-miembros'(interaction, id) {
+    const p = proyectoDeComponente(interaction, id);
+    await interaction.deferReply(ephemeral);
+    const { agregar, quitar } = await sincronizarMiembros(interaction.guild, p, miembrosElegidos(interaction.fields));
+    await refrescarFicha(interaction.guild, p);
+    if (agregar.length) {
+      const chat = await interaction.guild.channels.fetch(p.channelId).catch(() => null);
+      await chat?.send(`👋 Bienvenidos al proyecto ${agregar.map((m) => `<@${m}>`).join(' ')}`);
+    }
+    return interaction.editReply(`👥 Miembros de **${p.nombre}** actualizados: +${agregar.length} / −${quitar.length}`);
+  },
+
+  async 'modal:proyecto-editar'(interaction, id) {
+    const p = proyectoDeComponente(interaction, id);
+    const f = interaction.fields;
+    const { github, drive } = leerLinks(f);
+    p.descripcion = f.getTextInputValue('descripcion').trim();
+    p.github = github;
+    const driveNuevo = drive && drive !== p.drive;
+    p.drive = drive;
+    save();
+    await interaction.deferReply(ephemeral);
+    if (driveNuevo) await registrarLink(interaction.guild, { url: drive, titulo: `Carpeta de ${p.nombre}`, proyecto: p.id, autor: interaction.user.id });
+    await refrescarFicha(interaction.guild, p);
+    return interaction.editReply(`✏️ **${p.nombre}** actualizado.`);
+  },
+};
+
+function leerLinks(fields) {
+  const GITHUB_RE = /^https?:\/\/(www\.)?github\.com\/[\w.-]+(\/[\w.-]+)?\/?$/i;
+  const github = fields.getTextInputValue('github')?.trim() || null;
+  const drive = fields.getTextInputValue('drive')?.trim() || null;
+  if (github && !GITHUB_RE.test(github)) throw new UserError('El link de GitHub no es válido (ej: https://github.com/usuario/repo).');
+  if (drive && !isDriveLink(drive)) throw new UserError('El link de Drive no es válido (debe ser drive.google.com o docs.google.com).');
+  return { github, drive };
+}
+
+export async function handleComponent(interaction) {
+  const tipo = interaction.isModalSubmit() ? 'modal' : 'boton';
+  const [accion, arg] = interaction.customId.split(':');
+  const handler = componentes[`${tipo}:${accion}`];
+  if (!handler) return;
+  try {
+    await handler(interaction, arg);
+  } catch (err) {
+    await responderError(interaction, err);
+  }
+}
+
+// ---------- autocompletado ----------
 
 export async function handleAutocomplete(interaction) {
   const focused = interaction.options.getFocused(true);
   const q = slug(focused.value ?? '');
   let opciones;
-  if (interaction.commandName === 'archivo') {
+  if (focused.name === 'archivo') {
     opciones = getDb().archivos
-      .filter((a) => slug(a.nombre).includes(q))
+      .filter((a) => visible(interaction, a.proyecto) && slug(a.nombre).includes(q))
       .sort((a, b) => Number(!!a.drive) - Number(!!b.drive) || b.id - a.id)
       .slice(0, 25)
       .map((a) => ({ name: `${a.drive ? '☁️' : '⚠️'} #${a.id} ${a.nombre}`.slice(0, 100), value: String(a.id) }));
   } else {
     opciones = Object.values(getDb().proyectos)
-      .filter((p) => p.id.includes(q))
+      .filter((p) => visible(interaction, p.id) && p.id.includes(q))
       .slice(0, 25)
       .map((p) => ({ name: p.nombre.slice(0, 100), value: p.nombre.slice(0, 100) }));
   }

@@ -36,18 +36,29 @@ export function findForo(guild) {
   return guild.channels.cache.find((c) => c.type === ChannelType.GuildForum && c.name === FORO_ARCHIVOS);
 }
 
+export const crearForo = (guild, { name, parent, permissionOverwrites }) => guild.channels.create({
+  name,
+  type: ChannelType.GuildForum,
+  parent,
+  permissionOverwrites,
+  topic: 'El primer mensaje de cada carpeta es el índice con los archivos y su respaldo en Drive. Sube archivos con /archivo subir.',
+  defaultForumLayout: ForumLayoutType.ListView,
+  defaultSortOrder: SortOrderType.CreationDate,
+});
+
 export async function ensureForo(guild) {
   const existente = findForo(guild);
   if (existente) return existente;
   const cat = await ensureCategory(guild, CAT_RECURSOS);
-  return guild.channels.create({
-    name: FORO_ARCHIVOS,
-    type: ChannelType.GuildForum,
-    parent: cat.id,
-    topic: 'Una carpeta por proyecto. El primer mensaje de cada carpeta es el índice con los archivos y su respaldo en Drive. Sube archivos con /archivo subir.',
-    defaultForumLayout: ForumLayoutType.ListView,
-    defaultSortOrder: SortOrderType.CreationDate,
-  });
+  return crearForo(guild, { name: FORO_ARCHIVOS, parent: cat.id });
+}
+
+// Foro donde vive la carpeta: el general o el privado del proyecto.
+async function foroDe(guild, key) {
+  if (key === GENERAL) return ensureForo(guild);
+  const foro = await guild.channels.fetch(getDb().proyectos[key]?.foroId ?? '0').catch(() => null);
+  if (!foro) throw new Error(`El proyecto ${key} no tiene canal de archivos`);
+  return foro;
 }
 
 function nombreCarpeta(key) {
@@ -63,7 +74,7 @@ export function indiceEmbeds(key) {
 
   const cabecera = [
     p?.drive ? `☁️ **Carpeta en Drive:** [abrir](${p.drive})` : null,
-    p ? `💬 Canal del proyecto: <#${p.channelId}>` : 'Todos los archivos del equipo, ordenados por tipo.',
+    p ? `💬 Chat del proyecto: <#${p.channelId}>` : 'Archivos generales del equipo, ordenados por tipo.',
     '',
     `**${archivos.length}** archivo(s) · ${sinRespaldo ? `⚠️ **${sinRespaldo}** sin respaldo en Drive` : '✅ todos con respaldo'}`,
   ].filter((l) => l !== null).join('\n');
@@ -99,13 +110,13 @@ export function indiceEmbeds(key) {
     if (i === 0) e.setTitle(`📂 ${nombreCarpeta(key)}`);
     return e;
   }).map((e, i, arr) => (i === arr.length - 1
-    ? e.setFooter({ text: 'Índice actualizado automáticamente · /archivo subir · /archivo respaldo' }).setTimestamp()
+    ? e.setFooter({ text: 'Índice automático · /archivo subir · /archivo respaldo' }).setTimestamp()
     : e));
 }
 
 export async function ensureCarpeta(guild, key) {
   const db = getDb();
-  const foro = await ensureForo(guild);
+  const foro = await foroDe(guild, key);
   const guardada = db.carpetas[key];
   if (guardada) {
     const thread = await guild.channels.fetch(guardada).catch(() => null);
