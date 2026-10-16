@@ -46,7 +46,7 @@ const FORO = ChannelType.GuildForum;
 
 // Orden dentro de cada categoría = orden en esta lista.
 export const CANALES = {
-  bienvenida: { nombre: `👋${SEP}bienvenida`, cat: 'info', tipo: TEXTO, antes: ['bienvenida'], tema: 'Cómo funciona este servidor y los comandos del bot' },
+  funcionamiento: { nombre: `📖${SEP}funcionamiento`, cat: 'info', tipo: TEXTO, antes: [`👋${SEP}bienvenida`, 'bienvenida'], tema: 'Funciones, comandos y roles del servidor' },
   anuncios: { nombre: `📣${SEP}anuncios`, cat: 'info', tipo: TEXTO, antes: ['anuncios'], tema: 'Novedades importantes' },
   crear: { nombre: `🚀${SEP}crear-proyectos`, cat: 'info', tipo: TEXTO, antes: ['crear-proyectos'] },
   general: { nombre: `💬${SEP}general`, cat: 'comunidad', tipo: TEXTO, antes: ['general'], tema: 'Conversación libre' },

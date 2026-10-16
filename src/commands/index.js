@@ -1,6 +1,6 @@
 import {
   SlashCommandBuilder, EmbedBuilder, ChannelType, PermissionFlagsBits, MessageFlags,
-  ActionRowBuilder, ButtonBuilder, ButtonStyle,
+  ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageType,
 } from 'discord.js';
 import {
   getDb, slug, findProyecto, findProyectoByChannel, addLink, addIdea, save,
@@ -199,6 +199,9 @@ async function publicarFijo(c, clave, contenido) {
   if (previo) return previo.edit(contenido);
   const msg = await c.send(contenido);
   await msg.pin().catch(() => {});
+  // Quitar el aviso automático "fijó un mensaje" para que el canal quede limpio.
+  const aviso = (await c.messages.fetch({ limit: 5 }).catch(() => null))?.find((x) => x.type === MessageType.ChannelPinnedMessage);
+  await aviso?.delete().catch(() => {});
   db[clave] = msg.id;
   save();
   return msg;
@@ -218,7 +221,7 @@ export async function setupServer(guild) {
   await setupVoz(guild);
   await setupCrearProyectos(guild);
   await ordenar(guild);
-  await publicarFijo(canal(guild, 'bienvenida'), 'mensajeBienvenida', { embeds: [ayudaEmbed(guild)] });
+  await setupFuncionamiento(guild);
   return creados;
 }
 
@@ -381,45 +384,76 @@ const handlers = {
   },
 
   async ayuda(interaction) {
-    return interaction.reply({ embeds: [ayudaEmbed(interaction.guild)], ...ephemeral });
+    return interaction.reply({ embeds: guiaEmbeds(interaction.guild), ...ephemeral });
   },
 };
 
-function ayudaEmbed(guild) {
+// Canal de solo lectura con la guía completa; el bot la mantiene actualizada.
+async function setupFuncionamiento(guild) {
+  const { canal: c } = await ensureCanal(guild, 'funcionamiento');
+  await c.permissionOverwrites.set([
+    { id: guild.roles.everyone.id, deny: [PermissionFlagsBits.SendMessages, PermissionFlagsBits.AddReactions, PermissionFlagsBits.CreatePublicThreads] },
+  ]);
+  await publicarFijo(c, 'mensajeFuncionamiento', { embeds: guiaEmbeds(guild), allowedMentions: { parse: [] } });
+}
+
+function guiaEmbeds(guild) {
   const m = (key) => mencion(guild, key);
-  return new EmbedBuilder().setColor(COLORES.primario).setTitle('Guía del servidor')
-    .setDescription('Así se organiza el trabajo aquí. Escribe `/` en cualquier canal para ver los comandos.')
-    .addFields(
-      {
-        name: '◆ Proyectos',
-        value: [
-          `Se crean en ${m('crear')} o con \`/proyecto crear\` (rol **${ROL_CREADOR}**).`,
-          'Cada uno es privado: solo sus miembros ven su chat, archivos, commits y sala de voz.',
-          '`/proyecto lista` · `info` · `miembros` · `estado` · `github` · `archivar`',
-        ].join('\n'),
-      },
-      {
-        name: '📁 Archivos',
-        value: [
-          `\`/archivo subir\` guarda un archivo en ${m('archivos')} o en la carpeta de su proyecto.`,
-          '`/archivo respaldo` le asigna su copia en Google Drive.',
-          'Cada carpeta abre con un índice ordenado por tipo; ⚠️ marca lo que no tiene respaldo.',
-        ].join('\n'),
-      },
-      {
-        name: '🔗 Google Drive',
-        value: `\`/drive agregar\` · \`/drive lista\` — los links generales quedan en ${m('linksDrive')}.`,
-      },
-      {
-        name: '💡 Ideas',
-        value: `\`/idea nueva\` publica en ${m('ideas')} con votación e hilo · \`/idea aprobar\` la convierte en proyecto.`,
-      },
-      {
-        name: '🎧 Voz',
-        value: `${m('vozGeneral')} para todos · ${m('afk')} tras 15 minutos de inactividad.`,
-      },
-    )
-    .setFooter({ text: guild?.name ?? 'Servidor' });
+  const rolCreador = guild?.roles.cache.find((r) => r.name === ROL_CREADOR);
+  const creador = rolCreador ? `<@&${rolCreador.id}>` : `**${ROL_CREADOR}**`;
+  const embed = (titulo, color) => new EmbedBuilder().setColor(color).setTitle(titulo);
+
+  return [
+    embed('📖 Funcionamiento del servidor', COLORES.primario).setDescription([
+      'Este servidor organiza los **proyectos, archivos, links de Drive, ideas y commits** del equipo.',
+      'Todo se maneja con comandos: escribe `/` en cualquier canal para verlos.',
+      '',
+      `**${m('crear')}** — crear proyectos`,
+      `**${m('general')}** — conversación del equipo`,
+      `**${m('ideas')}** — proponer y votar ideas`,
+      `**${m('archivos')}** — carpeta de archivos generales`,
+      `**${m('linksDrive')}** — links de Drive generales`,
+      `**${m('vozGeneral')}** — sala de voz del equipo`,
+    ].join('\n')),
+
+    embed('🔑 Roles y permisos', COLORES.aviso).addFields(
+      { name: 'Administrador', value: 'Puede hacer todo, incluido gestionar cualquier proyecto y usar `/setup`.' },
+      { name: ROL_CREADOR, value: `${creador} puede crear proyectos (botón o \`/proyecto crear\`), aprobar ideas como proyecto y escribir en ${m('crear')}.` },
+      { name: 'Creador del proyecto', value: 'Quien creó un proyecto puede editar sus datos (descripción, GitHub, Drive), gestionar miembros, cambiar el estado, conectar GitHub y archivarlo.' },
+      { name: '◆ Rol del proyecto', value: 'Lo reciben los miembros de cada proyecto. Pueden **ver y escribir** en su chat, subir archivos a su carpeta, leer sus commits y entrar a su sala de voz. No pueden cambiar los datos del proyecto.' },
+      { name: 'Todos', value: 'Proponer ideas, subir archivos a la carpeta general, guardar links de Drive y usar la voz general.' },
+    ),
+
+    embed('◆ Proyectos', COLORES.primario).setDescription([
+      'Cada proyecto crea un **rol** y una **categoría privada** con:',
+      '› `💬・chat` con la ficha fijada (estado, miembros, GitHub, Drive y botones)',
+      '› `📁・archivos` carpeta con índice de archivos y respaldos',
+      '› `📡・commits` donde llegan los commits, PRs, issues y releases de GitHub',
+      '› `🎙️ Reunión` sala de voz del equipo del proyecto',
+    ].join('\n')).addFields(
+      { name: '`/proyecto crear`', value: `Abre el formulario: nombre, descripción, GitHub, Drive y miembros. · ${ROL_CREADOR}` },
+      { name: '`/proyecto miembros`', value: 'Agrega o quita personas (da o quita el rol). · Creador del proyecto' },
+      { name: '`/proyecto estado`', value: 'Idea, Planeación, En progreso, Pausado o Terminado. · Creador del proyecto' },
+      { name: '`/proyecto github`', value: 'Conecta el repositorio al canal de commits. · Creador del proyecto' },
+      { name: '`/proyecto archivar`', value: 'Lo marca como terminado y lo pasa a ◇. · Creador del proyecto' },
+      { name: '`/proyecto lista` · `/proyecto info`', value: 'Ver tus proyectos o la ficha de uno. · Miembros' },
+    ),
+
+    embed('📁 Archivos y 🔗 Drive', COLORES.archivos).addFields(
+      { name: '`/archivo subir`', value: 'Guarda un archivo con su link de respaldo en Drive. Sin proyecto va a la carpeta General; con proyecto, a la carpeta del proyecto. · Todos / miembros del proyecto' },
+      { name: '`/archivo respaldo`', value: 'Agrega o cambia el link de Drive de un archivo. La lista muestra primero los que tienen ⚠️ sin respaldo. · Todos / miembros' },
+      { name: 'Índice de carpeta', value: 'El primer mensaje de cada carpeta lista los archivos ordenados por tipo, con su link para verlos y su respaldo. Se actualiza solo.' },
+      { name: '`/drive agregar` · `/drive lista`', value: `Guarda y lista links de Drive. Los generales se publican en ${m('linksDrive')}; los de un proyecto, en su chat. · Todos / miembros` },
+    ),
+
+    embed('💡 Ideas, 📡 GitHub y 🎧 Voz', COLORES.ideas).addFields(
+      { name: '`/idea nueva`', value: `Publica en ${m('ideas')} con votación 👍 👎 y un hilo para discutirla. · Todos` },
+      { name: '`/idea lista` · `/idea aprobar`', value: `Ver ideas o convertir una en proyecto (abre el formulario ya lleno). · Aprobar: ${ROL_CREADOR}` },
+      { name: 'Commits de GitHub', value: 'Al conectar el repo, cada push, PR, issue y release llega a `📡・commits`. Si falta conectarlo, la ficha muestra ⚠️ y el botón **Conectar GitHub** da los pasos.' },
+      { name: 'Voz', value: `${m('vozGeneral')} para todo el equipo. Tras **15 minutos** sin actividad, Discord te mueve a ${m('afk')}.` },
+      { name: '`/ayuda`', value: 'Muestra esta guía en cualquier canal (solo la ves tú).' },
+    ).setFooter({ text: guild?.name ?? 'Servidor' }),
+  ];
 }
 
 async function responderError(interaction, err) {
