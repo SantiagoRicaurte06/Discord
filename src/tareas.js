@@ -1,6 +1,7 @@
 // Tareas por proyecto:
-// - 📋・tareas: issues del repo de GitHub (sincronizados cada pocos minutos) con un select para marcarlas como hechas.
-// - 🧩・tareas-extra: tareas o arreglos agregados con /tarea-extra, con el mismo select.
+// - 📋・tareas: issues del repo de GitHub, solo lectura: se marcan como hechas cuando se cierran en GitHub.
+//   El bot nunca modifica nada en GitHub.
+// - 🧩・tareas-extra: tareas o arreglos agregados con /tarea-extra, con un select para marcarlas como hechas.
 // Ambos canales son de solo lectura para los miembros; el tablero es un mensaje fijo que el bot actualiza.
 import {
   ActionRowBuilder, ChannelType, EmbedBuilder, LabelBuilder, ModalBuilder, PermissionFlagsBits,
@@ -9,12 +10,13 @@ import {
 import { getDb, save } from './store.js';
 import { COLORES, PROYECTO } from './layout.js';
 import { parseRepo } from './github.js';
+import { refrescarAprobadasDeProyecto } from './ideas.js';
 
 const INTERVALO_MS = 5 * 60 * 1000;
 const TIPOS_EXTRA = { tarea: '🧩 Tarea', arreglo: '🔧 Arreglo' };
 
 const CANALES = {
-  github: { campo: 'tareasId', tablero: 'tableroTareasId', nombre: () => PROYECTO.tareas, tema: 'Issues del repositorio de GitHub · usa el menú para marcar las realizadas' },
+  github: { campo: 'tareasId', tablero: 'tableroTareasId', nombre: () => PROYECTO.tareas, tema: 'Issues del repositorio de GitHub · se marcan solos cuando se cierran en GitHub' },
   extra: { campo: 'extraId', tablero: 'tableroExtraId', nombre: () => PROYECTO.tareasExtra, tema: 'Tareas y arreglos fuera de los issues · /tarea-extra para agregar' },
 };
 
@@ -71,7 +73,7 @@ function tablero(p, origen) {
   if (origen === 'github') {
     const repo = parseRepo(p.github);
     encabezado = repo
-      ? `Issues de [${repo.owner}/${repo.repo}](${p.github}) · se sincronizan cada 5 min${process.env.GITHUB_PAT ? '' : '\n-# Sin GITHUB_PAT: marcar aquí no cierra el issue en GitHub y los repos privados no se pueden leer.'}`
+      ? `Issues de [${repo.owner}/${repo.repo}](${p.github}) · se sincronizan cada 5 min.\nSe marcan ✅ automáticamente cuando se cierran en GitHub.`
       : 'Este proyecto no tiene repositorio de GitHub. Agrégalo con ✏️ Editar en la ficha.';
     if (p.errorIssues) encabezado += `\n⚠️ ${p.errorIssues}`;
   } else {
@@ -90,8 +92,9 @@ function tablero(p, origen) {
   const embed = new EmbedBuilder().setColor(origen === 'github' ? COLORES.github : COLORES.primario)
     .setTitle(titulo).setDescription(cuerpo).setTimestamp();
 
+  // Los issues solo cambian desde GitHub: su tablero no tiene menús.
   const components = [];
-  if (abiertas.length) {
+  if (origen === 'extra' && abiertas.length) {
     components.push(new ActionRowBuilder().addComponents(
       new StringSelectMenuBuilder()
         .setCustomId(`tarea-hecha:${p.id}:${origen}`)
@@ -104,7 +107,7 @@ function tablero(p, origen) {
           .setDescription((t.origen === 'github' ? 'Issue de GitHub' : TIPOS_EXTRA[t.tipo] ?? 'Tarea').slice(0, 100)))),
     ));
   }
-  if (hechas.length) {
+  if (origen === 'extra' && hechas.length) {
     components.push(new ActionRowBuilder().addComponents(
       new StringSelectMenuBuilder()
         .setCustomId(`tarea-reabrir:${p.id}:${origen}`)
@@ -180,16 +183,7 @@ export async function sincronizarIssues(guild, p) {
   }
   save();
   await refrescarTablero(guild, p, 'github');
-}
-
-async function cambiarIssueEnGithub(p, t, state) {
-  const repo = parseRepo(p.github);
-  if (!process.env.GITHUB_PAT || !repo || t.origen !== 'github') return false;
-  const res = await fetch(`https://api.github.com/repos/${repo.owner}/${repo.repo}/issues/${t.numero}`, {
-    method: 'PATCH', headers: { ...headers(), 'Content-Type': 'application/json' }, body: JSON.stringify({ state }),
-  });
-  if (res.ok) p.issuesEtag = null;
-  return res.ok;
+  await refrescarAprobadasDeProyecto(guild, p.id);
 }
 
 export function iniciarSincronizacion(client, guildId) {
@@ -207,16 +201,15 @@ export function iniciarSincronizacion(client, guildId) {
 
 // ---------- acciones ----------
 
+// Solo tareas extra: los issues de GitHub cambian únicamente desde GitHub.
 export async function marcar(guild, p, ids, userId, hecha) {
-  const cambiadas = [];
-  for (const t of p.tareas.filter((x) => ids.includes(x.id))) {
+  const cambiadas = p.tareas.filter((x) => x.origen === 'extra' && ids.includes(x.id));
+  for (const t of cambiadas) {
     t.estado = hecha ? 'hecha' : 'abierta';
     t.hechaPor = hecha ? userId : null;
-    if (t.origen === 'github') t.enGithub = await cambiarIssueEnGithub(p, t, hecha ? 'closed' : 'open').catch(() => false);
-    cambiadas.push(t);
   }
   save();
-  for (const origen of new Set(cambiadas.map((t) => t.origen))) await refrescarTablero(guild, p, origen);
+  if (cambiadas.length) await refrescarTablero(guild, p, 'extra');
   return cambiadas;
 }
 

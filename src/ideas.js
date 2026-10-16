@@ -12,9 +12,17 @@ export const VOTOS_NECESARIOS = 3;
 export const SI = '✅';
 export const NO = '❌';
 
-// Por ahora fijos; luego se configuran por proyecto.
-const ETAPA_INICIAL = '🛠️ Desarrollo';
-const PROGRESO_INICIAL = 0;
+export const ETAPAS = { pendiente: '⏳ Por iniciar', desarrollo: '🛠️ Desarrollo', produccion: '🚀 Producción' };
+
+// Avance según los issues de GitHub del proyecto: % cerrados y etapa (Producción cuando no queda ninguno abierto).
+export function avance(p) {
+  if (!p) return { etapa: ETAPAS.pendiente, pct: 0, hechas: 0, total: 0 };
+  const issues = (p.tareas ?? []).filter((t) => t.origen === 'github');
+  const hechas = issues.filter((t) => t.estado === 'hecha').length;
+  const total = issues.length;
+  const pct = total ? Math.round((hechas / total) * 100) : 0;
+  return { etapa: total && hechas === total ? ETAPAS.produccion : ETAPAS.desarrollo, pct, hechas, total };
+}
 
 export const modalIdea = () => new ModalBuilder()
   .setCustomId('idea-base')
@@ -47,15 +55,18 @@ function aprobadaContenido(idea) {
   const equipo = p?.miembros.length
     ? p.miembros.map((m) => `<@${m}>`).join(' ')
     : '*Sin asignar — crea el proyecto con el botón para asignar el equipo*';
-  const embed = new EmbedBuilder().setColor(COLORES.exito)
+  const a = avance(p);
+  let detalle = 'Se calcula con los issues de GitHub cuando se cree el proyecto.';
+  if (p) detalle = a.total ? `${a.hechas}/${a.total} issues cerrados` : 'El repositorio aún no tiene issues.';
+  const embed = new EmbedBuilder().setColor(a.etapa === ETAPAS.produccion ? COLORES.primario : COLORES.exito)
     .setTitle(`◆ ${idea.titulo}`)
     .setDescription(idea.descripcion)
     .addFields(
-      { name: 'Estado', value: idea.etapa, inline: true },
+      { name: 'Estado', value: a.etapa, inline: true },
       { name: 'Propuesta por', value: `<@${idea.autor}>`, inline: true },
       { name: 'Aprobada con', value: `${SI} ${idea.votosSi}`, inline: true },
       { name: `👥 Equipo${p ? ` (${p.miembros.length})` : ''}`, value: equipo },
-      { name: 'Progreso', value: barra(idea.progreso) },
+      { name: 'Progreso', value: `${barra(a.pct)}\n-# ${detalle}` },
     )
     .setFooter({ text: `Idea #${idea.id} · aprobada${p ? ` · proyecto ${p.nombre}` : ''}` })
     .setTimestamp(new Date(idea.aprobadaEn));
@@ -129,9 +140,9 @@ export async function procesarVoto(reaction, user) {
   }
 }
 
-async function aprobar(guild, idea, votosSi) {
+export async function aprobar(guild, idea, votosSi) {
   Object.assign(idea, {
-    estado: 'aprobada', votosSi, etapa: ETAPA_INICIAL, progreso: PROGRESO_INICIAL, aprobadaEn: new Date().toISOString(),
+    estado: 'aprobada', votosSi, aprobadaEn: new Date().toISOString(),
   });
   const destino = canal(guild, 'ideasAprobadas');
   const msg = await destino?.send(aprobadaContenido(idea));

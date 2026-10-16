@@ -3,7 +3,9 @@ import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const DB_PATH = join(dirname(fileURLToPath(import.meta.url)), '..', 'data', 'db.json');
+// DATA_DIR permite guardar la base en un volumen persistente al desplegar.
+const DATA_DIR = process.env.DATA_DIR ?? join(dirname(fileURLToPath(import.meta.url)), '..', 'data');
+const DB_PATH = join(DATA_DIR, 'db.json');
 const EMPTY = { proyectos: {}, links: [], ideas: [], archivos: [], carpetas: {} };
 
 function load() {

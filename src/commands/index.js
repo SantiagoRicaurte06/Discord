@@ -424,7 +424,7 @@ function guiaEmbeds(guild) {
       '› `💬・chat` con la ficha fijada (estado, miembros, GitHub, Drive y botones)',
       '› `📁・archivos` carpeta con índice de archivos y respaldos',
       '› `📡・commits` donde llegan los commits, PRs, issues y releases de GitHub',
-      '› `📋・tareas` los issues de GitHub, con un menú para marcarlos como realizados',
+      '› `📋・tareas` los issues de GitHub; se marcan ✅ solos cuando se cierran en GitHub',
       '› `🧩・tareas-extra` tareas y arreglos que no están en los issues',
       '› `🎙️ Reunión` sala de voz del equipo del proyecto',
     ].join('\n')).addFields(
@@ -435,7 +435,7 @@ function guiaEmbeds(guild) {
       { name: '`/proyecto archivar`', value: 'Lo marca como terminado y lo pasa a ◇. · Creador del proyecto' },
       { name: '`/proyecto lista` · `/proyecto info`', value: 'Ver tus proyectos o la ficha de uno. · Miembros' },
       { name: '`/tarea-extra`', value: 'Solo en `🧩・tareas-extra`: agrega una tarea o arreglo. · Miembros' },
-      { name: 'Marcar tareas', value: 'En los dos canales de tareas, el menú **Marcar como realizadas** tacha las tareas y **Reabrir** las devuelve. Los issues se sincronizan con GitHub cada 5 minutos. · Miembros' },
+      { name: 'Marcar tareas', value: 'Issues: se sincronizan cada 5 minutos y se marcan solos al cerrarse en GitHub (el bot nunca modifica GitHub). Tareas extra: el menú **Marcar como realizadas** las tacha y **Reabrir** las devuelve. · Miembros' },
     ),
 
     embed('📁 Archivos y 🔗 Drive', COLORES.archivos).addFields(
@@ -448,7 +448,7 @@ function guiaEmbeds(guild) {
     embed('💡 Ideas, 📡 GitHub y 🎧 Voz', COLORES.ideas).addFields(
       { name: '`/idea-base`', value: `Solo funciona en ${m('ideas')} (ahí no se puede escribir). Abre un formulario con nombre y descripción y publica la idea con ${SI} y ${NO}. · Todos` },
       { name: 'Votación', value: `Con **${VOTOS_NECESARIOS} ${SI}** la idea pasa a ${m('ideasAprobadas')} con su estado y barra de progreso. Con **${VOTOS_NECESARIOS} ${NO}** se elimina. Las reacciones del bot no cuentan.` },
-      { name: 'Proyectos aprobados', value: `Cada tarjeta muestra el equipo asignado. El botón **Crear proyecto** (${ROL_CREADOR}) crea el proyecto privado y asigna las personas.` },
+      { name: 'Proyectos aprobados', value: `Cada tarjeta muestra el equipo, el **estado** y el **progreso**, calculados con los issues de GitHub: % = issues cerrados ÷ total; 🛠️ Desarrollo mientras quede alguno abierto, 🚀 Producción cuando están todos cerrados. El botón **Crear proyecto** (${ROL_CREADOR}) crea el proyecto y asigna las personas.` },
       { name: 'Commits de GitHub', value: 'Al conectar el repo, cada push, PR, issue y release llega a `📡・commits`. Si falta conectarlo, la ficha muestra ⚠️ y el botón **Conectar GitHub** da los pasos.' },
       { name: 'Voz', value: `${m('vozGeneral')} para todo el equipo. Tras **15 minutos** sin actividad, Discord te mueve a ${m('afk')}.` },
       { name: '`/ayuda`', value: 'Muestra esta guía en cualquier canal (solo la ves tú).' },
@@ -620,11 +620,7 @@ async function cambiarTareas(interaction, proyectoId, hecha) {
   await interaction.deferReply(ephemeral);
   const cambiadas = await marcar(interaction.guild, p, interaction.values, interaction.user.id, hecha);
   await refrescarFicha(interaction.guild, p);
-  const sinGithub = cambiadas.some((t) => t.origen === 'github' && !t.enGithub);
-  return interaction.editReply([
-    `${hecha ? '✅ Realizadas' : '↩️ Reabiertas'}: ${cambiadas.map((t) => `**${t.titulo}**`).join(', ')}`,
-    sinGithub ? `-# El issue no se ${hecha ? 'cerró' : 'reabrió'} en GitHub (falta GITHUB_PAT); si GitHub no cambia, la próxima sincronización lo revertirá.` : '',
-  ].join('\n'));
+  return interaction.editReply(`${hecha ? '✅ Realizadas' : '↩️ Reabiertas'}: ${cambiadas.map((t) => `**${t.titulo}**`).join(', ') || 'ninguna'}`);
 }
 
 export async function handleComponent(interaction) {

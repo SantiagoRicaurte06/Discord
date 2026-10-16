@@ -46,3 +46,17 @@ claude mcp add discord -e DISCORD_TOKEN=TU_TOKEN -- npx -y @pasympa/discord-mcp
 ```
 
 Con el MCP conectado, Claude puede leer/enviar mensajes y gestionar canales del servidor donde esté el bot.
+
+## Desplegar 24/7
+
+El bot necesita: Node 18+, salida a internet (Discord y api.github.com) y **disco persistente** para `db.json`.
+
+**Recomendado: Railway** (~US$5/mes, el plan Hobby)
+1. New Project → *Deploy from GitHub repo* → este repo y la rama del bot.
+2. Variables: `DISCORD_TOKEN`, `CLIENT_ID`, `GUILD_ID`, `GITHUB_PAT`, `DATA_DIR=/data`.
+3. Agrega un **Volume** montado en `/data` (sin volumen, la base se borra en cada deploy).
+4. Start command: `npm start`. La primera vez corre `npm run deploy` y `npm run setup` desde la consola del servicio.
+
+**Gratis: Oracle Cloud Always Free** (VM Linux): instala Node 22, clona el repo, crea `.env`, y déjalo corriendo con `pm2 start src/index.js --name bot && pm2 save && pm2 startup`.
+
+Corre **una sola instancia** a la vez: dos bots con el mismo token se pisan la base de datos.
