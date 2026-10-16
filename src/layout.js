@@ -58,7 +58,7 @@ export const CANALES = {
   archivos: { nombre: `📁${SEP}archivos`, cat: 'recursos', tipo: FORO, antes: ['archivos'] },
   skills: {
     nombre: `🧠${SEP}skills`, cat: 'recursos', tipo: FORO, antes: [],
-    tema: 'Comparte habilidades, tutoriales, cursos y trucos. Una publicación por tema; usa las etiquetas para filtrar.',
+    tema: 'Skills, tutoriales, cursos y trucos recomendados. Solo lectura; usa las etiquetas para filtrar.',
     etiquetas: [['🎨', 'Frontend'], ['⚙️', 'Backend'], ['🗄️', 'Bases de datos'], ['☁️', 'DevOps'], ['🤖', 'IA'], ['✏️', 'Diseño'], ['📚', 'Curso'], ['💡', 'Tip']],
   },
   vozGeneral: { nombre: '🎙️ Sala general', cat: 'voz', tipo: VOZ, antes: ['🔊 General', 'General'] },

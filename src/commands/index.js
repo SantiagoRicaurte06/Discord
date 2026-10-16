@@ -251,6 +251,7 @@ export async function setupServer(guild) {
   await soloLectura(guild, 'ideas', { reacciones: true });
   await migrarAprobadasAForo(guild);
   await soloLectura(guild, 'ideasAprobadas');
+  await soloLectura(guild, 'skills');
   await ensureEtiquetas(canal(guild, 'ideasAprobadas'));
   for (const p of Object.values(getDb().proyectos)) {
     if (!p.archivado) await ensureCanalesTareas(guild, p).catch((e) => console.error(`Tareas de ${p.id}:`, e.message));
@@ -531,7 +532,7 @@ function guiaEmbeds(guild) {
       `**${m('ideasAprobadas')}** — foro con una publicación por proyecto: estado, equipo y progreso`,
       `**${m('archivos')}** — carpeta de archivos generales`,
       `**${m('linksDrive')}** — links de Drive generales`,
-      `**${m('skills')}** — foro para compartir habilidades, tutoriales y cursos (con etiquetas por área)`,
+      `**${m('skills')}** — skills, tutoriales y cursos recomendados (solo lectura, con etiquetas por área)`,
       `**${m('vozGeneral')}** — sala de voz del equipo`,
     ].join('\n')),
 
