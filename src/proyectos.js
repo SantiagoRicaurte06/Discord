@@ -10,6 +10,7 @@ import { driveTipo } from './drive.js';
 import { crearForo, ensureCarpeta } from './carpetas.js';
 import { conectarGithub } from './github.js';
 import { ensureCanalesTareas } from './tareas.js';
+import { publicarTarjeta, refrescarTarjetaDeProyecto } from './tarjetas.js';
 import {
   githubConfigurado, crearRepo, invitar, quitarAcceso,
 } from './githubApi.js';
@@ -133,7 +134,8 @@ const MIEMBRO = [VER, PermissionFlagsBits.SendMessages, PermissionFlagsBits.Read
   PermissionFlagsBits.AttachFiles, PermissionFlagsBits.Connect, PermissionFlagsBits.Speak,
   PermissionFlagsBits.SendMessagesInThreads, PermissionFlagsBits.CreatePublicThreads];
 
-export async function crearProyecto(guild, autorId, { nombre, descripcion, github, drive, miembros = [] }) {
+// opciones.idea: idea de origen (para la tarjeta); opciones.tarjeta = false para no publicarla aquí.
+export async function crearProyecto(guild, autorId, { nombre, descripcion, github, drive, miembros = [] }, opciones = {}) {
   const id = slug(nombre);
   if (!id) throw new UserError('Nombre inválido.');
   if (getDb().proyectos[id]) throw new UserError(`Ya existe el proyecto **${nombre}**.`);
@@ -179,6 +181,7 @@ export async function crearProyecto(guild, autorId, { nombre, descripcion, githu
   save();
   await chat.send({ content: `👋 Bienvenidos al proyecto ${p.miembros.map((m) => `<@${m}>`).join(' ')}` });
   await avisarGithub(guild, p, equipo);
+  if (opciones.tarjeta !== false) await publicarTarjeta(guild, { p, idea: opciones.idea });
   return { p, github: conexion, equipo };
 }
 
@@ -254,4 +257,5 @@ export async function archivarProyecto(guild, p) {
   p.estado = ESTADOS[4];
   save();
   await refrescarFicha(guild, p);
+  await refrescarTarjetaDeProyecto(guild, p.id);
 }

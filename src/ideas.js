@@ -1,31 +1,19 @@
 // Ideas: /idea-base publica una idea en 💡・ideas con ✅ y ❌.
-// Con VOTOS_NECESARIOS ❌ se elimina; con VOTOS_NECESARIOS ✅ pasa a proyectos aprobados y el bot crea
-// el proyecto (canales, rol y repo de GitHub) con el responsable por defecto (RESPONSABLE_ID o el dueño del servidor).
+// Con VOTOS_NECESARIOS ❌ se elimina; con VOTOS_NECESARIOS ✅ el bot crea el proyecto (canales, rol y repo de GitHub)
+// con el responsable por defecto (RESPONSABLE_ID o el dueño del servidor) y lo publica en el foro de proyectos aprobados.
 // Las reacciones del bot no cuentan.
 import {
-  ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, LabelBuilder, ModalBuilder,
-  TextInputBuilder, TextInputStyle,
+  EmbedBuilder, LabelBuilder, ModalBuilder, TextInputBuilder, TextInputStyle,
 } from 'discord.js';
 import {
   getDb, addIdea, save, slug,
 } from './store.js';
 import { COLORES, canal } from './layout.js';
+import { publicarTarjeta } from './tarjetas.js';
 
 export const VOTOS_NECESARIOS = 3;
 export const SI = '✅';
 export const NO = '❌';
-
-export const ETAPAS = { pendiente: '⏳ Por iniciar', desarrollo: '🛠️ Desarrollo', produccion: '🚀 Producción' };
-
-// Avance según los issues de GitHub del proyecto: % cerrados y etapa (Producción cuando no queda ninguno abierto).
-export function avance(p) {
-  if (!p) return { etapa: ETAPAS.pendiente, pct: 0, hechas: 0, total: 0 };
-  const issues = (p.tareas ?? []).filter((t) => t.origen === 'github');
-  const hechas = issues.filter((t) => t.estado === 'hecha').length;
-  const total = issues.length;
-  const pct = total ? Math.round((hechas / total) * 100) : 0;
-  return { etapa: total && hechas === total ? ETAPAS.produccion : ETAPAS.desarrollo, pct, hechas, total };
-}
 
 export const modalIdea = () => new ModalBuilder()
   .setCustomId('idea-base')
@@ -39,11 +27,6 @@ export const modalIdea = () => new ModalBuilder()
     ),
   );
 
-export function barra(pct, largo = 10) {
-  const llenos = Math.round((Math.max(0, Math.min(100, pct)) / 100) * largo);
-  return `${'▰'.repeat(llenos)}${'▱'.repeat(largo - llenos)} **${pct}%**`;
-}
-
 function ideaEmbed(idea) {
   return new EmbedBuilder().setColor(COLORES.ideas)
     .setTitle(`💡 ${idea.titulo}`)
@@ -51,46 +34,6 @@ function ideaEmbed(idea) {
     .addFields({ name: 'Votación', value: `${SI} ${VOTOS_NECESARIOS} votos la aprueban · ${NO} ${VOTOS_NECESARIOS} votos la descartan` })
     .setFooter({ text: `Idea #${idea.id}` })
     .setTimestamp(new Date(idea.fecha));
-}
-
-function aprobadaContenido(idea) {
-  const p = idea.proyecto ? getDb().proyectos[idea.proyecto] : null;
-  let equipo = '*Sin proyecto — usa el botón para crearlo*';
-  if (p) equipo = p.miembros.map((m) => `<@${m}>`).join(' ') || '—';
-  const a = avance(p);
-  let detalle = 'Se calcula con los issues de GitHub cuando se cree el proyecto.';
-  if (p) detalle = a.total ? `${a.hechas}/${a.total} issues cerrados` : 'El repositorio aún no tiene issues.';
-  const embed = new EmbedBuilder().setColor(a.etapa === ETAPAS.produccion ? COLORES.primario : COLORES.exito)
-    .setTitle(`◆ ${idea.titulo}`)
-    .setDescription(idea.descripcion)
-    .addFields(
-      { name: 'Estado', value: a.etapa, inline: true },
-      { name: '⭐ Responsable', value: p ? `<@${p.autor}>` : '—', inline: true },
-      { name: 'Propuesta por', value: `<@${idea.autor}>`, inline: true },
-      { name: '🐙 Repositorio', value: p?.github ?? (p?.errorRepo ? `⚠️ ${p.errorRepo}` : '—'), inline: true },
-      { name: 'Aprobada con', value: `${SI} ${idea.votosSi}`, inline: true },
-      { name: `👥 Equipo${p ? ` (${p.miembros.length})` : ''}`, value: equipo },
-      { name: 'Progreso', value: `${barra(a.pct)}\n-# ${detalle}` },
-    )
-    .setFooter({ text: `Idea #${idea.id} · aprobada${p ? ` · proyecto ${p.nombre}` : ''}` })
-    .setTimestamp(new Date(idea.aprobadaEn));
-  // Con proyecto: el responsable asigna el equipo desde aquí. Sin proyecto (falló la creación): botón para crearlo a mano.
-  const boton = p
-    ? new ButtonBuilder().setCustomId(`proyecto-miembros:${p.id}`).setLabel('Asignar equipo').setEmoji('👥').setStyle(ButtonStyle.Primary)
-    : new ButtonBuilder().setCustomId(`idea-proyecto:${idea.id}`).setLabel('Crear proyecto').setEmoji('🚀').setStyle(ButtonStyle.Success);
-  const components = [new ActionRowBuilder().addComponents(boton)];
-  return { embeds: [embed], components, allowedMentions: { parse: [] } };
-}
-
-// Actualiza la tarjeta en proyectos aprobados (equipo, estado, progreso).
-export async function refrescarAprobada(guild, idea) {
-  const destino = canal(guild, 'ideasAprobadas');
-  const msg = idea.aprobadaMessageId && await destino?.messages.fetch(idea.aprobadaMessageId).catch(() => null);
-  await msg?.edit(aprobadaContenido(idea)).catch(() => {});
-}
-
-export async function refrescarAprobadasDeProyecto(guild, proyectoId) {
-  for (const idea of getDb().ideas.filter((i) => i.proyecto === proyectoId)) await refrescarAprobada(guild, idea);
 }
 
 export async function publicarIdea(guild, autor, { titulo, descripcion }) {
@@ -170,11 +113,10 @@ export async function aprobar(guild, idea, votosSi) {
   Object.assign(idea, {
     estado: 'aprobada', votosSi, aprobadaEn: new Date().toISOString(),
   });
-  await crearProyectoDeIdea(guild, idea);
-  const destino = canal(guild, 'ideasAprobadas');
-  const msg = await destino?.send(aprobadaContenido(idea));
-  idea.aprobadaMessageId = msg?.id;
   save();
+  // Si el proyecto se crea, su publicación en el foro la hace crearProyecto; si falla, se publica la idea sola.
+  const ok = await crearProyectoDeIdea(guild, idea);
+  if (!ok) await publicarTarjeta(guild, { idea });
 }
 
 // Crea el proyecto de una idea aprobada, con el responsable por defecto como único miembro inicial.
@@ -183,11 +125,14 @@ async function crearProyectoDeIdea(guild, idea) {
   const responsable = process.env.RESPONSABLE_ID || guild.ownerId;
   const nombre = getDb().proyectos[slug(idea.titulo)] ? `${idea.titulo} ${idea.id}` : idea.titulo;
   try {
-    const { p } = await crearProyecto(guild, responsable, { nombre, descripcion: idea.descripcion.slice(0, 1000) });
+    const { p } = await crearProyecto(guild, responsable, { nombre, descripcion: idea.descripcion.slice(0, 1000) }, { idea });
     idea.proyecto = p.id;
+    save();
+    return true;
   } catch (err) {
     idea.errorProyecto = err.message;
+    save();
     console.error(`No se pudo crear el proyecto de la idea #${idea.id}:`, err);
+    return false;
   }
-  save();
 }

@@ -10,7 +10,7 @@ import {
 import { getDb, save } from './store.js';
 import { COLORES, PROYECTO } from './layout.js';
 import { parseRepo } from './github.js';
-import { refrescarAprobadasDeProyecto } from './ideas.js';
+import { refrescarTarjetaDeProyecto } from './tarjetas.js';
 
 const INTERVALO_MS = 5 * 60 * 1000;
 const TIPOS_EXTRA = { tarea: '🧩 Tarea', arreglo: '🔧 Arreglo' };
@@ -183,7 +183,7 @@ export async function sincronizarIssues(guild, p) {
   }
   save();
   await refrescarTablero(guild, p, 'github');
-  await refrescarAprobadasDeProyecto(guild, p.id);
+  await refrescarTarjetaDeProyecto(guild, p.id);
 }
 
 export function iniciarSincronizacion(client, guildId) {

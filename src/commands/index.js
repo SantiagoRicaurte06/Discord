@@ -19,8 +19,11 @@ import {
   avisarGithub, invitarAProyectos,
 } from '../proyectos.js';
 import {
-  modalIdea, publicarIdea, refrescarAprobada, refrescarAprobadasDeProyecto, VOTOS_NECESARIOS, SI, NO,
+  modalIdea, publicarIdea, VOTOS_NECESARIOS, SI, NO,
 } from '../ideas.js';
+import {
+  refrescarTarjetaDeProyecto, vincularTarjeta, ensureEtiquetas, publicarTarjeta,
+} from '../tarjetas.js';
 import {
   ensureCanalesTareas, marcar, modalTareaExtra, agregarTareaExtra, proyectoPorCanalExtra,
 } from '../tareas.js';
@@ -240,9 +243,16 @@ export async function setupServer(guild) {
   await ordenar(guild);
   await setupFuncionamiento(guild);
   await soloLectura(guild, 'ideas', { reacciones: true });
+  await migrarAprobadasAForo(guild);
   await soloLectura(guild, 'ideasAprobadas');
+  await ensureEtiquetas(canal(guild, 'ideasAprobadas'));
   for (const p of Object.values(getDb().proyectos)) {
     if (!p.archivado) await ensureCanalesTareas(guild, p).catch((e) => console.error(`Tareas de ${p.id}:`, e.message));
+    // Todo proyecto tiene su publicación en el foro de aprobados.
+    const ideaDeP = getDb().ideas.find((i) => i.proyecto === p.id);
+    const thread = p.tarjetaId && await guild.channels.fetch(p.tarjetaId).catch(() => null);
+    if (!thread) await publicarTarjeta(guild, { p, idea: ideaDeP });
+    else await refrescarTarjetaDeProyecto(guild, p.id);
   }
   return creados;
 }
@@ -423,14 +433,31 @@ const handlers = {
   },
 };
 
+// El antiguo canal de texto de proyectos aprobados se reemplaza por el foro (si solo tiene mensajes del bot).
+async function migrarAprobadasAForo(guild) {
+  const viejo = guild.channels.cache.find((c) => c.type === ChannelType.GuildText
+    && [CANALES.ideasAprobadas.nombre, '✅・ideas-aprobadas', 'ideas-aprobadas'].includes(c.name));
+  if (!viejo) return;
+  const mensajes = await viejo.messages.fetch({ limit: 100 }).catch(() => null);
+  if (mensajes?.some((m) => !m.author.bot)) {
+    await viejo.setName('aprobados-antiguo').catch(() => {});
+  } else {
+    await viejo.delete('Reemplazado por el foro de proyectos aprobados').catch(() => {});
+  }
+  if (getDb().canales.ideasAprobadas === viejo.id) {
+    delete getDb().canales.ideasAprobadas;
+    save();
+  }
+}
+
 // Nadie escribe; con reacciones: true se puede votar con los emojis existentes pero no agregar otros.
 async function soloLectura(guild, key, { reacciones = false } = {}) {
   const { canal: c } = await ensureCanal(guild, key);
-  const deny = [PermissionFlagsBits.SendMessages, PermissionFlagsBits.CreatePublicThreads,
+  const deny = [PermissionFlagsBits.SendMessages, PermissionFlagsBits.SendMessagesInThreads, PermissionFlagsBits.CreatePublicThreads,
     PermissionFlagsBits.CreatePrivateThreads, PermissionFlagsBits.AddReactions];
   await c.permissionOverwrites.set([
     { id: guild.roles.everyone.id, deny, allow: reacciones ? [PermissionFlagsBits.UseApplicationCommands] : [] },
-    { id: guild.members.me.id, allow: [PermissionFlagsBits.SendMessages, PermissionFlagsBits.AddReactions, PermissionFlagsBits.ManageMessages] },
+    { id: guild.members.me.id, allow: [PermissionFlagsBits.SendMessages, PermissionFlagsBits.SendMessagesInThreads, PermissionFlagsBits.CreatePublicThreads, PermissionFlagsBits.ManageThreads, PermissionFlagsBits.AddReactions, PermissionFlagsBits.ManageMessages] },
   ]);
   if (CANALES[key].tema && c.topic !== CANALES[key].tema) await c.setTopic(CANALES[key].tema);
 }
@@ -458,7 +485,7 @@ function guiaEmbeds(guild) {
       `**${m('crear')}** — crear proyectos`,
       `**${m('general')}** — conversación del equipo`,
       `**${m('ideas')}** — proponer y votar ideas`,
-      `**${m('ideasAprobadas')}** — ideas aprobadas, su estado y progreso`,
+      `**${m('ideasAprobadas')}** — foro con una publicación por proyecto: estado, equipo y progreso`,
       `**${m('archivos')}** — carpeta de archivos generales`,
       `**${m('linksDrive')}** — links de Drive generales`,
       `**${m('vozGeneral')}** — sala de voz del equipo`,
@@ -501,7 +528,7 @@ function guiaEmbeds(guild) {
     embed('💡 Ideas, 📡 GitHub y 🎧 Voz', COLORES.ideas).addFields(
       { name: '`/idea-base`', value: `Solo funciona en ${m('ideas')} (ahí no se puede escribir). Abre un formulario con nombre y descripción y publica la idea con ${SI} y ${NO}. · Todos` },
       { name: 'Votación', value: `Con **${VOTOS_NECESARIOS} ${SI}** la idea pasa a ${m('ideasAprobadas')} con su estado y barra de progreso. Con **${VOTOS_NECESARIOS} ${NO}** se elimina. Las reacciones del bot no cuentan.` },
-      { name: 'Proyectos aprobados', value: 'Al aprobarse, el bot **crea el proyecto y su repo de GitHub** con el responsable por defecto. La tarjeta muestra responsable, repo, equipo, **estado** y **progreso** (issues cerrados ÷ total; 🛠️ Desarrollo mientras quede alguno abierto, 🚀 Producción cuando están todos cerrados). El botón **Asignar equipo** es para el responsable.' },
+      { name: 'Proyectos aprobados (foro)', value: 'Al aprobarse una idea, el bot **crea el proyecto y su repo** con el responsable por defecto. Todo proyecto (por votación o manual) tiene su publicación con responsable, repo, equipo, **estado** y **progreso** (issues cerrados ÷ total). La etiqueta muestra la etapa: ⏳ Por iniciar · 🛠️ Desarrollo · 🚀 Producción · 🗄️ Archivado. **Asignar equipo**: responsable.' },
       { name: '`/github vincular`', value: 'Vincula tu usuario de GitHub. Al asignarte a un proyecto, el bot te invita a su repo automáticamente (y te quita el acceso si te sacan). `/github equipo` muestra las cuentas vinculadas. · Todos' },
       { name: 'Commits de GitHub', value: 'Al conectar el repo, cada push, PR, issue y release llega a `📡・commits`. Si falta conectarlo, la ficha muestra ⚠️ y el botón **Conectar GitHub** da los pasos.' },
       { name: 'Voz', value: `${m('vozGeneral')} para todo el equipo. Tras **15 minutos** sin actividad, Discord te mueve a ${m('afk')}.` },
@@ -607,15 +634,16 @@ const componentes = {
     };
     if (getDb().proyectos[slug(nombre)]) throw new UserError(`Ya existe el proyecto **${nombre}**.`);
     await interaction.deferReply(ephemeral);
-    const { p, github } = await crearProyecto(interaction.guild, interaction.user.id, datos);
+    const idea = ideaId && getDb().ideas.find((i) => String(i.id) === ideaId && !i.proyecto);
+    // Si viene de una idea, su publicación en el foro se reutiliza (vincularTarjeta) en vez de crear otra.
+    const { p, github } = await crearProyecto(interaction.guild, interaction.user.id, datos, idea ? { idea, tarjeta: false } : {});
     if (p.drive) {
       await registrarLink(interaction.guild, { url: p.drive, titulo: `Carpeta de ${p.nombre}`, proyecto: p.id, autor: interaction.user.id }).catch(() => {});
     }
-    const idea = ideaId && getDb().ideas.find((i) => String(i.id) === ideaId);
-    if (idea && !idea.proyecto) {
+    if (idea) {
       idea.proyecto = p.id;
       save();
-      await refrescarAprobada(interaction.guild, idea);
+      await vincularTarjeta(interaction.guild, idea, p);
     }
     const listo = `✅ Proyecto **${p.nombre}** creado: <#${p.channelId}> · rol <@&${p.roleId}> · ${p.miembros.length} miembro(s)`;
     if (p.github && !github.ok) return interaction.editReply({ content: `${listo}\n\nFalta un paso para recibir los commits:`, embeds: [instrucciones(p)] });
@@ -628,7 +656,7 @@ const componentes = {
     const equipo = await sincronizarMiembros(interaction.guild, p, miembrosElegidos(interaction.fields));
     const { agregar, quitar } = equipo;
     await refrescarFicha(interaction.guild, p);
-    await refrescarAprobadasDeProyecto(interaction.guild, p.id);
+    await refrescarTarjetaDeProyecto(interaction.guild, p.id);
     await avisarGithub(interaction.guild, p, equipo);
     if (agregar.length) {
       const chat = await interaction.guild.channels.fetch(p.channelId).catch(() => null);
@@ -660,6 +688,7 @@ const componentes = {
       if (!ok) return interaction.editReply({ content: `✏️ **${p.nombre}** actualizado. Conecta el nuevo repo:`, embeds: [instrucciones(p)] });
     }
     await refrescarFicha(interaction.guild, p);
+    await refrescarTarjetaDeProyecto(interaction.guild, p.id);
     return interaction.editReply(`✏️ **${p.nombre}** actualizado.`);
   },
 };

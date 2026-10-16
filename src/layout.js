@@ -53,7 +53,7 @@ export const CANALES = {
   crear: { nombre: `🚀${SEP}crear-proyectos`, cat: 'info', tipo: TEXTO, antes: ['crear-proyectos'] },
   general: { nombre: `💬${SEP}general`, cat: 'comunidad', tipo: TEXTO, antes: ['general'], tema: 'Conversación libre' },
   ideas: { nombre: `💡${SEP}ideas`, cat: 'comunidad', tipo: TEXTO, antes: ['ideas'], tema: 'Usa /idea-base para proponer una idea · 3 ✅ la aprueban · 3 ❌ la descartan' },
-  ideasAprobadas: { nombre: `🏆${SEP}proyectos-aprobados`, cat: 'comunidad', tipo: TEXTO, antes: [`✅${SEP}ideas-aprobadas`, 'ideas-aprobadas'], tema: 'Ideas aprobadas con su estado y progreso' },
+  ideasAprobadas: { nombre: `🏆${SEP}proyectos-aprobados`, cat: 'comunidad', tipo: FORO, antes: [], tema: 'Una publicación por proyecto con su responsable, equipo, estado y progreso. Se actualiza sola.' },
   linksDrive: { nombre: `🔗${SEP}links-drive`, cat: 'recursos', tipo: TEXTO, antes: ['links-drive'], tema: 'Registro de los links de Google Drive' },
   archivos: { nombre: `📁${SEP}archivos`, cat: 'recursos', tipo: FORO, antes: ['archivos'] },
   vozGeneral: { nombre: '🎙️ Sala general', cat: 'voz', tipo: VOZ, antes: ['🔊 General', 'General'] },
@@ -67,7 +67,7 @@ function localizar(guild, registro, key, { nombre, antes = [] }, tipo) {
   const db = getDb();
   db[registro] ??= {};
   const guardado = guild.channels.cache.get(db[registro][key] ?? '');
-  if (guardado) return guardado;
+  if (guardado?.type === tipo) return guardado;
   const nombres = [nombre, ...antes];
   const encontrado = guild.channels.cache.find((c) => c.type === tipo && nombres.includes(c.name) && !esDeProyecto(c));
   if (encontrado) {
@@ -102,8 +102,8 @@ export async function ensureCanal(guild, key, extra = {}) {
   if (!c) {
     c = await guild.channels.create({
       name: def.nombre, type: def.tipo, parent: cat.id,
-      ...(def.tema ? { topic: def.tema } : {}),
       ...(def.tipo === FORO ? FORO_OPCIONES : {}),
+      ...(def.tema ? { topic: def.tema } : {}),
       ...extra,
     });
     getDb().canales[key] = c.id;
