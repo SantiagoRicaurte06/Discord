@@ -4,7 +4,7 @@
 import {
   readFileSync, writeFileSync, existsSync, mkdirSync, renameSync, readdirSync, unlinkSync,
 } from 'node:fs';
-import { dirname, join } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 // DATA_DIR permite guardar la base en un volumen persistente al desplegar.
@@ -56,6 +56,18 @@ function backupDiario() {
 }
 
 let db = load();
+
+// ¿DATA_DIR está en un volumen montado? Sin volumen, en Railway/Docker el archivo se borra en cada despliegue.
+// Devuelve true/false en Linux, o null si no se puede saber.
+export function almacenamiento() {
+  let persistente = null;
+  try {
+    const puntos = readFileSync('/proc/self/mountinfo', 'utf8').split('\n').map((l) => l.split(' ')[4]).filter(Boolean);
+    const ruta = resolve(DATA_DIR);
+    persistente = puntos.some((m) => m !== '/' && (ruta === m || ruta.startsWith(`${m}/`)));
+  } catch { /* no es Linux */ }
+  return { ruta: DB_PATH, persistente, proyectos: Object.keys(db.proyectos).length };
+}
 
 export function save() {
   mkdirSync(dirname(DB_PATH), { recursive: true });

@@ -18,7 +18,7 @@ import {
 import {
   UserError, modalCrear, modalMiembros, modalEditar, proyectoEmbed, refrescarFicha,
   crearProyecto, sincronizarMiembros, miembrosElegidos, puedeGestionar, archivarProyecto,
-  avisarGithub, invitarAProyectos, alternarPausa, modalEliminar, eliminarProyecto, actualizarProyecto,
+  avisarGithub, invitarAProyectos, alternarPausa, modalEliminar, eliminarProyecto, actualizarProyecto, recuperarProyectos,
 } from '../proyectos.js';
 import { publicarResumen } from '../resumen.js';
 import { revisarSkills } from '../skillsMonitor.js';
@@ -69,6 +69,7 @@ export const commands = [
       .addStringOption((o) => proyectoOption(o, false)))
     .addSubcommand((s) => s.setName('eliminar').setDescription('Elimina el proyecto: canales, rol, tareas y su publicación en aprobados')
       .addStringOption((o) => proyectoOption(o, false)))
+    .addSubcommand((s) => s.setName('recuperar').setDescription('Vuelve a registrar los proyectos que siguen en Discord pero el bot olvidó (admins)'))
     .addSubcommand((s) => s.setName('archivar').setDescription('Marca el proyecto como terminado y lo manda al final')
       .addStringOption((o) => proyectoOption(o, false))),
 
@@ -126,6 +127,10 @@ export const commands = [
 // ---------- helpers ----------
 
 const esAdmin = (interaction) => interaction.memberPermissions?.has(PermissionFlagsBits.ManageRoles);
+
+// El botón apunta a un proyecto que no está en db.json: casi siempre la base se perdió al redesplegar sin volumen.
+const NO_EN_BD = 'No encuentro este proyecto en la base de datos del bot (no es un problema de permisos). Si el bot se redesplegó hace poco, '
+  + 'perdió sus datos: revisa que en Railway haya un **volumen montado en `/data`** y luego un admin usa `/proyecto recuperar`.';
 
 // Un proyecto es visible para sus miembros y para quien gestiona roles.
 const visible = (interaction, proyectoId) => {
@@ -373,6 +378,18 @@ const handlers = {
       const p = resolverProyecto(interaction);
       await interaction.deferReply(ephemeral);
       return interaction.editReply((await actualizarProyecto(interaction.guild, p)).join('\n'));
+    }
+
+    if (sub === 'recuperar') {
+      if (!esAdmin(interaction)) throw new UserError('Solo quien puede gestionar roles puede recuperar proyectos.');
+      await interaction.deferReply(ephemeral);
+      const { recuperados, omitidos } = await recuperarProyectos(interaction.guild, interaction.user.id);
+      return interaction.editReply([
+        recuperados.length ? `✅ Recuperé ${recuperados.length} proyecto(s): ${recuperados.map((p) => `**${p.nombre}**${p.github ? '' : ' (sin repo)'}`).join(', ')}.`
+          : 'No encontré proyectos sin registrar: todas las categorías ◆ ya están en la base de datos.',
+        omitidos.length ? `⚠️ Omitidos: ${omitidos.join(', ')}` : '',
+        recuperados.length ? '-# Se recuperan canales, rol, repo, Drive, miembros, webhook y publicación. Los links y archivos registrados antes no se pueden recuperar.' : '',
+      ].filter(Boolean).join('\n'));
     }
 
     if (sub === 'eliminar') {
@@ -680,7 +697,7 @@ export async function handleCommand(interaction) {
 
 function proyectoDeComponente(interaction, id) {
   const p = getDb().proyectos[id];
-  if (!p) throw new UserError('Ese proyecto ya no existe.');
+  if (!p) throw new UserError(NO_EN_BD);
   return proyectoGestionable(interaction, p);
 }
 
@@ -700,7 +717,8 @@ const componentes = {
   // Cualquier miembro puede refrescar (no cambia datos del proyecto).
   async 'boton:proyecto-actualizar'(interaction, id) {
     const p = getDb().proyectos[id];
-    if (!p || !visible(interaction, p.id)) throw new UserError('Solo los miembros del proyecto pueden actualizarlo.');
+    if (!p) throw new UserError(NO_EN_BD);
+    if (!visible(interaction, p.id)) throw new UserError('Solo los miembros del proyecto pueden actualizarlo.');
     await interaction.deferReply(ephemeral);
     return interaction.editReply((await actualizarProyecto(interaction.guild, p)).join('\n'));
   },
@@ -745,7 +763,8 @@ const componentes = {
 
   async 'boton:tareas-sync'(interaction, proyectoId) {
     const p = getDb().proyectos[proyectoId];
-    if (!p || !visible(interaction, p.id)) throw new UserError('Solo los miembros del proyecto pueden sincronizar.');
+    if (!p) throw new UserError(NO_EN_BD);
+    if (!visible(interaction, p.id)) throw new UserError('Solo los miembros del proyecto pueden sincronizar.');
     await interaction.deferReply(ephemeral);
     p.issuesEtag = null;
     p.prsEtag = null;
@@ -766,7 +785,8 @@ const componentes = {
 
   async 'modal:tarea-extra'(interaction) {
     const p = proyectoPorCanalExtra(interaction.channelId);
-    if (!p || !visible(interaction, p.id)) throw new UserError('Solo los miembros del proyecto pueden agregar tareas.');
+    if (!p) throw new UserError(NO_EN_BD);
+    if (!visible(interaction, p.id)) throw new UserError('Solo los miembros del proyecto pueden agregar tareas.');
     if (!avance(p).enProduccion) throw new UserError('Las tareas extra solo se agregan con el proyecto en producción.');
     const f = interaction.fields;
     await interaction.deferReply(ephemeral);
@@ -878,7 +898,8 @@ function leerLinks(fields) {
 // Marcar o reabrir tareas desde los menús del tablero (solo miembros del proyecto).
 async function cambiarTareas(interaction, proyectoId, hecha) {
   const p = getDb().proyectos[proyectoId];
-  if (!p || !visible(interaction, p.id)) throw new UserError('Solo los miembros del proyecto pueden cambiar tareas.');
+  if (!p) throw new UserError(NO_EN_BD);
+    if (!visible(interaction, p.id)) throw new UserError('Solo los miembros del proyecto pueden cambiar tareas.');
   await interaction.deferReply(ephemeral);
   const cambiadas = await marcar(interaction.guild, p, interaction.values, interaction.user.id, hecha);
   await refrescarFicha(interaction.guild, p);

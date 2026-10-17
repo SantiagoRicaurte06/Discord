@@ -4,7 +4,8 @@ import {
   handleCommand, handleAutocomplete, handleComponent, registrarLink, commands,
 } from './commands/index.js';
 import { extractDriveLinks } from './drive.js';
-import { findProyectoByChannel, getDb, save } from './store.js';
+import { dirname } from 'node:path';
+import { almacenamiento, findProyectoByChannel, getDb, save } from './store.js';
 import { refrescarFicha } from './proyectos.js';
 import { procesarVoto, revisarVotacionesPendientes } from './ideas.js';
 import { iniciarSincronizacion } from './tareas.js';
@@ -27,6 +28,23 @@ function createClient(intents) {
   return client;
 }
 
+// En un hosting con contenedores (Railway, Docker) sin volumen, db.json se pierde en cada despliegue:
+// los proyectos nuevos desaparecen y sus botones dejan de funcionar. Se avisa en el log y por DM al dueño.
+const EN_CONTENEDOR = () => Boolean(process.env.RAILWAY_ENVIRONMENT || process.env.RAILWAY_PROJECT_ID || process.env.DATA_DIR);
+function avisarAlmacenamiento(c) {
+  const { ruta, persistente, proyectos } = almacenamiento();
+  console.log(`💾 Base de datos: ${ruta} · ${proyectos} proyecto(s) · ${persistente === null ? 'persistencia desconocida' : persistente ? 'volumen persistente ✅' : '⚠️ NO está en un volumen'}`);
+  if (persistente !== false || !EN_CONTENEDOR()) return;
+  console.warn(`⚠️ ${ruta} no está en un volumen: se borrará en el próximo despliegue. En Railway: servicio → Settings → Volumes → montar en ${dirname(ruta)}`);
+  const guild = process.env.GUILD_ID && c.guilds.cache.get(process.env.GUILD_ID);
+  guild?.fetchOwner().then((o) => o.send([
+    '⚠️ **Zy está guardando sus datos en un disco temporal.**',
+    `La base de datos (\`${ruta}\`) no está en un volumen, así que **se borra cada vez que Railway redespliega**: los proyectos y repos nuevos se pierden y sus botones dicen que no eres miembro.`,
+    '',
+    `**Arreglo:** en Railway abre el servicio del bot → **Settings → Volumes → New Volume** y móntalo en \`${dirname(ruta)}\`. Railway lo redespliega y desde ahí los datos se conservan.`,
+  ].join('\n'))).catch(() => {});
+}
+
 function registerEvents(client) {
   client.once(Events.ClientReady, (c) => {
     console.log(`✅ Conectado como ${c.user.tag} en ${c.guilds.cache.size} servidor(es)`);
@@ -35,6 +53,7 @@ function registerEvents(client) {
     guild?.commands.set(commands.map((cmd) => cmd.toJSON()))
       .then((r) => console.log(`✅ ${r.size} comandos registrados`))
       .catch((e) => console.error('Registrando comandos:', e.message));
+    avisarAlmacenamiento(c);
     if (process.env.GUILD_ID) {
       iniciarSincronizacion(c, process.env.GUILD_ID);
       iniciarResumenSemanal(c, process.env.GUILD_ID);

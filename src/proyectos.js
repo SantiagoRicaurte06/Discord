@@ -362,3 +362,76 @@ export async function actualizarProyecto(guild, p) {
   resumen.push(`✅ **Refrescado:** ficha, tableros de tareas, carpeta de archivos y publicación en aprobados (estado: ${avance(p).etapa})`);
   return resumen;
 }
+
+// ---------- recuperación ----------
+
+const menciones = (texto = '') => [...texto.matchAll(/<@!?(\d+)>/g)].map((m) => m[1]);
+
+// Reconstruye en db.json los proyectos que siguen en Discord pero ya no están en la base
+// (p. ej. db.json se perdió al redesplegar sin volumen). Los datos salen de la categoría, sus canales,
+// la ficha fijada del chat, el webhook de commits y la publicación en aprobados.
+export async function recuperarProyectos(guild, autorPorDefecto) {
+  const db = getDb();
+  const canales = await guild.channels.fetch();
+  const conocidas = new Set(Object.values(db.proyectos).map((p) => p.categoryId));
+  const categorias = canales.filter((c) => c?.type === ChannelType.GuildCategory && /^[◆◇] /u.test(c.name) && !conocidas.has(c.id));
+  const aprobados = canales.find((c) => c?.id === db.canales?.ideasAprobadas);
+  const tarjetas = aprobados ? [...(await aprobados.threads.fetchActive()).threads.values(),
+    ...(await aprobados.threads.fetchArchived({ limit: 100 }).catch(() => ({ threads: new Map() }))).threads.values()] : [];
+  const recuperados = [];
+  const omitidos = [];
+
+  for (const cat of categorias.values()) {
+    const nombreCat = cat.name.slice(2).trim();
+    const hijo = (nombre) => canales.find((c) => c?.parentId === cat.id && c.name === nombre);
+    const chat = hijo(PROYECTO.chat);
+    if (!chat) { omitidos.push(`${nombreCat} (sin 💬・chat)`); continue; }
+
+    const fijados = await chat.messages.fetchPinned().catch(() => new Map());
+    const ficha = [...fijados.values()].find((m) => m.author.id === guild.members.me.id && m.embeds[0]?.footer?.text?.startsWith('id: '));
+    const e = ficha?.embeds[0];
+    const campo = (inicio) => e?.fields.find((f) => f.name.startsWith(inicio))?.value;
+    const nombre = e?.title?.replace(/^◆\s*/u, '') || nombreCat;
+    const id = e?.footer.text.slice(4) || slug(nombre);
+    if (db.proyectos[id]) { omitidos.push(`${nombre} (ya existe el id ${id})`); continue; }
+
+    const botones = ficha?.components.flatMap((r) => r.components) ?? [];
+    const github = botones.find((b) => b.url?.includes('github.com'))?.url ?? campo('🐙')?.match(/https:\/\/github\.com\/\S+/)?.[0]
+      ?? chat.topic?.match(/GitHub: (\S+)/)?.[1] ?? null;
+    const drive = botones.find((b) => /drive\.google|docs\.google/.test(b.url ?? ''))?.url ?? null;
+    const rol = guild.roles.cache.get(campo('Rol')?.match(/<@&(\d+)>/)?.[1] ?? '0') ?? guild.roles.cache.find((r) => r.name === PROYECTO.rol(nombre));
+    const miembros = menciones(campo('👥'));
+    const commits = hijo(PROYECTO.commits);
+    const hook = commits && [...(await commits.fetchWebhooks().catch(() => new Map())).values()].find((w) => w.owner?.id === guild.members.me.id);
+    const foro = hijo(PROYECTO.archivos);
+    const carpeta = foro && [...(await foro.threads.fetchActive()).threads.values()].find((t) => t.name.startsWith('📂'));
+    const tarjeta = tarjetas.find((t) => t.name === `◆ ${nombre}`.slice(0, 100));
+
+    const p = addProyecto({
+      id, nombre, descripcion: e?.description ?? chat.topic?.split(' | GitHub:')[0] ?? '', github, drive,
+      roleId: rol?.id ?? null, categoryId: cat.id, channelId: chat.id, foroId: foro?.id ?? null, vozId: hijo(PROYECTO.voz)?.id ?? null,
+      commitsId: commits?.id ?? null, webhookUrl: hook?.url ?? null,
+      tareasId: hijo(PROYECTO.tareas)?.id ?? null, extraId: hijo(PROYECTO.tareasExtra)?.id ?? null,
+      miembros, autor: menciones(campo('⭐')).at(0) ?? autorPorDefecto,
+      fecha: (ficha?.createdAt ?? cat.createdAt).toISOString(), fichaId: ficha?.id ?? null, tarjetaId: tarjeta?.id ?? null,
+      archivado: cat.name.startsWith('◇') || undefined, recuperado: new Date().toISOString(),
+    });
+    if (carpeta) db.carpetas[id] = carpeta.id;
+    // Reutiliza los tableros fijados para no duplicarlos.
+    for (const [canalId, campoTablero] of [[p.tareasId, 'tableroTareasId'], [p.extraId, 'tableroExtraId']]) {
+      const c = canalId && canales.get(canalId);
+      const pin = c && [...(await c.messages.fetchPinned().catch(() => new Map())).values()].find((m) => m.author.id === guild.members.me.id);
+      if (pin) p[campoTablero] = pin.id;
+    }
+    save();
+    if (!p.fichaId) {
+      const nueva = await chat.send({ embeds: [proyectoEmbed(p)], components: fichaComponents(p) });
+      await nueva.pin().catch(() => {});
+      p.fichaId = nueva.id;
+      save();
+    }
+    await actualizarProyecto(guild, p).catch((err) => console.error(`Recuperando ${id}:`, err.message));
+    recuperados.push(p);
+  }
+  return { recuperados, omitidos };
+}
