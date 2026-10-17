@@ -54,6 +54,11 @@ export const CANALES = {
   general: { nombre: `💬${SEP}general`, cat: 'comunidad', tipo: TEXTO, antes: ['general'], tema: 'Conversación libre' },
   ideas: { nombre: `💡${SEP}ideas`, cat: 'comunidad', tipo: TEXTO, antes: ['ideas'], tema: 'Usa /idea-base para proponer una idea · 3 ✅ la aprueban · 3 ❌ la descartan' },
   ideasAprobadas: { nombre: `🏆${SEP}proyectos-aprobados`, cat: 'comunidad', tipo: FORO, antes: [], tema: 'Una publicación por proyecto con su responsable, equipo, estado y progreso. Se actualiza sola.' },
+  videos: {
+    nombre: `🎬${SEP}ideas-de-videos`, cat: 'comunidad', tipo: FORO, antes: [],
+    tema: 'Usa /idea-video para proponer un video (nombre, descripción y referencia). Cuando esté listo, súbelo con el botón ☁️ de su publicación.',
+    etiquetas: [['💡', 'Idea'], ['✅', 'Listo']],
+  },
   linksDrive: { nombre: `🔗${SEP}links-drive`, cat: 'recursos', tipo: TEXTO, antes: ['links-drive'], tema: 'Registro de los links de Google Drive' },
   archivos: { nombre: `📁${SEP}archivos`, cat: 'recursos', tipo: FORO, antes: ['archivos'] },
   skills: {

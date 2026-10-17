@@ -26,6 +26,7 @@ import { prepararRepo, guiaSkillsEmbed } from '../plantillaRepo.js';
 import {
   modalIdea, publicarIdea, VOTOS_NECESARIOS, SI, NO,
 } from '../ideas.js';
+import { modalVideo, modalDrive, crearVideo, videoPorId, subirDrive } from '../videos.js';
 import {
   refrescarTarjetaDeProyecto, vincularTarjeta, ensureEtiquetas, publicarTarjeta, avance,
 } from '../tarjetas.js';
@@ -86,6 +87,10 @@ export const commands = [
   new SlashCommandBuilder()
     .setName('idea-base')
     .setDescription('Propone una idea (solo en el canal de ideas)'),
+
+  new SlashCommandBuilder()
+    .setName('idea-video')
+    .setDescription('Crea una publicación en ideas de videos: nombre, descripción, referencia y Drive opcional'),
 
   new SlashCommandBuilder()
     .setName('github')
@@ -271,6 +276,7 @@ export async function setupServer(guild) {
   await migrarAprobadasAForo(guild);
   await soloLectura(guild, 'ideasAprobadas');
   await soloLectura(guild, 'skills');
+  await soloLectura(guild, 'videos', { comentarios: true });
   await ensureEtiquetas(canal(guild, 'ideasAprobadas'));
   for (const p of Object.values(getDb().proyectos)) {
     if (!p.archivado) await ensureCanalesTareas(guild, p).catch((e) => console.error(`Tareas de ${p.id}:`, e.message));
@@ -436,6 +442,10 @@ const handlers = {
     }
   },
 
+  async 'idea-video'(interaction) {
+    return interaction.showModal(modalVideo());
+  },
+
   async 'idea-base'(interaction) {
     const ideas = canal(interaction.guild, 'ideas');
     if (interaction.channelId !== ideas?.id) throw new UserError(`Este comando solo se usa en ${mencion(interaction.guild, 'ideas')}.`);
@@ -585,12 +595,15 @@ async function migrarAprobadasAForo(guild) {
 }
 
 // Nadie escribe; con reacciones: true se puede votar con los emojis existentes pero no agregar otros.
-async function soloLectura(guild, key, { reacciones = false } = {}) {
+// Con comentarios: true (foros) solo el bot crea publicaciones, pero todos pueden responder y reaccionar dentro.
+async function soloLectura(guild, key, { reacciones = false, comentarios = false } = {}) {
   const { canal: c } = await ensureCanal(guild, key);
-  const deny = [PermissionFlagsBits.SendMessages, PermissionFlagsBits.SendMessagesInThreads, PermissionFlagsBits.CreatePublicThreads,
-    PermissionFlagsBits.CreatePrivateThreads, PermissionFlagsBits.AddReactions];
+  const deny = [PermissionFlagsBits.SendMessages, PermissionFlagsBits.CreatePublicThreads, PermissionFlagsBits.CreatePrivateThreads,
+    ...(comentarios ? [] : [PermissionFlagsBits.SendMessagesInThreads, PermissionFlagsBits.AddReactions])];
+  const allow = [...(reacciones ? [PermissionFlagsBits.UseApplicationCommands] : []),
+    ...(comentarios ? [PermissionFlagsBits.SendMessagesInThreads, PermissionFlagsBits.AddReactions] : [])];
   await c.permissionOverwrites.set([
-    { id: guild.roles.everyone.id, deny, allow: reacciones ? [PermissionFlagsBits.UseApplicationCommands] : [] },
+    { id: guild.roles.everyone.id, deny, allow },
     { id: guild.members.me.id, allow: [PermissionFlagsBits.SendMessages, PermissionFlagsBits.SendMessagesInThreads, PermissionFlagsBits.CreatePublicThreads, PermissionFlagsBits.ManageThreads, PermissionFlagsBits.AddReactions, PermissionFlagsBits.ManageMessages] },
   ]);
   if (CANALES[key].tema && c.topic !== CANALES[key].tema) await c.setTopic(CANALES[key].tema);
@@ -620,6 +633,7 @@ function guiaEmbeds(guild) {
       `**${m('general')}** — conversación del equipo`,
       `**${m('ideas')}** — proponer y votar ideas`,
       `**${m('ideasAprobadas')}** — foro con una publicación por proyecto: estado, equipo y progreso`,
+      `**${m('videos')}** — ideas de videos`,
       `**${m('archivos')}** — carpeta de archivos generales`,
       `**${m('linksDrive')}** — links de Drive generales`,
       `**${m('skills')}** — skills recomendadas (solo lectura). Cada día a las 2 a. m. el bot revisa sus repos de GitHub y avisa si alguna se actualizó`,
@@ -665,6 +679,7 @@ function guiaEmbeds(guild) {
 
     embed('💡 Ideas, 📡 GitHub y 🎧 Voz', COLORES.ideas).addFields(
       { name: '`/idea-base`', value: `Solo funciona en ${m('ideas')} (ahí no se puede escribir). Abre un formulario con nombre y descripción y publica la idea con ${SI} y ${NO}. · Todos` },
+      { name: '`/idea-video`', value: `Publica en ${m('videos')} nombre, descripción, referencia y Drive (opcional). Listo el video, **☁️ Subir Drive** lo marca ✅. · Todos` },
       { name: 'Votación', value: `Con **${VOTOS_NECESARIOS} ${SI}** la idea pasa a ${m('ideasAprobadas')} con su estado y barra de progreso. Con **${VOTOS_NECESARIOS} ${NO}** se elimina. Las reacciones del bot no cuentan.` },
       { name: 'Proyectos aprobados (foro)', value: 'Todos lo ven, tengan o no proyectos. Al aprobarse una idea el bot **crea el proyecto y su repo**. Cada proyecto (votado o manual) tiene su publicación: responsable, repo, equipo, barras de 🛠️ desarrollo y 🔧 mantenimiento, y seguimiento (abiertos, sin asignar, en revisión). La etiqueta muestra la etapa.' },
       { name: '`/github vincular`', value: 'Inicias sesión en GitHub con un código y tu cuenta queda vinculada. Al asignarte a un proyecto el bot te invita a su repo (y te quita el acceso si te sacan). `/github equipo` muestra las cuentas. · Todos' },
@@ -798,6 +813,32 @@ const componentes = {
     });
     await refrescarFicha(interaction.guild, p);
     return interaction.editReply(`🧩 Agregada: **${t.titulo}**`);
+  },
+
+  async 'modal:video-crear'(interaction) {
+    const f = interaction.fields;
+    await interaction.deferReply(ephemeral);
+    const { hilo } = await crearVideo(interaction.guild, interaction.user.id, {
+      nombre: f.getTextInputValue('nombre').trim(),
+      descripcion: f.getTextInputValue('descripcion').trim(),
+      referencia: f.getTextInputValue('referencia').trim(),
+      drive: f.getTextInputValue('drive')?.trim(),
+    });
+    return interaction.editReply(`🎬 Idea de video creada: <#${hilo.id}>. Cuando esté listo, súbelo con el botón ☁️ de la publicación.`);
+  },
+
+  async 'boton:video-drive'(interaction, id) {
+    const v = videoPorId(id);
+    if (!v) throw new UserError('No encuentro esa idea de video en la base de datos del bot.');
+    return interaction.showModal(modalDrive(v));
+  },
+
+  async 'modal:video-drive'(interaction, id) {
+    const v = videoPorId(id);
+    if (!v) throw new UserError('No encuentro esa idea de video en la base de datos del bot.');
+    await interaction.deferReply(ephemeral);
+    await subirDrive(interaction.guild, interaction.user.id, v, interaction.fields.getTextInputValue('drive').trim());
+    return interaction.editReply(`✅ Drive guardado en **${v.nombre}**; quedó marcado como listo.`);
   },
 
   async 'modal:idea-base'(interaction) {
