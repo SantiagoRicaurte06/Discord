@@ -573,7 +573,9 @@ const handlers = {
   },
 
   async ayuda(interaction) {
-    return interaction.reply({ embeds: guiaEmbeds(interaction.guild), ...ephemeral });
+    const [parte1, parte2] = guiaEmbeds(interaction.guild);
+    await interaction.reply({ embeds: parte1, ...ephemeral });
+    return interaction.followUp({ embeds: parte2, ...ephemeral });
   },
 };
 
@@ -610,85 +612,97 @@ async function soloLectura(guild, key, { reacciones = false, comentarios = false
 }
 
 // Canal de solo lectura con la guía completa; el bot la mantiene actualizada.
-async function setupFuncionamiento(guild) {
+export async function setupFuncionamiento(guild) {
   const { canal: c } = await ensureCanal(guild, 'funcionamiento');
   await c.permissionOverwrites.set([
     { id: guild.roles.everyone.id, deny: [PermissionFlagsBits.SendMessages, PermissionFlagsBits.AddReactions, PermissionFlagsBits.CreatePublicThreads] },
   ]);
-  await publicarFijo(c, 'mensajeFuncionamiento', { embeds: guiaEmbeds(guild), allowedMentions: { parse: [] } });
+  // Sin los IDs guardados (p. ej. se perdió db.json) se reutilizan los mensajes fijados para no duplicar la guía.
+  const db = getDb();
+  if (!db.mensajeFuncionamiento || !db.mensajeFuncionamiento2) {
+    const fijados = [...(await c.messages.fetchPinned().catch(() => new Map())).values()].filter((x) => x.author.id === guild.members.me.id);
+    db.mensajeFuncionamiento ??= fijados.find((x) => x.embeds[0]?.title?.startsWith('📖'))?.id;
+    db.mensajeFuncionamiento2 ??= fijados.find((x) => x.embeds[0]?.title?.startsWith('📁'))?.id;
+  }
+  const [parte1, parte2] = guiaEmbeds(guild);
+  await publicarFijo(c, 'mensajeFuncionamiento', { embeds: parte1, allowedMentions: { parse: [] } });
+  await publicarFijo(c, 'mensajeFuncionamiento2', { embeds: parte2, allowedMentions: { parse: [] } });
 }
 
+// La guía va en dos mensajes: Discord permite 6000 caracteres de embeds por mensaje.
 function guiaEmbeds(guild) {
   const m = (key) => mencion(guild, key);
   const rolCreador = guild?.roles.cache.find((r) => r.name === ROL_CREADOR);
   const creador = rolCreador ? `<@&${rolCreador.id}>` : `**${ROL_CREADOR}**`;
   const embed = (titulo, color) => new EmbedBuilder().setColor(color).setTitle(titulo);
 
-  return [
+  const parte1 = [
     embed('📖 Funcionamiento del servidor', COLORES.primario).setDescription([
-      'Este servidor organiza los **proyectos, archivos, links de Drive, ideas y commits** del equipo.',
-      'Todo se maneja con comandos: escribe `/` en cualquier canal para verlos.',
+      'Este servidor organiza los **proyectos, archivos, links de Drive, ideas, videos y commits** del equipo.',
+      'Todo se maneja con comandos: escribe `/` en cualquier canal para verlos. `/ayuda` muestra esta guía solo a ti.',
       '',
       `**${m('crear')}** — crear proyectos`,
-      `**${m('general')}** — conversación del equipo`,
+      `**${m('general')}** — conversación y resumen semanal`,
       `**${m('ideas')}** — proponer y votar ideas`,
-      `**${m('ideasAprobadas')}** — foro con una publicación por proyecto: estado, equipo y progreso`,
-      `**${m('videos')}** — ideas de videos`,
-      `**${m('archivos')}** — carpeta de archivos generales`,
-      `**${m('linksDrive')}** — links de Drive generales`,
-      `**${m('skills')}** — skills recomendadas (solo lectura). Cada día a las 2 a. m. el bot revisa sus repos de GitHub y avisa si alguna se actualizó`,
+      `**${m('ideasAprobadas')}** — una publicación por proyecto: estado, equipo y progreso`,
+      `**${m('videos')}** — ideas de videos y su Drive cuando están listos`,
+      `**${m('archivos')}** · **${m('linksDrive')}** — archivos y links de Drive generales`,
+      `**${m('skills')}** — skills recomendadas; el bot avisa cuando se actualizan`,
       `**${m('vozGeneral')}** — sala de voz del equipo`,
     ].join('\n')),
 
     embed('🔑 Roles y permisos', COLORES.aviso).addFields(
-      { name: 'Administrador', value: 'Puede hacer todo, incluido gestionar cualquier proyecto y usar `/setup`.' },
-      { name: ROL_CREADOR, value: `${creador} puede crear proyectos (botón o \`/proyecto crear\`) y escribir en ${m('crear')}.` },
-      { name: '⭐ Responsable del proyecto', value: 'Quien creó el proyecto (en los aprobados por votación, el responsable por defecto). Asigna el equipo, edita los datos (descripción, GitHub, Drive), cambia el estado, conecta GitHub y archiva.' },
-      { name: '◆ Rol del proyecto', value: 'Lo reciben los miembros de cada proyecto. Pueden **ver y escribir** en su chat, subir archivos a su carpeta, leer sus commits y entrar a su sala de voz. No pueden cambiar los datos del proyecto.' },
-      { name: 'Todos', value: 'Proponer y votar ideas, subir archivos a la carpeta general, guardar links de Drive y usar la voz general.' },
+      { name: 'Administrador', value: 'Puede hacer todo: gestionar cualquier proyecto, `/setup`, `/proyecto recuperar`, `/resumen` y `/skills-revisar`.' },
+      { name: ROL_CREADOR, value: `${creador} crea proyectos (botón o \`/proyecto crear\`) y escribe en ${m('crear')}.` },
+      { name: '⭐ Responsable', value: 'Quien creó el proyecto. Asigna el equipo, edita sus datos, lo pausa, conecta GitHub, prepara el repo, archiva y elimina.' },
+      { name: '◆ Rol del proyecto', value: 'Los miembros **ven y escriben** en su chat, suben archivos a su carpeta, leen sus commits y tareas y entran a su voz. No cambian los datos.' },
+      { name: 'Todos', value: 'Proponer y votar ideas, crear ideas de videos, subir archivos y links generales, vincular su GitHub y usar la voz general.' },
     ),
 
     embed('◆ Proyectos', COLORES.primario).setDescription([
-      'Cada proyecto crea un **rol** y una **categoría privada** con:',
-      '› `💬・chat` con la ficha fijada (estado, miembros, GitHub, Drive y botones)',
-      '› `📁・archivos` carpeta con índice de archivos y respaldos',
-      '› `📡・commits` donde llegan los commits, PRs, issues y releases de GitHub',
-      '› `📋・tareas` los issues de GitHub: quién los tiene 👤, PR en revisión 🔍 y cerrados ✅',
-      '› `🧩・tareas-extra` arreglos y añadidos cuando el proyecto ya está en producción',
-      '› `🎙️ Reunión` sala de voz del equipo del proyecto',
+      'Cada proyecto tiene un **rol** y una **categoría privada**: `💬・chat` (con la ficha fijada), `📁・archivos`, `📡・commits`, `📋・tareas` (issues de GitHub), `🧩・tareas-extra` y `🎙️ Reunión`.',
+      'Botones de la ficha: 👥 Miembros · ✏️ Editar · ⏸️ Pausar · 🔄 Actualizar · 🗑️ Eliminar · 📡 Conectar GitHub.',
     ].join('\n')).addFields(
-      { name: '`/proyecto crear`', value: `Abre el formulario: nombre, descripción, GitHub (vacío = el bot crea el repo), Drive y miembros. · ${ROL_CREADOR}` },
-      { name: '`/proyecto miembros`', value: 'Agrega o quita personas (da o quita el rol). · Responsable' },
-      { name: 'Estado automático', value: '⏳ Por iniciar (sin issues) → 🛠️ Desarrollo → 🚀 Producción (todos cerrados) → 🔧 Mantenimiento (tareas extra pendientes). `/proyecto pausar` o el botón ⏸️ lo pausa. · Responsable' },
-      { name: '`/proyecto github`', value: 'Conecta el repositorio al canal de commits. · Responsable' },
-      { name: '`/proyecto archivar`', value: 'Lo marca como terminado y lo pasa a ◇. · Responsable' },
-      { name: '`/proyecto actualizar`', value: 'También con el botón 🔄 de la ficha: revisa la conexión con GitHub y refresca issues, tableros, ficha y aprobados. · Miembros' },
-      { name: '`/proyecto eliminar`', value: 'También con el botón 🗑️ de la ficha. Pide escribir el nombre; borra canales, rol, tareas y su publicación en aprobados (el repo de GitHub se conserva). · Responsable' },
-      { name: '`/proyecto lista` · `/proyecto info`', value: 'Ver tus proyectos o la ficha de uno. · Miembros' },
-      { name: 'Issues', value: 'Se crean, asignan y revisan en GitHub. El bot los lee cada 5 min: 👤 quién lo tiene (vinculen su GitHub), 🔍 PR en revisión (si el PR dice "closes #N") y ✅ cerrados. Nunca modifica GitHub.' },
-      { name: '`/proyecto preparar-repo`', value: 'Crea el repo si falta y le agrega las skills del equipo y el git workflow (los repos nuevos ya vienen así). · Responsable' },
-      { name: '`/tarea-extra`', value: 'Solo en `🧩・tareas-extra` y con el proyecto en producción: agrega un arreglo o añadido. El menú las marca como hechas o las reabre. · Miembros' },
+      { name: '`/proyecto crear`', value: `Formulario: nombre, descripción, GitHub (vacío = el bot crea el repo), Drive y miembros. · ${ROL_CREADOR}` },
+      { name: '`/proyecto lista` · `/proyecto info`', value: 'Tus proyectos o la ficha de uno. · Miembros' },
+      { name: '`/proyecto miembros`', value: 'Agrega o quita personas: da el rol y las invita al repo. · Responsable' },
+      { name: '`/proyecto actualizar`', value: 'Revisa GitHub y refresca issues, tableros, ficha y aprobados. · Miembros' },
+      { name: '`/proyecto pausar`', value: 'Pausa o reanuda. El resto del estado es automático: ⏳ Por iniciar → 🛠️ Desarrollo → 🚀 Producción → 🔧 Mantenimiento. · Responsable' },
+      { name: '`/proyecto github` · `/proyecto preparar-repo`', value: 'Conecta el repo al canal de commits · crea el repo si falta y le agrega las skills, el git workflow y el hook 🛡️ de protección. · Responsable' },
+      { name: '`/proyecto archivar` · `/proyecto eliminar`', value: 'Pasa a ◇ terminado · borra canales, rol, tareas y su publicación pidiendo escribir el nombre (el repo se conserva). · Responsable' },
+      { name: '`/tarea-extra`', value: 'Solo en `🧩・tareas-extra` y en producción: agrega un arreglo o añadido. El menú las marca hechas o las reabre. · Miembros' },
     ),
+  ];
 
+  const parte2 = [
     embed('📁 Archivos y 🔗 Drive', COLORES.archivos).addFields(
-      { name: '`/archivo subir`', value: 'Guarda un archivo con su link de respaldo en Drive. Sin proyecto va a la carpeta General; con proyecto, a la carpeta del proyecto. · Todos / miembros del proyecto' },
-      { name: '`/archivo respaldo`', value: 'Agrega o cambia el link de Drive de un archivo. La lista muestra primero los que tienen ⚠️ sin respaldo. · Todos / miembros' },
-      { name: 'Índice de carpeta', value: 'El primer mensaje de cada carpeta lista los archivos ordenados por tipo, con su link para verlos y su respaldo. Se actualiza solo.' },
-      { name: '`/drive agregar` · `/drive lista`', value: `Guarda y lista links de Drive. Los generales se publican en ${m('linksDrive')}; los de un proyecto, en su chat. · Todos / miembros` },
+      { name: '`/archivo subir`', value: 'Guarda un archivo con su respaldo en Drive, en la carpeta General o en la del proyecto. · Todos / miembros' },
+      { name: '`/archivo respaldo`', value: 'Agrega o cambia el link de Drive de un archivo (primero los ⚠️ sin respaldo). · Todos / miembros' },
+      { name: '`/drive agregar` · `/drive lista`', value: `Guarda y lista links de Drive: los generales en ${m('linksDrive')}, los de un proyecto en su chat. Los links pegados en un chat también se guardan. · Todos / miembros` },
     ),
 
-    embed('💡 Ideas, 📡 GitHub y 🎧 Voz', COLORES.ideas).addFields(
-      { name: '`/idea-base`', value: `Solo funciona en ${m('ideas')} (ahí no se puede escribir). Abre un formulario con nombre y descripción y publica la idea con ${SI} y ${NO}. · Todos` },
-      { name: '`/idea-video`', value: `Publica en ${m('videos')} nombre, descripción, referencia y Drive (opcional). Listo el video, **☁️ Subir Drive** lo marca ✅. · Todos` },
-      { name: 'Votación', value: `Con **${VOTOS_NECESARIOS} ${SI}** la idea pasa a ${m('ideasAprobadas')} con su estado y barra de progreso. Con **${VOTOS_NECESARIOS} ${NO}** se elimina. Las reacciones del bot no cuentan.` },
-      { name: 'Proyectos aprobados (foro)', value: 'Todos lo ven, tengan o no proyectos. Al aprobarse una idea el bot **crea el proyecto y su repo**. Cada proyecto (votado o manual) tiene su publicación: responsable, repo, equipo, barras de 🛠️ desarrollo y 🔧 mantenimiento, y seguimiento (abiertos, sin asignar, en revisión). La etiqueta muestra la etapa.' },
-      { name: '`/github vincular`', value: 'Inicias sesión en GitHub con un código y tu cuenta queda vinculada. Al asignarte a un proyecto el bot te invita a su repo (y te quita el acceso si te sacan). `/github equipo` muestra las cuentas. · Todos' },
-      { name: 'Commits de GitHub', value: 'Al conectar el repo, cada push, PR, issue y release llega a `📡・commits`. Si falta conectarlo, la ficha muestra ⚠️ y el botón **Conectar GitHub** da los pasos.' },
-      { name: 'Voz', value: `${m('vozGeneral')} para todo el equipo. Tras **15 minutos** sin actividad, Discord te mueve a ${m('afk')}.` },
-      { name: 'Resumen semanal', value: `Cada lunes en ${m('general')}: avance por proyecto, lo cerrado en la semana, lo sin asignar y quién tiene qué. \`/resumen\` lo publica al momento (admins).` },
-      { name: '`/ayuda`', value: 'Muestra esta guía en cualquier canal (solo la ves tú).' },
+    embed('💡 Ideas y 🎬 Videos', COLORES.ideas).addFields(
+      { name: '`/idea-base`', value: `Solo en ${m('ideas')}: formulario con nombre y descripción; se vota con ${SI} y ${NO}. · Todos` },
+      { name: 'Votación', value: `**${VOTOS_NECESARIOS} ${SI}** la aprueban: el bot crea el proyecto, su repo y su publicación en ${m('ideasAprobadas')}. **${VOTOS_NECESARIOS} ${NO}** la descartan. Las reacciones del bot no cuentan.` },
+      { name: '`/idea-video`', value: `Publica en ${m('videos')} nombre, descripción, referencia y Drive (opcional). Listo el video, el botón **☁️ Subir Drive** lo marca ✅. Se comenta dentro. · Todos` },
+    ),
+
+    embed('🐙 GitHub', COLORES.github).addFields(
+      { name: '`/github vincular` · `/github desvincular`', value: 'Inicias sesión en GitHub con un código y tu cuenta queda vinculada: al entrar a un proyecto te invita a su repo y te quita el acceso si sales. · Todos' },
+      { name: '`/github equipo`', value: 'Muestra la cuenta de GitHub de cada persona. · Todos' },
+      { name: 'Commits e issues', value: 'Cada push, PR, issue y release llega a `📡・commits`. Los issues se crean y asignan en GitHub; el bot los lee cada 5 min (👤 asignado, 🔍 PR en revisión con "closes #N", ✅ cerrado). Nunca modifica GitHub.' },
+      { name: 'Repos del equipo', value: `Los repos que crea el bot traen las skills de ${m('skills')}, las normas de Git y el hook 🛡️ que impide que Claude borre la base de datos o haga force push a main.` },
+    ),
+
+    embed('⚙️ Automático y administración', COLORES.aviso).addFields(
+      { name: 'Resumen semanal', value: `Cada lunes en ${m('general')}: avance por proyecto, lo cerrado, lo sin asignar y quién tiene qué. \`/resumen\` lo publica al momento. · Admins` },
+      { name: 'Skills', value: `Cada día a las 2 a. m. el bot revisa las skills de ${m('skills')} y avisa en su publicación si cambiaron. \`/skills-revisar\` lo hace al momento. · Admins` },
+      { name: '`/setup`', value: 'Crea o repara categorías, canales, permisos, etiquetas y esta guía. · Admins' },
+      { name: '`/proyecto recuperar`', value: 'Vuelve a registrar los proyectos que siguen en Discord pero el bot olvidó (por ejemplo, tras perder su base de datos). · Admins' },
+      { name: 'Voz', value: `Tras **15 minutos** sin actividad, Discord te mueve a ${m('afk')}.` },
     ).setFooter({ text: guild?.name ?? 'Servidor' }),
   ];
+  return [parte1, parte2];
 }
 
 async function responderError(interaction, err) {

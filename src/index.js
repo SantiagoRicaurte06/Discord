@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import { Client, GatewayIntentBits, Events, Partials } from 'discord.js';
 import {
-  handleCommand, handleAutocomplete, handleComponent, registrarLink, commands,
+  handleCommand, handleAutocomplete, handleComponent, registrarLink, commands, setupFuncionamiento,
 } from './commands/index.js';
 import { extractDriveLinks } from './drive.js';
 import { dirname } from 'node:path';
@@ -61,7 +61,11 @@ function registerEvents(client) {
       iniciarRevisionSkills(c, process.env.GUILD_ID);
       const guild = c.guilds.cache.get(process.env.GUILD_ID);
       if (guild) revisarVotacionesPendientes(guild).catch((e) => console.error('Revisando votaciones:', e));
-      if (guild) ensureForoVideos(guild).catch((e) => console.error('Foro de videos:', e.message));
+      // El foro de videos primero: la guía lo menciona.
+      if (guild) {
+        ensureForoVideos(guild).catch((e) => console.error('Foro de videos:', e.message))
+          .then(() => setupFuncionamiento(guild)).catch((e) => console.error('Guía de funcionamiento:', e.message));
+      }
     }
   });
 
