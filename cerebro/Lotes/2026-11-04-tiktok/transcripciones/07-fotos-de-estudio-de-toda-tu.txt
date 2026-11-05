@@ -1,0 +1,20 @@
+url: https://vt.tiktok.com/ZSpFNQ71e/
+plataforma: tiktok
+id: 7704085017126833429
+url_final: https://www.tiktok.com/@geradevtech/video/7704085017126833429?_r=1&_t=ZS-9B8YyK3oxnU
+titulo: Fotos de estudio de toda tu tienda, desde Claude 📸 Día 14: Product Ph...
+autor: geradevtech
+autor_url: https://www.tiktok.com/@geradevtech
+fecha_publicado: 2026-11-03
+duracion: 01:33
+vistas: 1416
+hashtags: claudecode, ecommerce, fotografiadeproducto, ia, programacion
+transcripcion: es (Whisper small/cuda)
+---
+## Descripción del autor
+Fotos de estudio de toda tu tienda, desde Claude 📸 Día 14: Product Photo Studio 1. Instálala: claude plugin marketplace add beatra-ai/ai-product-photography-skill y luego claude plugin install product-photo-studio@ai-product-photography-skill 2. La primera vez te pide conectar una cuenta de Beatra (te regalan 600 créditos, sin tarjeta) 3. Pásale tus fotos del celular: "conviértelas en fotos de producto con fondo blanco para mi tienda" 4. Revisa el costo que te muestra y apruébalo (unos 150 créditos por imagen) 5. Revisa el resultado: si algo cambia, pídele que corrija solo esa zona La skill es gratis y la publica Beatra; cada imagen gasta créditos de tu cuenta. En la demo: 3 fotos + 1 corrección = 600 créditos. Repo: github.com/beatra-ai/ai-product-photography-skill #claudecode #ia #programacion #ecommerce #fotografiadeproducto
+---
+## Transcripción
+[00:00] Ahora puede pedirle a Cloud que haga la foto de toda tu tienda, y te voy a enseñar cómo hacerlo. Imagina tener una carpeta con fotos de tus productos, tomadas con el celular y con todo el desorden detrás, y que Cloud las convierte en fotos de estudio listas para vender. Pues esto ya es totalmente posible. Día 14, recomendándote skills para mejorar tu flujo de trabajo con Cloud o cualquier otro agente de EA. Hoy te traigo Product Photo Studio, una skill que convierte fotos reales de tus productos en fotos de estudio, escenas de estilo de vida e imágenes para tu tienda online, y respeta tu producto, mantiene la forma, el color, la etiqueta y las proporciones. Sólo cambia el fondo, la luz y las sombras. Pero vamos a poner la prueba con mis fotos. Aquí tengo la foto de varios productos tomadas con el celular. Le voy a pedir a Cloud que las convierta todas en fotos con fondo blanco para mi tienda. Antes de generar nada, te enseña cuánto va a costar, y solo lo hace si lo apruebas. Y aquí tenemos el resultado final. Y si algo no sale bien, también te avisa. En esta figura le cambió la cabeza, así que le pedí que corregiera solo esa zona. Ahora hay algo importante que debes saber.
+
+[01:03] Esta skill la publica Beatra, que es el servicio que genera las imágenes. Instalarla es gratis, pero cada imagen gasta créditos de tu cuenta. Al registrarte te regalan 600 que alcanzan para unas 4 fotos. Por eso donde más vale la pena es cuando quieres automatizarlo. Muchos productos de una vez o generar la foto mientras Cloud te ayuda a montar tu tienda. Funciona con Cloud Code, Cursor, Codex y otros agentes. Te dejo las skill y las instrucciones de instalación en la descripción. Guarda este video y sígueme para el día 15.

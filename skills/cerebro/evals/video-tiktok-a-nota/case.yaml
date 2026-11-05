@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: video-tiktok-a-nota
+expected_outcome: |
+  Se crea una nota en cerebro/Videos/ en español con tipo: video, plataforma tiktok, autor @tech.autopsy y valor; resume el anillo de hashing consistente de Slack (Gateway, Admin y Channel Servers, reemplazo en menos de 20 s) sin inventar datos y sin secciones vacías.

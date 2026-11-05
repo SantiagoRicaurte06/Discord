@@ -1,0 +1,22 @@
+url: https://vt.tiktok.com/ZSpFNA2pM/
+plataforma: tiktok
+id: 7704145758588587284
+url_final: https://www.tiktok.com/@iadeguardiadev/video/7704145758588587284?_r=1&_t=ZS-9B8YwzMtItI
+titulo: Le pedí a Codex "un Uber pero de tacos"… y me hizo un botón que dice ...
+autor: iadeguardiadev
+autor_url: https://www.tiktok.com/@iadeguardiadev
+fecha_publicado: 2026-11-04
+duracion: 00:53
+vistas: 3917
+hashtags: Codex, IA, aprendeentiktok, inteligenciaartificial, programacion, prompts, vibecoding
+transcripcion: es (Whisper small/cuda)
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos\05\fotograma-01-00m07s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos\05\fotograma-02-00m21s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos\05\fotograma-03-00m35s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos\05\fotograma-04-00m50s.jpg
+---
+## Descripción del autor
+Le pedí a Codex "un Uber pero de tacos"… y me hizo un botón que dice TACO 🌮😅 El problema no era la IA: era mi prompt. Aquí la fórmula de 4 partes + el truco de AGENTS.md. Guárdalo 👇 ¿Qué app le pedirías? #IA #Codex #programacion #prompts #inteligenciaartificial #vibecoding #aprendeentiktok
+---
+## Transcripción
+[00:00] ¡Codex! Hazme una app como Uber, pero de tacos. ¡Listo! ¡Ya quedo! ¿Qué es esto? Es un botón que dice taco. Hace exactamente lo que pediste, nada más. Que no una sola línea, yo adivino. Y adivino mal. Entonces, ¿qué le pongo? Cuatro cosas. Uno, ¿qué hace? Dos, ¿para quién es? Tres, con que lo hago y que no debo tocar. Y cuatro, la que nadie pone. ¿Cómo sabes que ya quedó? Pedidos, el repartidor en el mapa y que se pague con tarjeta. Eso sí lo puedo construir y probar. Y guarda tus reglas en un archivo agents.md. Así no les repites cada vez. O sea, ¿que el problema era yo? Afirmativo. Guárdalo y dime, ¿qué apple pedirías a Codex?

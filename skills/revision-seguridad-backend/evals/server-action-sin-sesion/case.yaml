@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: server-action-sin-sesion
+expected_outcome: |
+  Explica que una Server Action es un endpoint POST público que se puede llamar sin la interfaz, y entrega la acción corregida: verifica la sesión dentro de la acción, valida el id con un esquema (por ejemplo zod), comprueba que el usuario sea dueño del proyecto antes de borrar y devuelve solo lo necesario (no todos los proyectos de todos los usuarios).

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Revisa la carpeta compilada de un sitio (dist/, out/, build/…) contra los 24 puntos de lanzamiento.
+// Revisa la carpeta compilada de un sitio (dist/, out/, build/…) contra los 36 puntos de lanzamiento.
 // Uso: node revisar.mjs <carpeta> [--json]
 // Sin dependencias (Node 18+). Termina con código 1 si algún punto falla (❌).
 // ⚠️ = revisar a mano (el script no puede confirmarlo del todo o es una recomendación).
@@ -268,6 +268,91 @@ punto(24, 'Una sola llamada a la acción', 'aviso',
     ctas.length > 2 ? 'hay varias acciones compitiendo: elige UNA principal y deja las demás como secundarias' : '',
     'Revisa a mano: una acción principal, repetida igual en el hero y al final'));
 
+// ---------- 25–36: legal ampliado, señales de app hecha con IA, después de publicar y WordPress ----------
+const hayLogin = /iniciar sesi[oó]n|log ?in\b|sign ?in|sign ?up|registr(o|arse|ate)|crear (una )?cuenta|type=["']password["']/i.test(todo);
+const vende = /checkout|carrito|add[- ]to[- ]cart|a[ñn]adir al carrito|comprar ahora|buy now|stripe|wompi|mercadopago|mercado ?pago|payu|paypal|shopify|woocommerce|epayco/i.test(todo);
+const checks = [...textoHtml.matchAll(/<input\b[^>]*type=["']checkbox["'][^>]*>/gi)].map((m) => m[0]);
+const premarcadas = checks.filter((c) => /\bchecked\b/i.test(c));
+
+// 25. Casillas separadas y sin marcar
+const casillaLegal = /(acepto|he le[ií]do|agree|accept)[^<]{0,80}(t[eé]rminos|condiciones|terms)/i.test(todo);
+const casillaPriv = /(acepto|autorizo|he le[ií]do|agree|accept|consent)[^<]{0,120}(privacidad|privacy|tratamiento de (mis )?datos)/i.test(todo);
+const unaSola = casillaLegal && casillaPriv && checks.length === 1;
+punto(25, 'Casillas de términos y privacidad separadas y sin marcar', !hayForm ? 'ok' : premarcadas.length || unaSola ? 'error' : casillaLegal && casillaPriv ? 'ok' : 'aviso',
+  !hayForm ? 'No se detectaron formularios.'
+    : unaSola ? unir(premarcadas.length ? 'La casilla viene marcada por defecto' : '', 'Una sola casilla para términos y privacidad: deben ser dos, separadas y con su link')
+    : unir(premarcadas.length ? `${premarcadas.length} casilla(s) marcadas por defecto: el consentimiento no vale si viene marcado` : '',
+      casillaLegal && casillaPriv ? 'Hay casilla de términos y de privacidad: confirma que son dos distintas, cada una con su link' : 'Pon dos casillas separadas (términos / privacidad), sin marcar y con link al lado de cada una'));
+
+// 26. Registro trazable del consentimiento
+punto(26, 'Registro trazable del consentimiento', !hayForm ? 'ok' : 'aviso',
+  !hayForm ? 'No se detectaron formularios.'
+    : 'Revisa el backend: por cada aceptación guarda quién, cuándo, qué versión del texto y desde dónde. En Colombia hay que poder PROBAR la autorización (Ley 1581 · SIC).');
+
+// 27. Reembolsos y derecho de retracto
+const reembolso = existe(/(reembolso|devolucion|devoluciones|refund|retracto|returns?)[^/]*(\/index)?\.html$/i) || enlaza(/href=["'][^"']*(reembolso|devoluci|refund|retracto|returns?)/i);
+punto(27, 'Política de reembolsos y derecho de retracto', !vende ? 'ok' : reembolso ? 'ok' : 'error',
+  !vende ? 'No aplica: no se detectó venta en línea.'
+    : reembolso ? 'Hay política de reembolsos: que explique el retracto (en Colombia, 5 días hábiles en ventas a distancia).'
+      : 'Vendes en línea y no hay política de reembolsos ni de retracto enlazada.');
+
+// 28. Derechos de las imágenes
+const stock = imagenes.filter((f) => /unsplash|pexels|pixabay|shutterstock|istock|gettyimages|freepik|depositphotos|adobestock|dreamstime/i.test(f.rel)).map((f) => f.rel);
+punto(28, 'Derechos de cada imagen', stock.length ? 'aviso' : 'aviso',
+  unir(stock.length ? `Imágenes con nombre de banco de fotos: ${lista(stock, 4)} (confirma la licencia)` : `${imagenes.length} imagen(es)`,
+    'Revisa a mano: cada imagen es propia, con licencia o generada con derechos de uso. Nada de capturas de Google ni marcas de agua'));
+
+// 29. Darse de baja y borrar la cuenta
+const borrarCuenta = /(eliminar|borrar|cerrar|delete|close)\s+(mi\s+|la\s+|tu\s+|your\s+)?(cuenta|account)/i.test(todo);
+const baja = /darse de baja|dar de baja|desuscrib|unsubscribe|cancelar (la )?suscripci/i.test(todo);
+const newsletter = /newsletter|bolet[ií]n|suscr[ií]bete|subscribe/i.test(todo);
+punto(29, 'Botones para darse de baja y borrar la cuenta', !hayLogin && !newsletter ? 'ok' : hayLogin && !borrarCuenta ? 'error' : newsletter && !baja ? 'aviso' : 'ok',
+  !hayLogin && !newsletter ? 'No aplica: sin cuentas ni suscripciones.'
+    : unir(hayLogin ? (borrarCuenta ? 'Hay opción para borrar la cuenta' : 'Hay cuentas de usuario pero no se ve cómo borrarla') : '',
+      newsletter ? (baja ? 'hay forma de darse de baja' : 'hay suscripción: los correos deben traer un link para darse de baja') : ''));
+
+// 30. Sin trampas
+const urgencia = /(solo quedan|últimas? \d+ unidades|oferta termina en|countdown|cuenta regresiva)/i.test(todo);
+punto(30, 'Sin trampas: precio final, cancelar fácil, reseñas reales, menores', 'aviso',
+  unir(urgencia ? 'Hay mensajes de urgencia o cuenta regresiva: que sean reales' : '',
+    'Revisa a mano: precio final sin cargos sorpresa · cancelar tan fácil como contratar · sin reseñas inventadas · no prometer lo que no se cumple · permiso de los padres si hay menores'));
+
+// 31. Datos mínimos y servicios de terceros
+const hosts = [...new Set([...todo.matchAll(/<script[^>]+src=["']https?:\/\/([^/"']+)/gi)].map((m) => m[1].toLowerCase()))];
+const campos = [...new Set([...textoHtml.matchAll(/<input\b[^>]*name=["']([^"']+)["']/gi)].map((m) => m[1]))];
+punto(31, 'Datos mínimos y servicios de terceros', 'aviso',
+  unir(campos.length ? `Campos que pides: ${lista(campos, 10)} (¿los usas todos?)` : '',
+    hosts.length ? `Scripts de terceros: ${lista(hosts, 8)}. Cada uno se lleva datos de tus visitantes: decláralos en la política de privacidad` : 'Sin scripts externos en el HTML'));
+
+// 32. Degradado morado/azul de plantilla
+const morado = /linear-gradient\([^)]*(#(8b5cf6|7c3aed|6d28d9|a855f7|9333ea|6366f1|4f46e5|818cf8|c084fc)|purple|violet|indigo)[^)]*\)/i.test(`${textoCss}\n${textoHtml}`)
+  || /\bfrom-(purple|violet|indigo|fuchsia)-\d{3}\b[^"']*\bto-(blue|indigo|purple|pink|cyan)-\d{3}/.test(`${textoHtml}\n${textoJs}`);
+punto(32, 'Sin el degradado morado/azul de plantilla', morado ? 'aviso' : 'ok',
+  morado ? 'Hay degradados morado/azul: es la marca más reconocible de una app hecha con IA. Usa los colores de la marca.' : 'No se detectó el degradado típico de IA.');
+
+// 33. Estados de carga
+const carga = /skeleton|animate-pulse|aria-busy|shimmer|placeholder-glow|<Suspense|loading\.(tsx|jsx|js)/i.test(todo) || existe(/loading/i);
+const dinamico = pesoJs > 150 * 1024 || /fetch\(|axios|useQuery|useSWR/.test(textoJs);
+punto(33, 'Estados de carga (skeletons)', !dinamico ? 'ok' : carga ? 'ok' : 'aviso',
+  !dinamico ? 'Sitio sin carga de datos en el navegador.' : carga ? 'Hay estados de carga (skeleton, Suspense o aria-busy).'
+    : 'Carga datos en el navegador y no se ven estados de carga: usa skeleton loaders en vez de pantalla en blanco o spinner infinito.');
+
+// 34. Mapa de calor y grabaciones
+const calor = analiticas.filter((n) => ['Microsoft Clarity', 'Hotjar', 'PostHog'].includes(n));
+punto(34, 'Mapa de calor y grabaciones (Microsoft Clarity)', calor.length ? 'ok' : 'aviso',
+  calor.length ? `Detectado: ${lista(calor)}. Respeta el aviso de cookies.` : 'Sin mapa de calor: Microsoft Clarity es gratis y muestra dónde se traban los visitantes.');
+
+// 35. Meta Pixel
+const pixel = analiticas.includes('Meta Pixel');
+punto(35, 'Meta Pixel (si harás anuncios)', pixel ? 'ok' : 'aviso',
+  pixel ? 'Meta Pixel instalado: respeta el aviso de cookies.' : 'Si vas a hacer anuncios en Meta, instálalo desde ya para acumular audiencia de retargeting. Si no, márcalo "no aplica".');
+
+// 36. Seguridad de WordPress
+const wp = /wp-content|wp-includes|wp-json/i.test(todo) || existe(/wp-content\//i);
+punto(36, 'Seguridad de WordPress', wp ? 'aviso' : 'ok',
+  wp ? 'Es WordPress. Revisa a mano: cortafuegos (Wordfence o el del hosting), bloqueo de intentos de login, escáner diario, núcleo + plugins + tema al día, ningún plugin pirata, copia automática FUERA del hosting, otra URL de acceso (no /wp-admin) y verificación en dos pasos.'
+    : 'No aplica: no es WordPress.');
+
 // ---------- salida ----------
 r.sort((a, b) => a.n - b.n);
 if (comoJson) {
@@ -278,6 +363,6 @@ if (comoJson) {
   for (const x of r) console.log(`${icono2[x.estado]} ${String(x.n).padStart(2)}. ${x.nombre}\n      ${x.detalle}`);
   const c = (e) => r.filter((x) => x.estado === e).length;
   console.log(`\nResultado: ${c('ok')} ✅ · ${c('aviso')} ⚠️  · ${c('error')} ❌`);
-  console.log('Los ⚠️ necesitan revisión manual; 8, 13 y 24 siempre se confirman a mano.\n');
+  console.log('Los ⚠️ necesitan revisión manual; 8, 13, 24, 26, 28 y 30 siempre se confirman a mano.\n');
 }
 process.exit(r.some((x) => x.estado === 'error') ? 1 : 0);

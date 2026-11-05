@@ -22,10 +22,12 @@ CATALOGO='grill-me|mattpocock/skills|grill-me grilling|entrevista antes de const
 caveman|JuliusBrussee/caveman|caveman ultracave megacave|respuestas cortas, menos tokens
 anti-slop|rand/cc-polymath|anti-slop|quita el contenido con cara de IA
 thermos|https://github.com/cursor/plugins/tree/main/thermos|thermos thermo-nuclear-review thermo-nuclear-code-quality-review|doble revisión antes de mergear
-checklist-lanzamiento|santiagoricaurte06/discord|checklist-lanzamiento|24 puntos antes de deployar
+revision-seguridad-backend|santiagoricaurte06/discord|revision-seguridad-backend|12 puntos de seguridad del backend
+checklist-lanzamiento|santiagoricaurte06/discord|checklist-lanzamiento|36 puntos antes de deployar
 git-workflow|santiagoricaurte06/discord|git-workflow|normas de ramas, commits y PRs
 proteccion|santiagoricaurte06/discord|proteccion|hook que frena borrar la BD, rm -rf y force push
-guia-skills|santiagoricaurte06/discord|guia-skills|esta guía'
+guia-skills|santiagoricaurte06/discord|guia-skills|esta guía
+skill-creator|anthropics/skills|skill-creator|crear y mejorar skills (Anthropic)'
 AGENTES_THERMOS="thermo-nuclear-review-subagent thermo-nuclear-code-quality-review-subagent"
 
 DIR_PROYECTO=".claude"; DIR_GLOBAL="$HOME/.claude"

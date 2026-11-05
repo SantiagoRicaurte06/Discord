@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: tienda-express-vulnerable
+context:
+  scaffold_script: place-files.sh
+expected_outcome: |
+  Entrega en español una tabla con los 12 puntos y señala, con archivo y línea, al menos: IDOR en GET /api/facturas/:id y en la Server Action borrarFactura, precio y rol tomados del body en /api/comprar, MD5 para contraseñas, login y forgot sin rate limiting, forgot que revela si el correo existe y usa Math.random sin expiración, token en localStorage, card_number y cvv guardados, y la tabla facturas sin RLS. No modifica ningún archivo.

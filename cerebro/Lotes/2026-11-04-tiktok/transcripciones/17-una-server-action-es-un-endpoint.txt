@@ -1,0 +1,18 @@
+url: https://vt.tiktok.com/ZSpFNskK6/
+plataforma: tiktok
+id: 7702648809725136134
+url_final: https://www.tiktok.com/@pivelcode/video/7702648809725136134?_r=1&_t=ZS-9B8Z5fsEsEx
+titulo: Una Server Action es un endpoint público, aunque el botón solo lo vea...
+autor: pivelcode
+autor_url: https://www.tiktok.com/@pivelcode
+fecha_publicado: 2026-10-31
+duracion: 00:43
+vistas: 439
+hashtags: ciberseguridad, nextjs, pivelcode, react, typescript
+transcripcion: es (Whisper small/cuda)
+---
+## Descripción del autor
+Una Server Action es un endpoint público, aunque el botón solo lo vea quien inició sesión. Así las escribo yo: sesión, validación, dueño del recurso y respuesta mínima. Guárdalo para tu próximo code review  #nextjs #react #typescript #ciberseguridad #pivelcode
+---
+## Transcripción
+[00:00] Esa función ConUserver, cualquiera en internet, la puede ejecutar. Muchos la tratamos como una función interna. Confiamos en lo que llega del formulario y asumimos que el usuario está logueado, porque el botón se ve solo si lo está. Pero el ServerAction es un endpoint post. Se puede llamar SintuInterface. Por eso las fallas de React y de Next de este año van justo a ese punto. Uno, verificó la sesión dentro del ServerAction. Dos, valió la entrada con un esquema. Tres, compruebo que el usuario sea dueño del recurso. Cuatro, devuelvo solo lo necesario y mantengo Next.js al día. El 14 de octubre salió justo un parche para los ServerActions. Guárdalo para tu próximo Contributor.

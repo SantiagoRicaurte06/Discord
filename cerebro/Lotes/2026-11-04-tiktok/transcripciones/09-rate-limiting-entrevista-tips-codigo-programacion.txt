@@ -1,0 +1,24 @@
+url: https://vt.tiktok.com/ZSpFNs5J2/
+plataforma: tiktok
+id: 7703951590557830420
+url_final: https://www.tiktok.com/@cuaspro/video/7703951590557830420?_r=1&_t=ZS-9B8Z14Id0SN
+titulo: Rate limiting 🤖🙌 #entrevista #tips# #codigo #programacion
+autor: cuaspro
+autor_url: https://www.tiktok.com/@cuaspro
+fecha_publicado: 2026-11-03
+duracion: 01:18
+vistas: 28900
+hashtags: codigo, entrevista, programacion, tips
+transcripcion: es (Whisper small/cuda)
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos\09\fotograma-01-00m10s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos\09\fotograma-02-00m30s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos\09\fotograma-03-00m51s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos\09\fotograma-04-01m12s.jpg
+---
+## Descripción del autor
+Rate limiting 🤖🙌 #entrevista #tips# #codigo #programacion
+---
+## Transcripción
+[00:00] Pregunta de entrevista. Un bot prueba 10.000 contraseñas por minuto en tu login. ¿Cómo lo detendrías? La respuesta básica es bloquear su IP. El problema es que un bot puede ser una sola computadora o miles. Si es una red de bots, usa miles de IPs. Cada una hace pocos intentos y ninguna se ve sospechosa, así que no bloqueas a ningún bot. O peor, bloqueas a toda una universidad que comparte una sola IP. Entonces, bloqueas la cuenta después de cinco intentos fallidos. Pero ahora el bot puede bloquear la cuenta de cualquier usuario con solo escribir su correo. Una mejor respuesta es el rate limiting por capas, usando un token bucket. La IP y la cuenta tienen cada una su cubeta de fichas. Por ejemplo, 100 fichas para la IP y 5 para la cuenta. Cada intento gasta una ficha de las dos y se rellenan solas. La cuenta con una ficha cada 2 segundos y la IP con 100 por minuto. Si cualquiera se vacía, tu API responde a un 429 tu mini-request. Un usuario real que se equivoca dos veces con su contraseña todavía tiene tres intentos y ni nota esta capa. Pero el bot pasa de 10.000
+
+[01:07] intentos por minuto a unos 5 por minuto en cada cuenta. ¿Tú qué usarías en tu caso? Limitar por IP o por usuario y por qué. Sígueme para mejorar como ingeniero de software cada día.

@@ -1,0 +1,24 @@
+url: https://vt.tiktok.com/ZSpFNgTtt/
+plataforma: tiktok
+id: 7703777603634629908
+url_final: https://www.tiktok.com/@tech.autopsy/video/7703777603634629908?_r=1&_t=ZS-9B8YoJicW3T
+titulo: Así llega tu mensaje de Slack a todo el mundo en 500 ms: un anillo de...
+autor: tech.autopsy
+autor_url: https://www.tiktok.com/@tech.autopsy
+fecha_publicado: 2026-11-03
+duracion: 01:59
+vistas: 842
+hashtags: backend, programacion, sistemasdistribuidos, slack, techtok
+transcripcion: es (Whisper small/cuda)
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos\01\fotograma-01-00m15s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos\01\fotograma-02-00m46s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos\01\fotograma-03-01m17s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos\01\fotograma-04-01m47s.jpg
+---
+## Descripción del autor
+Así llega tu mensaje de Slack a todo el mundo en 500 ms: un anillo de hashing consistente decide qué servidor es dueño de cada canal. ¿Anillo o directorio central? Te leo 👇 #slack #backend #programacion #sistemasdistribuidos #techtok
+---
+## Transcripción
+[00:00] Cuando manda su mensaje en Slack, llega a todo el mundo en medio segundo. Y en hora pico, uno solo de sus servidores atiende unos 16 millones de canales. ¿Cómo saben cuál vive tu canal sin preguntarle a nadie? Lo contó el blog de ingeniería de Slack, en un artículo de Samira Tangudio. Y para Slack, canal es casi todo. Un mensaje directo, un equipo, un archivo, una llamada. El reto? Decenas de millones de clientes conectados a la vez. Y cada mensaje tiene que llegarle a todo su canal. Lo obvio sería una tabla central. Este canal, en este servidor. Pero cada mensaje tendría que preguntarle a esa tabla. Y si la tabla se cae, se cae todo. Así que Slack lo partió en piezas. Tu app abre una conexión web socket con el Gateway Server más cercano, que se suscribe a todos tus canales. Hay Gateway en varias regiones del mundo. Mandas un mensaje. Entra por la API de Slack y llega a un Admin Server. El Admin Server pasa el ID del canal por una función de hash. Y el resultado cae en un punto de un anillo. Los Channel Servers están repartidos en ese mismo anillo. Y el dueño de tu canal es el que le toca a ese punto.
+
+[01:04] Sin tabla. Cualquiera que haga la misma cuenta llega al mismo servidor. Ese Channel Server tiene el canal en memoria. Manda el mensaje a cada Gateway suscrito. Y cada Gateway se lo empuja a cada persona conectada. Pero los servidores se caen. Y uno solo de estos tiene millones de canales en memoria. Cuando un Channel Servers enferma, los gestores del anillo, que Slack llama Charms, lo reemplazan. En menos de 20 segundos, el nuevo ya atiende tráfico. Y solo cambia de dueño su tramo. El resto sigue igual. El costo? Durante esos segundos, los equipos de ese servidor notan más latencia. Y todo depende de tener los canales en memoria. Hash inconsistente o un directorio central que lo sepa todo. Defiéndolo en comentarios. Guárdalo para cuando diseñes algo con estado. Separa quién guarda los datos de quién tiene la conexión. Y reparte con un anillo, no con una tabla. Eso sí, con tres servidores, una tabla basta. Dejé el antídoto en Go en mi Github. Te leo abajo.

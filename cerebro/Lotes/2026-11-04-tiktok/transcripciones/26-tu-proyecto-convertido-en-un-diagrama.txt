@@ -1,0 +1,20 @@
+url: https://vt.tiktok.com/ZSpFN3LRf/
+plataforma: tiktok
+id: 7702246820432350484
+url_final: https://www.tiktok.com/@geradevtech/video/7702246820432350484?_r=1&_t=ZS-9B8ZD0T79AV
+titulo: Tu proyecto, convertido en un diagrama interactivo. Día 12: Archify 1...
+autor: geradevtech
+autor_url: https://www.tiktok.com/@geradevtech
+fecha_publicado: 2026-10-30
+duracion: 01:42
+vistas: 3752
+hashtags: arquitecturadesoftware, claudecode, diagramas, ia, programacion
+transcripcion: es (Whisper small/cuda)
+---
+## Descripción del autor
+Tu proyecto, convertido en un diagrama interactivo. Día 12: Archify 1. Instálala: npx skills add tt-a1i/archify -g (elige Claude Code u otro agente) 2. En tu proyecto pídele a Claude: "Analiza este repositorio y usa archify para crear un diagrama de arquitectura" 3. Para planificar algo nuevo: "usa archify para representar <la función> como diagrama de flujo de trabajo" 4. Abre el .html que genera: explora nodos y conexiones, y exporta a PNG, SVG o WebM 5. Revisa que el diagrama coincida con tu código antes de compartirlo Repo: github.com/tt-a1i/archify #claudecode #ia #programacion #arquitecturadesoftware #diagramas
+---
+## Transcripción
+[00:00] Tu proyecto tiene cientos de archivos y probablemente ni siquiera sabes cómo se conectan todos entre sí. Y si alguna vez has tenido que trabajar en un proyecto que desarrolló otra persona, sabes perfectamente de lo que estoy hablando. Di a 12 recomendándote skills para mejorar tu flujo de trabajo con Cloud o cualquier otro agente de IA. Hoy te traigo Archify, una skill que convierte la arquitectura de tus proyectos en diagramas visuales e interactivos. Y lo interesante es que no necesitas dibujar absolutamente nada. Simplemente puedes pedirle a Cloud que analice tu proyecto y genera un diagrama que explique cómo está construido. Por ejemplo, puede representar cómo se comunican tu frontend, backend, base de datos y los diferentes servicios de tu aplicación. Pero vamos a ponerla a prueba. Aquí tengo una aplicación con frontend, backend y una base de datos. Voy a pedirle a Cloud que analice su arquitectura utilizando Archify. Como puede ver, Cloud comienza analizando la estructura del proyecto e identificando los componentes y sus relaciones. Después Archify utiliza esa información para generar un diagrama interactivo en HTML. Y aquí tenemos el resultado. Podemos explorar los diferentes componentes, seguir sus conexiones
+
+[01:01] y entender cómo se relacionan las distintas partes de nuestra aplicación. Pero aquí viene lo más interesante. No solamente sirve para visualizar proyectos existentes. También podemos utilizarlo para planificar nuevas funcionalidades, representar flujos de trabajo o documentar cómo se comunican nuestros servicios. Y al finalizar, podemos exportar nuestros diagramas para utilizarlos en documentación, presentaciones o compartirlos con nuestro equipo. Eso sí, recuerda que el resultado depende de la información que tu agente haya analizado. Siempre debemos verificar que represente correctamente nuestra arquitectura. Porque entender cómo funciona una aplicación es tan importante como saber programarla. Te dejo las skills y las instrucciones de instalación en la descripción. Guarda este video y sígueme para el día 13.

@@ -1,0 +1,24 @@
+url: https://vt.tiktok.com/ZSpFFFkHb/
+plataforma: tiktok
+id: 7696307188293405973
+url_final: https://www.tiktok.com/@caliche.tech/video/7696307188293405973?_r=1&_t=ZS-9B8Z7loW8cq
+titulo: Si puedes descifrar una contraseña, el atacante también. Hashéala, de...
+autor: caliche.tech
+autor_url: https://www.tiktok.com/@caliche.tech
+fecha_publicado: 2026-10-14
+duracion: 01:29
+vistas: 9448
+hashtags: aws, backend, ciberseguridad, passwords, programacion
+transcripcion: es (Whisper small/cuda)
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos\18\fotograma-01-00m11s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos\18\fotograma-02-00m33s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos\18\fotograma-03-00m55s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos\18\fotograma-04-01m17s.jpg
+---
+## Descripción del autor
+Si puedes descifrar una contraseña, el atacante también. Hashéala, de una sola vía, con salt y bcrypt/argon2. #backend #ciberseguridad #aws #programacion #passwords
+---
+## Transcripción
+[00:00] Guardaste las contraseñas de tus usuarios cifradas. Te sentiste responsable. Pero cifrar, para esto, está mal. Y es la trampa en la que cae casi todo el que empieza. Cifrar es reversible. Si existe una llave para descifrar, alguien puede usarla. Si te roban a base de datos y la llave, se llevan todas las contraseñas en texto plano. Lo que de verdad se usa no es cifrar, es hashear. Un hash es de una sola vía. Convierte la contraseña en algo que no se puede devolver. Cuando el usuario entra, hashear es lo que escribió y comparas. Nunca guarda el original. Pero ojo, que aquí viene lo que separa el junior del senior. No cualquier hash sirve. Md5 o SHA se calculan tan rápido que un atacante prueba millones por segundo. Se usa un hash lente y con salt, bcrypt, script o argon2. El salt es un valor único por usuario. Para que dos personas con la misma contraseña no tengan el mismo hash.
+
+[01:09] Y lo lento es a propósito. A ti te cuestan milisegundos. Al atacante, años. No guardas contraseñas. Guardas una prueba de que la conocen. Cifrar se puede devolver. Hashear bien, no. ¿Lo sabías? Dale like, comenta y sígueme para más.
