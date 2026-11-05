@@ -1,0 +1,24 @@
+url: https://vt.tiktok.com/ZSpFNmfmm/
+plataforma: tiktok
+id: 7700214547910642966
+url_final: https://www.tiktok.com/@elpinguinodemario/video/7700214547910642966?_r=1&_t=ZS-9B8Yv6ymQrK
+titulo: La importancia de conocer las principales vulnerabilidades web si usa...
+autor: elpinguinodemario
+autor_url: https://www.tiktok.com/@elpinguinodemario
+fecha_publicado: 2026-10-24
+duracion: 01:42
+vistas: 60400
+hashtags: ciberseguridad, hackingetico, hackingweb
+transcripcion: es (Whisper small/cuda)
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos\04\fotograma-01-00m13s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos\04\fotograma-02-00m40s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos\04\fotograma-03-01m06s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos\04\fotograma-04-01m33s.jpg
+---
+## Descripción del autor
+La importancia de conocer las principales vulnerabilidades web si usamos o tenemos una tienda online. #ciberseguridad #hackingweb #hackingetico
+---
+## Transcripción
+[00:00] Hoy vas a ver una bunda de habilidad bastante chunga en tiendas online Vale, si yo por ejemplo estoy dentro de esta tienda y voy a hacer un click en comprar un producto Procedemos a comprarlo, yo por aquí tengo la típica funcionalidad de elegir las unidades Por ejemplo yo puedo poner dos unidades o tres, por ejemplo lo voy a dejar en cinco Vemos que el precio se me cambia en proporción y aquí justo está la bunda de habilidad Por ejemplo yo intento comprarlo y bueno pues el mensaje que me pone por aquí es que no tengo el saldo suficiente, de momento Porque si yo miro la petición por detrás vemos que esta es la petición que se dispara cuando yo intento comprar este producto Y por aquí vemos que en el cuerpo de la petición se me está diciendo la cantidad que estoy intentando comprar Que en este caso son cinco y entonces el precio sube en proporción Pero que pasa que yo voy a manipular esta petición y yo puedo manipular la cantidad si la página web es vulnerable Pues en vez de procesar que quiero cinco unidades vamos a hacer que procese una cantidad realmente mínima de unidades Mucho menos de una unidad evidentemente De esta forma si yo intento hacer esta compra vamos a ver que pasa Envío la petición y vemos que el servidor me está respondiendo que bueno ahora tengo en vez de un euro que tenía antes Ahora tengo 99 céntimos o bueno lo mismo sería si son dólares o la moneda que sea Pero sin embargo como el servidor estaba mal configurado dentro de los movimientos recientes tengo aquí un pedido
+
+[01:09] Que me ha costado pues cero euros Porque el servidor procesa en proporción la cantidad de productos que yo quiero comprar y recalcula el precio Pero es vulnerable porque no procesa los datos negativos Entonces bueno yo por aquí pues podría enviar un montón de peticiones que son exactamente iguales Las agrupo todas ellas y puedo mandarlos de forma secuencial De esta forma envío todas estas peticiones Entonces ahora de repente estoy viendo como por cero euros estoy haciendo un pedido de forma ilimitada Entonces si tienes un atender online mucho cuidado con esto para evitar que la gente pueda comprar de forma gratuita tus productos Comenta la palabra gratis y te mando una guía al privado para que empieces en ciberseguridad

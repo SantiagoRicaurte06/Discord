@@ -1,0 +1,18 @@
+url: https://vt.tiktok.com/ZSpFNGySC/
+plataforma: tiktok
+id: 7703294980147727630
+url_final: https://www.tiktok.com/@sebas.soto222/video/7703294980147727630?_r=1&_t=ZS-9B8Z3FXKeAs
+titulo: 5 maneras para mejorar la rapidez de tu App⚡️💻 #programador #app #cla...
+autor: sebas.soto222
+autor_url: https://www.tiktok.com/@sebas.soto222
+fecha_publicado: 2026-11-01
+duracion: 00:53
+vistas: 25100
+hashtags: app, claude, programador
+transcripcion: es (Whisper small/cuda)
+---
+## Descripción del autor
+5 maneras para mejorar la rapidez de tu App⚡️💻 #programador #app #claude
+---
+## Transcripción
+[00:00] Si Cloud escribió todo tu código, tu app es lentísima y ni siquiera te has dado cuenta. Así que aquí van las 5 cosas que probablemente se lo olvido hacer. Y tranquilo, todo esto son cosas que puedes cambiar con Cloud, solo tienes que pedirlo. Número 1, cada acción que hace el usuario espera por la respuesta del backend antes de actualizar cualquier cosa en el interfaz. Número 2, tu JSON viaja en la red sin comprimir y eso hace que todo el mundo espere más tiempo por la respuesta de tu servidor. Número 3, tu servidor frontend está generando el HTML cada vez que un usuario entra. Número 4, tu app está escribiendo filas nuevas en tu base de datos una por una, lo que aumenta la carga sin ninguna razón. Probablemente con un solo usuario no lo notas, pero con mil usuarios cremes lo vas a ver. Número 5 y último, tienes un cuello de botella en una sola dependencia. Para identificarlo, puedes auditar la atención de ida y vuelta y deglosarlo por eventos de red específico. Si una sola acción está tomando el 90% del tiempo, ese es tu cuello de botella. Si estás creando un app y no sabías de esto, sígueme.

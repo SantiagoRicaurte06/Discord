@@ -1,0 +1,17 @@
+url: https://vt.tiktok.com/ZSpFNTjmS/
+plataforma: tiktok
+id: 7685779987298815250
+url_final: https://www.tiktok.com/@tomyespinosa/video/7685779987298815250?_r=1&_t=ZS-9B8ZFfRRo1K
+titulo: Ranking de cosas que tenes que hacer SI O SI despues de publicar tu s...
+autor: tomyespinosa
+autor_url: https://www.tiktok.com/@tomyespinosa
+fecha_publicado: 2026-09-15
+duracion: 00:48
+vistas: 47800
+transcripcion: es (Whisper small/cuda)
+---
+## Descripción del autor
+Ranking de cosas que tenes que hacer SI O SI despues de publicar tu sitio web
+---
+## Transcripción
+[00:00] Ranking de cosas que tenés que hacer sí o sí después de publicar tu sitio web. Primero, mandad tu sitio a Google Search Console, esta tierese. Esto le dice a Google que tu sitio web existe. Así puede empezar a aparecer en búsquedas de Google. Después, conectar a Google Analytics, esta tierá. Te muestra todo lo que pasa en tu web. Cuántas personas la ven, de dónde vienen y qué páginas abren. Tercero, Microsoft Clarity, esta tierese. Mapa de calor y grabaciones de sesión. Ves donde se tragan tus visitantes antes de que dejen sus datos. Cuarto, testear el formulario. Esta tierve. Tere que completarlo vos mismo. Si el dato no llega en segundos, todo lo anterior no sirve. Quinto, Metapixel, esta tiera. Instalalo ya, aunque no curras a esto todavía. Para no perder audiencia de retargeting. Se dime para más contenido de valor.

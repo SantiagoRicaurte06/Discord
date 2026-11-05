@@ -1,0 +1,20 @@
+url: https://vt.tiktok.com/ZSpFNwp3y/
+plataforma: tiktok
+id: 7698147865318673680
+url_final: https://www.tiktok.com/@caliche.tech/video/7698147865318673680?_r=1&_t=ZS-9B8Z5t5A24o
+titulo: El 'olvidé mi contraseña' parece bobo… y es donde más gente se cae en...
+autor: caliche.tech
+autor_url: https://www.tiktok.com/@caliche.tech
+fecha_publicado: 2026-10-18
+duracion: 01:17
+vistas: 1632
+hashtags: backend, ciberseguridad, entrevistatecnica, programacion
+transcripcion: es (Whisper small/cuda)
+---
+## Descripción del autor
+El 'olvidé mi contraseña' parece bobo… y es donde más gente se cae en una entrevista 👀 La puerta que casi nadie vigila. #entrevistatecnica #ciberseguridad #backend #programacion
+---
+## Transcripción
+[00:00] El olviemi contraseña parece la función más simple de tu app y es la que más gente diseña mal en una entrevista. Tu cuenta tiene una puerta principal, contraseña y hasta segundo factor, esa está blindada. Pero tiene una segunda puerta, la de recuperar cuenta y casi siempre es la más floja. El flujo que todos dibujan, pides el correo, te llega un enlace, pones una contraseña nueva. Listo. La trampa, ese enlace lleva un token, si no expira o sirve dos veces, es una llave que dejaste tirada. Segunda, si contestas, ese correo no existe, le regalas al atacante la lista de quien sí tiene cuenta. Tercera, avisas del cambio cuando ya entraron, el correo de cambiaste tu contraseña llega tarde. El que de verdad sabe no dice un toque ni ya. El toque envaleatorio de un solo uso y expira en minutos. La respuesta y hasta el tiempo que tarda es igual, exista o no la cuenta. Y al cambiarla, cierra todas las sesiones y avisa al instante.
+
+[01:05] La seguridad de tu cuenta no la define la puerta más fuerte, sino la más floja. Y esa es la que casi nadie vigila. ¿Qué otra pregunta de entrevista quieres que diseñe? Déjala en los comentarios.

@@ -1,0 +1,22 @@
+url: https://vt.tiktok.com/ZSpFF13WV/
+plataforma: tiktok
+id: 7703583268003810580
+url_final: https://www.tiktok.com/@noxhound.col/video/7703583268003810580?_r=1&_t=ZS-9B8Z1xs0sYq
+titulo: Mismo millón de pedidos, dos formatos: • JSON: casi 130 MB • Parquet:...
+autor: noxhound.col
+autor_url: https://www.tiktok.com/@noxhound.col
+fecha_publicado: 2026-11-02
+duracion: 00:39
+vistas: 22600
+hashtags: BigData, Datos, Pandas, Parquet, Python, datascience, ingenieria
+transcripcion: es (Whisper small/cuda)
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos\10\fotograma-01-00m05s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos\10\fotograma-02-00m16s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos\10\fotograma-03-00m27s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos\10\fotograma-04-00m37s.jpg
+---
+## Descripción del autor
+Mismo millón de pedidos, dos formatos: • JSON: casi 130 MB • Parquet: 6,9 MB, casi 19 veces menos JSON repite el nombre de cada campo en cada registro. Parquet lo escribe una vez, guarda por columnas y comprime. ¿En qué formato guardas tus datos hoy? 👇 #Parquet #datascience #ingenieria #Python #Pandas #BigData #Datos
+---
+## Transcripción
+[00:00] Todavía guardas tus datos en JSON, mismo millón de pedidos, dos formatos. En disco, el JSON pesa casi 130 megas, el parque 6.9, casi 19 veces menos. Al leer los compandas, JSON tardó 2 segundos y medio, parque 3 centésimas y con sólo dos columnas menos de una centésima. La razón, JSON repita el nombre de cada campo en cada pedido. Parque lo escribe una vez, guarda por columnas y comprime. JSON sirve para intercambiar, para guardar, parque. ¿En qué formato guardas tus datos hoy? Cuéntanos.
