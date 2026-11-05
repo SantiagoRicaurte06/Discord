@@ -1,11 +1,11 @@
 ---
 name: checklist-lanzamiento
-description: Revisa que un sitio web esté listo para producción antes de deployar con 24 puntos que suelen faltar en páginas hechas con IA (legal, privacidad, cookies, HTTPS, SEO, datos estructurados, ficha de Google, imágenes, velocidad, contraste, móvil, 404, enlaces rotos, formularios, spam, contacto, WhatsApp, analíticas, Open Graph y una sola llamada a la acción). Úsala cuando digan "antes de deployar", "checklist de lanzamiento", "¿está lista la página?", "revisa el sitio para producción" o al terminar una landing.
+description: Revisa que un sitio web esté listo para producción antes de deployar, con 36 puntos que suelen faltar en páginas hechas con IA. Cubre lo legal (términos, privacidad, cookies, casillas de consentimiento separadas y registro trazable, reembolsos y retracto, derechos de imágenes, darse de baja y borrar la cuenta, sin trampas), HTTPS, SEO, datos estructurados, ficha de Google, imágenes, velocidad, contraste, móvil, 404, enlaces rotos, formularios, spam, contacto, WhatsApp, analíticas, Microsoft Clarity, Meta Pixel, Open Graph, una sola llamada a la acción, las señales de app hecha con IA (degradado morado, sin estados de carga) y la seguridad de WordPress. Úsala cuando digan "antes de deployar", "checklist de lanzamiento", "¿está lista la página?", "revisa el sitio para producción" o al terminar una landing.
 ---
 
 # Checklist de lanzamiento web
 
-Una página hecha con IA se ve completa, pero le suelen faltar cosas que una página real necesita. Esta skill revisa 24 puntos, arregla lo que falte y entrega un reporte.
+Una página hecha con IA se ve completa, pero le suelen faltar cosas que una página real necesita. Esta skill revisa 36 puntos, arregla lo que falte y entrega un reporte. La seguridad del backend (login, endpoints, permisos) la cubre `revision-seguridad-backend`.
 
 ## Flujo
 
@@ -19,9 +19,9 @@ Una página hecha con IA se ve completa, pero le suelen faltar cosas que una pá
 4. **SPA (React/Vite sin prerender)**: hay un solo `index.html`, así que títulos, Open Graph, 404 y rutas se resuelven en el router. Revisa el código fuente además del script.
 5. **Arregla** cada ❌ y ⚠️ con la guía de abajo, de la forma idiomática del framework. No inventes datos legales, de contacto ni IDs: deja un `TODO` visible y avisa.
 6. **Revisión manual** de lo que el script no puede confirmar (ver abajo).
-7. **Reporte final**: tabla con los 24 puntos, estado y qué se hizo, más los pendientes que necesitan decisión humana.
+7. **Reporte final**: tabla con los 36 puntos, estado y qué se hizo, más los pendientes que necesitan decisión humana.
 
-## Los 24 puntos y cómo arreglarlos
+## Los 36 puntos y cómo arreglarlos
 
 ### Legal y confianza
 | # | Punto | Cómo arreglarlo |
@@ -63,6 +63,34 @@ Una página hecha con IA se ve completa, pero le suelen faltar cosas que una pá
 | 19 | **Página de "Gracias"** | `/gracias` tras un envío exitoso: qué pasa ahora y un siguiente paso. Úsala como conversión en las analíticas. |
 | 22 | **Analítica instalada** | Plausible, Umami, Vercel Analytics o Google Analytics 4, con el envío o `/gracias` marcado como conversión. Respeta el aviso de cookies (punto 3). |
 
+### Legal ampliado (25–31)
+| # | Punto | Cómo arreglarlo |
+|---|---|---|
+| 25 | **Casillas separadas y sin marcar** | En cada formulario, **dos** casillas: una para términos y otra para privacidad, cada una con su link al lado y **sin marcar** por defecto. Una sola casilla "acepto todo", o una casilla ya marcada, no sirve como consentimiento. |
+| 26 | **Registro trazable del consentimiento** | Por cada aceptación se guarda quién (usuario o correo), cuándo, qué versión del texto aceptó, qué casillas y desde dónde (IP o agente). En Colombia hay que poder **probar** la autorización ante la SIC (Ley 1581); si no hay registro, es como si nunca hubiera autorizado. |
+| 27 | **Reembolsos y derecho de retracto** | Si vende en línea: `/reembolsos` en el footer, con plazos, cómo pedirlo y el derecho de retracto (en Colombia, 5 días hábiles desde la compra en ventas a distancia; es ley, no opción). |
+| 28 | **Derechos de cada imagen** | Cada imagen es propia, con licencia o generada con derechos de uso. Nada de capturas de Google, fotos con marca de agua ni logos ajenos sin permiso. Si es de un banco de fotos, guarda la licencia. |
+| 29 | **Darse de baja y borrar la cuenta** | Si hay cuentas: botón para borrar la cuenta y los datos, a la vista en el perfil. Si hay correos o suscripciones: link para darse de baja en cada correo. |
+| 30 | **Sin trampas** | Precio final sin cargos sorpresa al pagar, cancelar tan fácil como contratar, cero reseñas inventadas, no prometer lo que no se cumple, urgencias ("solo quedan 2") reales y permiso de los padres si hay menores. |
+| 31 | **Datos mínimos y servicios de terceros** | Pide solo los datos que usas (si no usas la cédula, no la pidas). Revisa qué datos se llevan los scripts y librerías de terceros (analíticas, chat, píxeles) y declara cada uno en la política de privacidad. |
+
+### Señales de app hecha con IA (32–33)
+| # | Punto | Cómo arreglarlo |
+|---|---|---|
+| 32 | **Sin el degradado morado/azul de plantilla** | Es lo primero que delata una app hecha con IA. Usa los colores de la marca, o un color principal con neutros. Los textos también: que no suenen a IA (usa la skill `anti-slop`). |
+| 33 | **Estados de carga** | Mientras carga, *skeleton loaders* (bloques grises con la forma del contenido) en vez de pantalla en blanco o spinner infinito. Next: `loading.tsx` o `<Suspense>`. Tailwind: `animate-pulse`. Si algo falla, un mensaje que diga qué hacer. |
+
+### Después de publicar (34–35)
+| # | Punto | Cómo arreglarlo |
+|---|---|---|
+| 34 | **Mapa de calor y grabaciones** | Microsoft Clarity (gratis): mapas de calor y grabaciones de sesión para ver dónde se traban los visitantes antes de dejar sus datos. Va detrás del aviso de cookies (punto 3). |
+| 35 | **Meta Pixel (si harás anuncios)** | Si se van a hacer anuncios en Meta, se instala desde el lanzamiento para acumular audiencia de retargeting, aunque todavía no haya campañas. Si no, "no aplica". También va detrás del aviso de cookies. |
+
+### WordPress (36)
+| # | Punto | Cómo arreglarlo |
+|---|---|---|
+| 36 | **Seguridad de WordPress** | Solo si el sitio es WordPress: cortafuegos (Wordfence o el del hosting), bloqueo de quien prueba contraseñas sin parar, escáner de malware diario, núcleo, plugins y tema al día, **ningún plugin o tema pirata**, copia automática guardada **fuera del hosting**, otra URL de acceso en vez de `/wp-admin` y verificación en dos pasos. |
+
 ## Lo que hay que mirar a mano
 
 El script detecta señales, pero no puede confirmar:
@@ -74,6 +102,9 @@ El script detecta señales, pero no puede confirmar:
 - **HTTPS (4)**: entra con `http://` y confirma que redirige a `https://`.
 - **Móvil y velocidad (12, 14)**: PageSpeed Insights en móvil y el sitio en 375 px.
 - **Textos legales (1, 2)**: que no sean genéricos y mencionen la empresa real.
+- **Consentimiento (25, 26)**: envía el formulario y confirma en la base que quedó el registro con fecha y versión del texto.
+- **Imágenes y trampas (28, 30)**: recorre el sitio como un cliente, hasta el pago.
+- **Probar el formulario tú mismo**: complétalo y confirma que el dato llega en segundos (correo, CRM o base). Si no llega, nada de lo demás sirve.
 
 ## Reglas
 
@@ -81,4 +112,5 @@ El script detecta señales, pero no puede confirmar:
 - No agregues aviso de cookies si el sitio no usa cookies no esenciales; explícalo en la política.
 - No agregues WhatsApp si el negocio no atiende por ahí: márcalo como "no aplica".
 - Arregla con las herramientas del framework antes que con librerías nuevas.
-- Termina siempre con el reporte de los 24 puntos, aunque todo esté bien.
+- Lo que no aplica (sin ventas, sin cuentas, no es WordPress, sin anuncios) se marca "no aplica", no se fuerza.
+- Termina siempre con el reporte de los 36 puntos, aunque todo esté bien.
