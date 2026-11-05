@@ -251,9 +251,9 @@ GitHub responde `403 Upgrade to GitHub Pro or make this repository public to ena
 | Regla | Estado |
 |---|---|
 | Hooks locales instalados | ☑ (cada persona: `git config core.hooksPath .githooks`) |
-| CI de commits y pruebas | ☑ en `.github/workflows/` (activo al subirlo a GitHub) |
-| Rama por defecto `develop` | ☐ pendiente: crear `main` y cambiarlo en GitHub (`configurar.sh --github`) |
-| Borrado de ramas al integrar | ☐ |
-| Protección de `main` y `develop` | ☐ forzada · ☐ acuerdo de equipo |
+| CI de commits y pruebas | ☑ checks obligatorios: título del PR, sin trailers y pruebas |
+| Rama por defecto `develop` | ☑ |
+| Borrado de ramas al integrar | ☑ |
+| Protección de `main` y `develop` | ☑ forzada (repo público): solo por PR, checks en verde, sin force push ni borrado; 0 aprobaciones requeridas y los admins pueden saltarla en una emergencia |
 
 _Actualiza esta tabla al configurar el repositorio._
