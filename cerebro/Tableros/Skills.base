@@ -1,0 +1,32 @@
+filters:
+  and:
+    - 'tipo == "skill"'
+    - '!file.inFolder("Plantillas")'
+properties:
+  repo:
+    displayName: "Repo"
+  estado:
+    displayName: "Estado"
+  categoria:
+    displayName: "Categoría"
+views:
+  - type: table
+    name: "Por estado"
+    groupBy:
+      property: estado
+      direction: ASC
+    order:
+      - file.name
+      - categoria
+      - repo
+      - origen
+  - type: table
+    name: "Pendientes de decidir"
+    filters:
+      or:
+        - 'estado == "candidata"'
+        - 'estado == "evaluada"'
+    order:
+      - file.name
+      - categoria
+      - origen

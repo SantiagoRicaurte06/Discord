@@ -1,0 +1,7 @@
+# Estado local de Obsidian (cada quien tiene el suyo)
+.obsidian/workspace*.json
+.obsidian/cache
+.obsidian/plugins/*/data.json
+.trash/
+# Archivos temporales del procesamiento de lotes
+Lotes/**/*.tmp

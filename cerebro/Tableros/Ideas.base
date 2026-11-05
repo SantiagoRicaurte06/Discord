@@ -1,0 +1,26 @@
+filters:
+  and:
+    - 'tipo == "idea"'
+    - '!file.inFolder("Plantillas")'
+properties:
+  estado:
+    displayName: "Estado"
+  origen:
+    displayName: "Origen"
+views:
+  - type: table
+    name: "Por estado"
+    groupBy:
+      property: estado
+      direction: ASC
+    order:
+      - file.name
+      - temas
+      - origen
+      - fecha
+  - type: cards
+    name: "Semillas"
+    filters: 'estado == "semilla"'
+    order:
+      - file.name
+      - temas

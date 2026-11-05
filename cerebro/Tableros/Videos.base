@@ -1,0 +1,43 @@
+filters:
+  and:
+    - 'tipo == "video"'
+    - '!file.inFolder("Plantillas")'
+formulas:
+  valor_icono: 'if(valor >= 4, "🔥", if(valor >= 3, "👍", if(valor, "·", "")))'
+properties:
+  formula.valor_icono:
+    displayName: "Valor"
+  autor:
+    displayName: "Autor"
+  plataforma:
+    displayName: "Plataforma"
+  fecha_visto:
+    displayName: "Visto"
+views:
+  - type: table
+    name: "Todos"
+    order:
+      - file.name
+      - formula.valor_icono
+      - autor
+      - plataforma
+      - temas
+      - fecha_visto
+      - estado
+  - type: table
+    name: "Mejores"
+    filters: 'valor >= 4'
+    order:
+      - file.name
+      - autor
+      - temas
+      - herramientas
+  - type: table
+    name: "Por lote"
+    groupBy:
+      property: lote
+      direction: DESC
+    order:
+      - file.name
+      - formula.valor_icono
+      - autor
