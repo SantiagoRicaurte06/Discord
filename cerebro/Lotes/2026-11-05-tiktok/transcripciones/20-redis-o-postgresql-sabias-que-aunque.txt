@@ -1,0 +1,22 @@
+url: https://vt.tiktok.com/ZSpFFP878/
+plataforma: tiktok
+id: 7694382496099601670
+url_final: https://www.tiktok.com/@davidev.tech/video/7694382496099601670?_r=1&_t=ZS-9B8ZIgPyMwq
+titulo: ⚡ ¿Redis o PostgreSQL? 🐘🔥 ¿Sabías que aunque ambos almacenan datos, e...
+autor: davidev.tech
+autor_url: https://www.tiktok.com/@davidev.tech
+fecha_publicado: 2026-10-08
+duracion: 01:01
+vistas: 59200
+hashtags: Backend, BasesDeDatos, PostgreSQL, Programacion, Redis
+transcripcion: es (Whisper small/cuda)
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos2\20\fotograma-01-00m07s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos2\20\fotograma-02-00m23s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos2\20\fotograma-03-00m38s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos2\20\fotograma-04-00m53s.jpg
+---
+## Descripción del autor
+⚡ ¿Redis o PostgreSQL? 🐘🔥 ¿Sabías que aunque ambos almacenan datos, están diseñados para necesidades diferentes? 👀 ¿Cuál deberías utilizar en tu próximo proyecto? ¿Y por qué a veces es mejor usar ambos? 🤔💻 #Redis #PostgreSQL #Backend #BasesDeDatos #Programacion
+---
+## Transcripción
+[00:00] Redis responde en menos de un milisegundo. Entonces, ¿por qué no reemplaza a Postgres? Todo empieza en donde viven los datos. Redis los guarda en memoria como pares clave valor. Postgres los escribe en disco, en tablas que se relacionan entre sí. En Redis, les por clave directo. En Postgres, le preguntas lo que quieras con SQL, filtros, joins y agregaciones. Y si se va la luz, Postgres anota cada transacción en su registro antes de confirmarla. Redis puede persistir con snapshots o A o F, pero según la configuración, puedes perder las últimas escrituras. Por eso, en producción, se usan juntos. Tu app pregunta primero a Redis. Si el dato no está, lo lee de Postgres y lo guarda en caché. La siguiente vez, responde Redis. Redis para caché, sesiones y contadores. Postgres para pedidos, pagos y todo lo que no puedes perder. Postgres es tu fuente de verdad. Redis, tu memoria rápida.

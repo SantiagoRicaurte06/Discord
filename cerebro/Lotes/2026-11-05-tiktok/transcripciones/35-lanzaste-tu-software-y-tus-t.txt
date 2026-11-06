@@ -1,0 +1,24 @@
+url: https://vt.tiktok.com/ZSpFFs8kP/
+plataforma: tiktok
+id: 7698520679766822164
+url_final: https://www.tiktok.com/@cami.el.abogado/video/7698520679766822164?_r=1&_t=ZS-9B8ZXt6PhvM
+titulo: Lanzaste tu Software… ¿Y tus T&C los copiaste de otra página? 👀 Revis...
+autor: cami.el.abogado
+autor_url: https://www.tiktok.com/@cami.el.abogado
+fecha_publicado: 2026-10-19
+duracion: 01:09
+vistas: 10600
+hashtags: datos, software
+transcripcion: es (Whisper small/cuda)
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos2\35\fotograma-01-00m09s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos2\35\fotograma-02-00m27s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos2\35\fotograma-03-00m45s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos2\35\fotograma-04-01m04s.jpg
+---
+## Descripción del autor
+Lanzaste tu Software… ¿Y tus T&C los copiaste de otra página? 👀 Revisa que incluyan esto: privacidad de datos, propiedad intelectual y límite de responsabilidad. Si no están, un solo cliente te puede costar el negocio. #software  #datos
+---
+## Transcripción
+[00:00] Felicidades. Acabas de lanzar tu primer software aseservis. Ahora viene lo legal y hay tres cosas que tienen que estar en tus términos y condiciones. Si no están te pueden demandar seguridad. La primera, datos personales. Necesitas una política de privacidad que diga qué datos recoge, para qué y con quién los comparte. Y ojo, el usuario la tiene que aceptar en un checkbox aparte. No puede ser un solo clic o checkbox para probar términos y condiciones y política de privacidad. Si no haces esto, la SIG te puede multar hasta por unos 2.500 millones de pesos. La segunda, propia intelectual. Tus términos tienen que decir que el software es tuyo y que solo lo estás licenciando. Porque si no, imagínate que un cliente te pide un nuevo feature. Tú lo desarrollas y si no lo dejaste claro, ese cliente puede decir que ese feature es suyo. Y defenderte de una demanda así, te cuesta años, mucha plata y puedes terminar la perdida. Y la tercera, la más peligrosa, no limitar tu responsabilidad, sino defines tus acuerdos de niveles de servicio. Es decir, que pasa si tu plataforma se cae y hasta donde respondes, pues respondes por todo. A ver, pongamos números. Tu cliente factura 100.000 dólares al mes, tu plataforma falla y el deja de facturar. Te puede venir a cobrar los 100.000 completicos. Y eso con un solo cliente. Imagínate
+
+[01:06] con más. Sígueme para más contenido legal para empleadores.

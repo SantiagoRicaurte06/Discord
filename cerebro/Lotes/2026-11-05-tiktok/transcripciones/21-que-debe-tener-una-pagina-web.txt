@@ -1,0 +1,18 @@
+url: https://vt.tiktok.com/ZSpFFrSUH/
+plataforma: tiktok
+formato: carrusel de fotos
+id: 7696702325649509639
+url_final: https://www.tiktok.com/@jeanlucasbm/video/7696702325649509639
+titulo: Qué debe tener una página web para tu negocio: guarda esta lista ante...
+autor: jeanlucasbm
+autor_url: https://www.tiktok.com/@jeanlucasbm
+fecha_publicado: 2026-10-15
+duracion: 02:06
+vistas: 7604
+hashtags: diseñoweb, negociodigital, paginaweb, seoparaprincipiantes, wordpress
+transcripcion: NO DISPONIBLE
+motivo: el video no tiene subtítulos
+motivo: es un carrusel de fotos: no hay voz y las imágenes no se pueden bajar (pide capturas)
+---
+## Descripción del autor
+Qué debe tener una página web para tu negocio: guarda esta lista antes de contratar a alguien que te la haga. Lo básico que debes exigir: dominio propio, hosting confiable, certificado SSL, una web en WordPress o un CMS que puedas editar tú, diseño responsive y buena velocidad de carga. Lo que casi nadie pide y después cuesta caro: backups automáticos, acceso de administrador, correo profesional, Google Analytics, Search Console, sitemap.xml, robots.txt y SEO on-page. Y para que te traiga clientes: formulario de contacto, botón de WhatsApp, aviso de cookies, seguridad y mantenimiento. ¿Cuántas de las 20 tiene tu página web? Comenta el número 👇 #paginaweb #diseñoweb #wordpress #seoparaprincipiantes #negociodigital

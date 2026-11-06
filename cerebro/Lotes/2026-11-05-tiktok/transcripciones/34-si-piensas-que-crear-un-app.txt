@@ -1,0 +1,24 @@
+url: https://vt.tiktok.com/ZSpFYekWr/
+plataforma: tiktok
+id: 7699251092424609037
+url_final: https://www.tiktok.com/@sebas.soto222/video/7699251092424609037?_r=1&_t=ZS-9B8ZWGx8RqJ
+titulo: Si piensas que crear un App con IA es fácil… lamentablemente no es as...
+autor: sebas.soto222
+autor_url: https://www.tiktok.com/@sebas.soto222
+fecha_publicado: 2026-10-21
+duracion: 01:11
+vistas: 35000
+hashtags: app, chatgpt, programacion, programador, vibecoding
+transcripcion: es (Whisper small/cuda)
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos2\34\fotograma-01-00m08s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos2\34\fotograma-02-00m26s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos2\34\fotograma-03-00m44s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos2\34\fotograma-04-01m02s.jpg
+---
+## Descripción del autor
+Si piensas que crear un App con IA es fácil… lamentablemente no es así 😅 #programacion #vibecoding #app #chatgpt #programador
+---
+## Transcripción
+[00:00] Hey, mirad a la app que creé con IA y solo me tomó 3 días sin saber nada de programación. Oh, cool, se ve bonita y parece que funciona. Sí, estoy pensando en lanzar la mañana y a los usuarios le va a encantar. Además, me va a hacer ingresos pasivos. Wow, wow, wow, wow. Acabaste de decir que vas a lanzar y pero ni siquiera tienes pruebas de flujo y mencionaste a usuarios, pero ni siquiera sabe si es segura aún. Bueno, yo lo usé y no se rompió, así que funciona bien. Y además, le pedí a Cloud que fuera segura, así que debe estar bien. Que tu app funcione no significa que no debes tener prueba. Cuando te has cambiado, algo se va a romper y solo te darás cuenta cuando tus usuarios se molesten. Además, la seguridad no se resuelve con un mensaje a Cloud. Si fuera así, pues le pediría que me hiciera millonario para mañana. Así que antes de lanzar, ¿sabes dónde están tus llaves secretas? Mmm, no. Tu app, Validad Inputs, supongo. Tiene RLS activado. ¿Qué es eso? Ok, ok, ok. Dime al menos si has verificado si tienes alguna dependencia peligrosa. Dependencia peligrosa. Y es que esa es la cosa. Crear un app va mucho más allá de solamente que se vea bonita y que funcione. Y eso que todavía ni siquiera te ha hablado de tu diseño, que se parece al de 20 otras apps que he visto. Estoy seguro que todavía tampoco has hecho pruebas de caiga.
+
+[01:04] De verdad que no sabía que crear un app conllevaba tantas cosas. ¿Y cómo vos sabés qué más cosas hacen falta? Obvio, siguiendo a Sebas Dev.

@@ -1,0 +1,24 @@
+url: https://vt.tiktok.com/ZSpFFTnye/
+plataforma: tiktok
+id: 7695174688133172493
+url_final: https://www.tiktok.com/@sebas.soto222/video/7695174688133172493?_r=1&_t=ZS-9B8ZeQdo47c
+titulo: 4 Documentos que debes tener en tu App antes que clientes paguen💵💻 #p...
+autor: sebas.soto222
+autor_url: https://www.tiktok.com/@sebas.soto222
+fecha_publicado: 2026-10-10
+duracion: 01:04
+vistas: 9173
+hashtags: ai, app, programacion, programador, vibecode
+transcripcion: es (Whisper small/cuda)
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos2\42\fotograma-01-00m08s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos2\42\fotograma-02-00m24s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos2\42\fotograma-03-00m40s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos2\42\fotograma-04-00m56s.jpg
+---
+## Descripción del autor
+4 Documentos que debes tener en tu App antes que clientes paguen💵💻 #programacion #app #programador #vibecode #ai
+---
+## Transcripción
+[00:00] Tu producto ya está listo y tu primer cliente ya quiere pagar, pero antes de aceptar cualquier pago debes tener estos 4 documentos. Número 1, términos de servicios. Si, si, ese que nadie quiere leer, PSG define que pueden y que no pueden hacer tus usuarios con tu app. Ahí te lo puedes crear pero tienes que explicarle bien que hace tu producto y darle acceso a todo tu proyecto. Recuerda, definir bien las limitaciones, que no garantizas cuando puedes suspender una cuenta y hasta donde llega tu responsabilidad. Número 2, política de privacidad. Si le dice a tus usuarios que datos recolectas, como los usa y como los puede borrar. Tu política dice una cosa, pero tu app hace otra, entonces estás engañado a tus usuarios. Y eso te puede costar una demanda, así que mucho cuidado. Número 3, DPA o Acuerdo de procesamiento de datos. Si procesas datos en nombre de otro negocio, por ejemplo los datos de los empleados o clientes de tus clientes, entonces necesitas uno. El DPA define quién es responsable de qué y por último, política de reembolso. ¿Qué pasa cuando un cliente quiere su dinero de vuelta? Los procesadores de pago te lo van a pedir y la confianza de tus clientes depende de esto. Así que si estás creando una, pero tienes dudas, escríbeme y si te gustó sígueme.
+
+[01:03] Bye.

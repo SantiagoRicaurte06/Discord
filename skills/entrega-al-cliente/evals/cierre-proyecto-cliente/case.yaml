@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: cierre-proyecto-cliente
+expected_outcome: |
+  En español: advierte que dominio, hosting y base de datos están a nombre del desarrollador y explica cómo transferirlos al cliente; arma el inventario de accesos sin escribir contraseñas ni llaves; propone manual del dueño, guía de empleados, videos, canal de soporte, copias de seguridad, documentos legales (términos con propiedad intelectual y límite de responsabilidad, privacidad, DPA si sigue alojando los datos) y un acta de entrega con garantía. Pregunta o deja TODO en los datos que no conoce (NIT, plazos) en vez de inventarlos.

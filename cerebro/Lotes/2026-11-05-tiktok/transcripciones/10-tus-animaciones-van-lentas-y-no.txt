@@ -1,0 +1,20 @@
+url: https://vt.tiktok.com/ZSpFFY8q9/
+plataforma: tiktok
+id: 7702608690146315540
+url_final: https://www.tiktok.com/@geradevtech/video/7702608690146315540?_r=1&_t=ZS-9B8Z9l2yDuZ
+titulo: Tus animaciones van lentas y no lo sabes. Día 13: Animation Performan...
+autor: geradevtech
+autor_url: https://www.tiktok.com/@geradevtech
+fecha_publicado: 2026-10-30
+duracion: 01:41
+vistas: 4434
+hashtags: claudecode, css, frontend, ia, programacion
+transcripcion: es (Whisper small/cuda)
+---
+## Descripción del autor
+Tus animaciones van lentas y no lo sabes. Día 13: Animation Performance (Emil Kowalski) 1. Instálala: npx skills@latest add emilkowalski/skills (elige animation-performance y tu agente) 2. En tu proyecto pídele a Claude: "Usa la skill animation-performance y analiza las animaciones de esta app" 3. Te devuelve cada animación con su causa, el antes y el después (width/left → transform, box-shadow → opacity…) 4. Pídele "aplica los arreglos" y revisa que la app se vea igual 5. Compruébalo con DevTools › Performance, mejor en un teléfono real En la demo (panel de 240 pedidos, Chrome con CPU ×6, mediana de 3 mediciones): 47 → 58 fps. Repo: github.com/emilkowalski/skills #claudecode #ia #programacion #frontend #css
+---
+## Transcripción
+[00:00] Tus animaciones están haciendo que tu aplicación se sienta lenta, y probablemente ni siquiera te has dado cuenta. Porque una cosa es que una animación se vea bonita y otra muy diferente es que funcione de manera fluida. Día 13 recomendándote skills para mejorar tu flujo de trabajo con Cloud o cualquier otro agente de IA. Hoy te traigo Animation Performance de Emil Kowalski, una skill que ayuda a tu agente a detectar y corregir problemas de rendimiento en las animaciones de tu aplicación. Y lo interesante es que no se trata simplemente de hacer que las animaciones se vean más bonitas. Enfoquen algo mucho más importante, que se ejecuten de manera fluida, sin saltos ni interrupciones. Pero ¿por qué sucede esto? Cuando animamos ciertas propiedades, como el ancho, el alto o la posición de un elemento, el navegador puede necesitar recalcular parte de la página constantemente. Y si esos cálculos tardan demasiado, comenzamos a perder fotogramas. Pero vamos a poner la prueba. Aquí tengo una aplicación con varias animaciones que no están funcionando de manera fluida. Voy a pedirle a Cloud que analice el código utilizando Animation Performance. Como puedes ver, la skill ayuda a identificar propiedades costosas de animar y posibles problemas relacionados con el trabajo que realiza el navegador. Por ejemplo, en lugar de animar posiciones, podemos usar Translate o Scale.
+
+[01:07] Estas propiedades, junto con Opacity, generalmente permiten animaciones más eficientes. Y aquí tenemos el resultado. Ahora la animación se ejecuta de manera más fluida, sin necesidad de cambiar completamente su apariencia. Y algo importante, también podemos utilizar las herramientas de rendimiento del navegador para comprobar si realmente mejoramos el resultado. Porque agregar más animaciones no significa que tu aplicación tenga una mejor experiencia de usuario. Lo importante es que cada animación tenga un propósito y funcione correctamente. Te dejo la skill y las instrucciones de instalación en la descripción. Guarda este video y sígueme para el día 14.

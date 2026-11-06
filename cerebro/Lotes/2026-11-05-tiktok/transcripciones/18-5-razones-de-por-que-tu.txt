@@ -1,0 +1,19 @@
+url: https://vt.tiktok.com/ZSpFFD4BT/
+plataforma: tiktok
+id: 7701059500836572468
+url_final: https://www.tiktok.com/@juanjimenezsieber/video/7701059500836572468?_r=1&_t=ZS-9B8ZFjbBJ4b
+titulo: 5 razones de por qué tu aplicación hecha con IA es lenta!
+autor: juanjimenezsieber
+autor_url: https://www.tiktok.com/@juanjimenezsieber
+fecha_publicado: 2026-10-28
+duracion: 01:19
+vistas: 13200
+transcripcion: es (Whisper small/cuda)
+---
+## Descripción del autor
+5 razones de por qué tu aplicación hecha con IA es lenta!
+---
+## Transcripción
+[00:00] Si una gente inteligencia artificial escribió todo tu código, tu aplicación puede ser extremadamente lenta y todavía no te has dado cuenta. Estas son las cinco cosas que probablemente no hizo bien. Ah, y no te preocupes, todos estos cambios también son vaipcodiables, pero ahora sabes exactamente qué es lo que tienes que pedir. Soy Juan, soy ingeniero de software hace seis años y te puedo enseñar cómo arreglarlas. Mala gestión de escritura en tu base de datos. Tu aplicación escribe líneas en la base de datos una por una, lo que claramente es una sobrecarga que es completamente innecesaria. Obviamente esto es algo que vas a notar con un usuario, pero si ya nos vamos a los miles, tu aplicación va a ser muy lenta. Dos, ausencia de Optimistic Rendering o Loading. Cada acción que realiza un usuario en tu aplicación desde el frontend espera completamente hasta que el backend responda. Esto hace que tu aplicación se sienta súper lenta también. Tres, tu página no es estática o staticlyhosted. Esto quiere decir que tu frontend o tu sitio web en vez de usar un HTML constante o estático, siempre lo reconstruye con peticiones al backend para cada usuario. Cuatro, tienes un cuello de botella en una dependencia específica. Para poder darte cuenta de esto puedes auditar todas las peticiones de red que hace tu frontend y ver cuál tiene más latencia.
+
+[01:02] Quizás hay una que es extremadamente lenta que podrías reemplazar. Y cinco, que es una que estoy muy seguro que tu agente no hizo en su primera iteración, es que todas las peticiones del frontend a tu backend son síncronas. No hay ninguna que maneje una petición larga de manera asíncrona, que es una forma más inteligente de hacerlo. Si te sirven videos como este, siguen.

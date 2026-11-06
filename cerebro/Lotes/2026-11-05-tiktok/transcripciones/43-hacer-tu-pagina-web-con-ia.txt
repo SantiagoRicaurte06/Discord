@@ -1,0 +1,24 @@
+url: https://vt.tiktok.com/ZSpFFp6Sg/
+plataforma: tiktok
+id: 7696310091686890773
+url_final: https://www.tiktok.com/@cami.el.abogado/video/7696310091686890773?_r=1&_t=ZS-9B8ZeaYcKS0
+titulo: Hacer tu página web con IA toma una tarde. Que sea legal toma 9 promp...
+autor: cami.el.abogado
+autor_url: https://www.tiktok.com/@cami.el.abogado
+fecha_publicado: 2026-10-14
+duracion: 01:23
+vistas: 187400
+hashtags: claude, paginaweb, prompt
+transcripcion: es (Whisper small/cuda)
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos\29\fotograma-01-00m10s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos\29\fotograma-02-00m31s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos\29\fotograma-03-00m52s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos\29\fotograma-04-01m12s.jpg
+---
+## Descripción del autor
+Hacer tu página web con IA toma una tarde. Que sea legal toma 9 prompts 👇 Términos, privacidad, cookies, consentimiento, registros, datos y derechos de imagen. Te los dejo en el video. Guárdalo antes de lanzar tu web 📌 #prompt  #claude  #paginaweb
+---
+## Transcripción
+[00:00] Hola Claude, no quiero que mi sitio web sea demandado, esto es lo que yo le pediría a la ida, soy abogado a startups y todas las semanas veo founders que montan su plataforma o página web en una tarde y se olvidan de la parte legal. Y resulta que esa es justo la parte que después le sale cara. Entonces este es el PROM, así que por favor, 1. Añade términos y condiciones. 2. Añade una política de privacidad. 3. Añade una política de cookies. Y revisa si necesito pedir consentimiento para usarlas. 4. En cada formulario, dos casillas separadas. Una para términos y condiciones, otra para la política de privacidad. Nada y un solo chulito para todo. Ponle un link al lado del checkbox para que pueda acceder a ambos documentos. 5. Guarda un registro de cuándo y cómo cada persona aceptó, que sea trazable cuando la CIC me venga a preguntar. 6. Añade una política de reembolso. 7. Pide al usuario y usa solo los datos que de verdad necesito. 8. Verifica que tengo los derechos de cada imagen usada en la página. 9. Revisa las leyes locales que aplican y asegúrate de que mi página las cumpla. Ojo con el 5, que sé que casi todo se salta. En Colombia, no basta con que la persona haya dicho que sí. Tienes que poder probarlo. Si te llega un reclamo y no tienes ese registro, pues es como si nunca te hubieran autorizado.
+
+[01:06] Y el 6, si vendes online, tu cliente tiene derecho a retractarse. 5 días hábiles desde la compra. Eso no lo decíes tú, lo dice la ley. Cloth te arma todo esto en dos minutos, pero no sabe qué datos recoge, a quién le vendes, ni que le prometiste a tu cliente. Eso lo tienes que decir tú. 7. Sígueme para más contenido legal para emprendedores.

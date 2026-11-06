@@ -1,0 +1,24 @@
+url: https://vt.tiktok.com/ZSpFFxxEn/
+plataforma: tiktok
+id: 7699481399955377428
+url_final: https://www.tiktok.com/@davidev.tech/video/7699481399955377428?_r=1&_t=ZS-9B8ZVyhzYri
+titulo: 🚀🔥 ¿Qué es el patrón Singleton y para qué sirve? 🤯💻 🧩 Descubre cómo g...
+autor: davidev.tech
+autor_url: https://www.tiktok.com/@davidev.tech
+fecha_publicado: 2026-10-22
+duracion: 01:51
+vistas: 15900
+hashtags: CleanCode, PatronesDeDiseño, Programacion, Singleton
+transcripcion: es (Whisper small/cuda)
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos2\33\fotograma-01-00m14s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos2\33\fotograma-02-00m43s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos2\33\fotograma-03-01m12s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos2\33\fotograma-04-01m41s.jpg
+---
+## Descripción del autor
+🚀🔥 ¿Qué es el patrón Singleton y para qué sirve? 🤯💻 🧩 Descubre cómo garantizar una única instancia de una clase y proporcionar un punto de acceso compartido en tu aplicación. ⚡ Aprende cuándo utilizarlo, sus ventajas y por qué abusar de este patrón puede complicar tu código. 🤔 ¿Buenas prácticas o un antipatrón mal utilizado? 👀👇 #Singleton #PatronesDeDiseño #Programacion #CleanCode
+---
+## Transcripción
+[00:00] Si tu app abre una conexión nueva a la base de datos cada vez que alguien la pide, con 100 usuarios tendrás 100 conexiones abiertas. El servidor se satura y para evitarlo existe el patrón singleton. El problema aparece con objetos que deberían ser únicos, como la configuración, el logger o el pull de conexiones. Si cada parte del código crea su propia copia con new, desperdicias, recursos y cada copia puede tener datos distintos. La idea del singleton es sencilla. La clase garantiza que solo exista una instancia y ofrece un único punto de acceso global para obtenerla. Todos le piden el objeto y todos reciben el mismo. En TypeScript se ve así. El constructor es privado, así que nadie puede usar new desde afuera. Una propiedad estática guarda la instancia y el método GetInstance la crea solo la primera vez. En ejecución, la primera llamada no encuentra ninguna instancia y la crea. A partir de ahí, cada llamada a GetInstance devuelve exactamente el mismo objeto, por eso la comparación da verdadero.
+
+[01:07] Pero ojo con esto, porque un singleton es estado global disfrazado. Las dependencias quedan ocultas y las pruebas se contaminan entre sí. Además, en lenguajes con hilos, dos hilos pueden crear dos instancias a la vez si no sincronizas la creación. Por eso, úsalo cuando de verdad necesitas una única instancia compartida, como un logger o la configuración. Y si tu framework tiene inyección de dependencias, deja que el contenedor cree esa instancia única y te la entregue. El singleton no consiste en tener una variable global, consiste en controlar quién crea el objeto y cuantas veces. Cuéntame en los comentarios dónde lo has usado.

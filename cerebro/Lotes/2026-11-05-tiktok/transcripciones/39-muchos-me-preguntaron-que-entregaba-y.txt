@@ -1,0 +1,17 @@
+url: https://vt.tiktok.com/ZSpFFqSSv/
+plataforma: tiktok
+id: 7679194507623025938
+url_final: https://www.tiktok.com/@pulso.software/video/7679194507623025938?_r=1&_t=ZS-9B8ZainYqkU
+titulo: Muchos me preguntaron que entregaba y de qué forma entregaba un siste...
+autor: pulso.software
+autor_url: https://www.tiktok.com/@pulso.software
+fecha_publicado: 2026-08-28
+duracion: 00:49
+vistas: 65300
+transcripcion: es (Whisper small/cuda)
+---
+## Descripción del autor
+Muchos me preguntaron que entregaba y de qué forma entregaba un sistema, acá está la respuesta
+---
+## Transcripción
+[00:00] que se entrega con un sistema. En mi caso, entrego las URL para que los clientes puedan probar todo. Y en el caso de que hayan comprado el código, obviamente entrego el código. Ya sea en una carpeta, Google Drive. No le pasa un GitHub porque el cliente no sabe lo que es GitHub. El cliente quiere el código. Así que bueno, en ese caso brinda una carpeta. Ahora si el cliente quiere continuar con un mantenimiento conmigo, directamente le paso los links, los accesos, manuales de uso para dueño y manuales de uso para sus empleados en el caso de que los tenga. Manuales de uso para el usuario. Todos mis sistemas cuentan con un asistente de día incluido dentro del panel de administración y dentro del panel de usuarios, por lo que también mi cliente puede guiarse con eso. Y entrego videos de capacitación para que todo el equipo pueda aprender a usarlo. Además de bueno, el sistema de tickets que utilizo para hacer su aporte. Y bueno, creo que no me ha olvidado de nada. Ustedes que les entregan a sus clientes.

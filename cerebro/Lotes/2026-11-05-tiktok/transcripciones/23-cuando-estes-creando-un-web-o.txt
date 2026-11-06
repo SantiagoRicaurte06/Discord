@@ -1,0 +1,18 @@
+url: https://vt.tiktok.com/ZSpFFQC5a/
+plataforma: tiktok
+formato: carrusel de fotos
+id: 7680323212160421134
+url_final: https://www.tiktok.com/@sebas.soto222/video/7680323212160421134
+titulo: Cuando estés creando un web o app debes tener cuidado con no tener es...
+autor: sebas.soto222
+autor_url: https://www.tiktok.com/@sebas.soto222
+fecha_publicado: 2026-08-31
+duracion: 01:00
+vistas: 93900
+hashtags: app, desarrolloweb, legal, programacion
+transcripcion: NO DISPONIBLE
+motivo: el video no tiene subtítulos
+motivo: es un carrusel de fotos: no hay voz y las imágenes no se pueden bajar (pide capturas)
+---
+## Descripción del autor
+Cuando estés creando un web o app debes tener cuidado con no tener estas 5 cosas ya que las demandas pueden ser de miles de dólares. Siempre verifica tu app con un abogado antes de lanzar 🤝 #app #legal #programacion #desarrolloweb

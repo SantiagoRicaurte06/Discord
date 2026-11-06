@@ -1,0 +1,24 @@
+url: https://vt.tiktok.com/ZSpFFT51w/
+plataforma: tiktok
+id: 7698516796697103637
+url_final: https://www.tiktok.com/@cuaspro/video/7698516796697103637?_r=1&_t=ZS-9B8ZaZfpTMe
+titulo: Búsquedas 💯🙌#sistemas #tips #codigo #entrevista #ingenierodesoftware 
+autor: cuaspro
+autor_url: https://www.tiktok.com/@cuaspro
+fecha_publicado: 2026-10-19
+duracion: 01:27
+vistas: 89500
+hashtags: codigo, entrevista, ingenierodesoftware, sistemas, tips
+transcripcion: es (Whisper small/cuda)
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos2\37\fotograma-01-00m10s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos2\37\fotograma-02-00m32s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos2\37\fotograma-03-00m54s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos2\37\fotograma-04-01m16s.jpg
+---
+## Descripción del autor
+Búsquedas 💯🙌#sistemas #tips #codigo #entrevista #ingenierodesoftware
+---
+## Transcripción
+[00:00] Si conectas la barra de búsqueda de tu tienda en línea directamente a tu base de datos usando un comando like, tienes un buscador básico. Pero tu catálogo crece. La base de datos tiene que escanear cada fila una por una. Y como tus usuarios se quedan viendo la pantalla de carga por un largo tiempo, déjanla up. Así que le agregas un índice a tu columna en SQL. La base de datos preordena la información y el tiempo de búsqueda disminuye. Pero este índice exige perfección. Si el usuario tiene un error de dedo, la consulta devuelve cero resultados y con esto vuelves a perder usuarios. Entonces activas el índice full text nativo de SQL. Ahora el motor tolera errores y entiende palabras separadas. Pero al tener millones de usuarios buscando, te acabarás el CPU de tu servidor. Además, la base de datos se satura tanto por el proceso de búsqueda que la gente que está intentando otras operaciones contra la DB como procesar su pago se ven afectados, así que sacas las búsquedas de SQL por completo. Envíes los textos a un motor independiente construido sobre una estructura llamada índice invertido. Esto es Elasticsearch. Su motor hace el trabajo pesado, cruza sinónimos, dolera errores autográficos y autocompleta palabras, manteniendo tu base de datos transaccional,
+
+[01:09] separada y sin toda esta carga. Como este motor no adivina cuándo hay productos nuevos, le conectas un flujo de eventos en segundo plano para que el catálogo se sincronice automáticamente cada vez que recibes inventario. Y con esto, has diseñado un sistema de búsqueda de alta escala. Sígueme para mejorar como ingeniero de software cada día.

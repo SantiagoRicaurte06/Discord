@@ -1,0 +1,22 @@
+url: https://vt.tiktok.com/ZSpFN3UYC/
+plataforma: tiktok
+id: 7702587597113134349
+url_final: https://www.tiktok.com/@sebas.soto222/video/7702587597113134349?_r=1&_t=ZS-9B8ZCcUpb1k
+titulo: 10 animaciones que le puedes pedir a Claude para tu App🔥💻 #animacion ...
+autor: sebas.soto222
+autor_url: https://www.tiktok.com/@sebas.soto222
+fecha_publicado: 2026-10-30
+duracion: 00:17
+vistas: 54400
+hashtags: animacion, claude, diseño, programador, ui
+transcripcion: es (Whisper small/cuda)
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos\24\fotograma-01-00m02s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos\24\fotograma-02-00m06s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos\24\fotograma-03-00m10s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos\24\fotograma-04-00m14s.jpg
+---
+## Descripción del autor
+10 animaciones que le puedes pedir a Claude para tu App🔥💻 #animacion #claude #programador #diseño #ui
+---
+## Transcripción
+[00:00] Liquid Morph, Glass Morphismo, Kinetic Type, Ascii Art, Isometric, Gradient Mesh, Libro de Comic, Blueprint, Pixel Art y Partícula. Estas son 10 animaciones que puedes usar para tu app y si usas estas palabras claves con Cloud tendrás un diseño a otro nivel.

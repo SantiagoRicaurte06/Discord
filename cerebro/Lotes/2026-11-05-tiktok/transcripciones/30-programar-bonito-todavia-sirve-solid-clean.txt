@@ -1,0 +1,24 @@
+url: https://vt.tiktok.com/ZSpFFPvoX/
+plataforma: tiktok
+id: 7700303760651717908
+url_final: https://www.tiktok.com/@sssssamu_/video/7700303760651717908?_r=1&_t=ZS-9B8ZRiBpWeA
+titulo: ¿Programar bonito todavía sirve? SOLID, clean architecture, inyección...
+autor: sssssamu_
+autor_url: https://www.tiktok.com/@sssssamu_
+fecha_publicado: 2026-10-24
+duracion: 01:41
+vistas: 8469
+hashtags: claudecode, cleanarchitecture, desarrollodesoftware, inteligenciaartificial, programacion
+transcripcion: es (Whisper small/cuda)
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos2\30\fotograma-01-00m12s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos2\30\fotograma-02-00m37s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos2\30\fotograma-03-01m03s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos2\30\fotograma-04-01m28s.jpg
+---
+## Descripción del autor
+¿Programar bonito todavía sirve? SOLID, clean architecture, inyección de dependencias. Todo eso existió para que otras personas pudieran leer nuestro código y entenderlo. Pero hoy los equipos se encogieron. El equipo ya no es de 20 personas, es vos con la IA. DeepMind fue más lejos: puso a la IA a programar en ensamblador, el lenguaje más cerca de la máquina, y logró un código mucho más eficiente. Entonces, ¿para qué seguir escribiendo código que entienda una persona? Tengo mis preocupaciones. Si mañana la IA se encarece o no nos puede ayudar, alguien tiene que meter la mano. Y si nos volvemos analfabetas de lo que ella escribe, perdemos el control. No tengo la verdad absoluta. Abramos el debate en los comentarios 👇 #programacion #inteligenciaartificial #cleanarchitecture #desarrollodesoftware #claudecode
+---
+## Transcripción
+[00:00] Yo hoy les puedo seguir enseñando sobre SOLID, les puedo seguir enseñando sobre Clean Architecture, les puedo seguir enseñando sobre Inyección de Dependencias, y un cúmulo de cosas que hoy en día siguen siendo muy interesantes para la programación, pero que existieron única y principalmente para que otras personas que vieran mi código lo pudieran entender. Pero sin embargo, como avanzado todos los modelos de Inteligencia Artificial, los equipos se han empezado a encoger. Los equipos ya no son de 20 personas y realmente el equipo generalmente hoy en día es tú con la IA. Por ejemplo, el equipo de DeepMind ha estado intentando, y es porque si ya nosotros trabajamos con la IA, porque si ya nos podemos dar la oportunidad de ni siquiera ver el código, porque no empezamos a hacer métodos más eficientes para que nuestro código y aplicaciones sean mucho mejor. Lo que hizo DeepMind fue que cogió sus modelos de Inteligencia Artificial pusieron a hacer su aplicación en Ensemblador, que es un lenguaje de muy bajo nivel, es un lenguaje de máquina que apenas se puede leer, y con eso lograron una aplicación 70% más eficiente de lo que era anteriormente. Que hay varias preocupaciones al respecto,
+
+[01:02] sin embargo, no tengo la verdad absoluta. ¿Cuáles son mis preocupaciones? Las preocupaciones son que, por ejemplo, el día de mañana simplemente, pues, la IA se puede encarecer y puede que tengamos que volver a revisar ese código. Puede que haya cohesiones que nosotros queramos hacer con ese código y que la IA en base a lo que el modelo lo deja, entonces no nos puede ayudar. Y en ese momento tenemos que meter la mano. Y si dejamos esa dependencia tan absoluta sobre la Inteligencia Artificial y nos volvemos por completo en alfabetas sobre lo que ella escribe, pues perdemos en exceso contra que yo quiero que ustedes compartan todas las opiniones que ustedes tengan en los comentarios y que abramos desde debat.

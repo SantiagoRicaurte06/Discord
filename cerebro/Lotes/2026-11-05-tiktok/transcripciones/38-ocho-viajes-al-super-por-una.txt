@@ -1,0 +1,24 @@
+url: https://vt.tiktok.com/ZSpFFthEj/
+plataforma: tiktok
+id: 7687056059948666134
+url_final: https://www.tiktok.com/@torticodeyt/video/7687056059948666134?_r=1&_t=ZS-9B8ZbWF9hre
+titulo: Ocho viajes al súper por una sola sopa. Así se ve el problema N+1 en ...
+autor: torticodeyt
+autor_url: https://www.tiktok.com/@torticodeyt
+fecha_publicado: 2026-09-19
+duracion: 01:15
+vistas: 11300
+hashtags: backend, basesdedatos, devtok, programacion, sql, torticode
+transcripcion: es (Whisper small/cuda)
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos2\38\fotograma-01-00m09s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos2\38\fotograma-02-00m28s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos2\38\fotograma-03-00m47s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos2\38\fotograma-04-01m06s.jpg
+---
+## Descripción del autor
+Ocho viajes al súper por una sola sopa. Así se ve el problema N+1 en tu base de datos, y cómo se arregla con una lista. #programacion #basesdedatos #sql #backend #devtok #torticode
+---
+## Transcripción
+[00:00] Ocho viajes a supermercado para una sola sopa. Ana lee el primer renglón de la receta. Tomate. Sale, lo compra, vuelve. Cebolla. Sale, compra, vuelve. Sanahoria. Sale, compra, vuelve. Y así, ocho veces. Cada viaje, la misma calle, la misma fila. Por un solo producto. Se le va la tarde con la receta completa en la mano desde el principio. Al día siguiente copia los ocho renglones en una lista y sale una sola vez. Un viaje. Y la sopa antes del almuerzo. Tu código hace esos mismos viajes y el supermercado es la base de datos. Una pantalla con 100 pedidos, una consulta los trae, ahí tienes la receta. Y por cada pedido, otra consulta para su cliente. 101 en total. Los programadores le dicen el problema n más 1. Con 3 pedidos no se nota, con 100 la pantalla se rastra. La lista de compras juntas los 100 identificadores y pides los clientes de una vez.
+
+[01:07] Dos consultas en vez de 101. Y tu código, ¿cuántas veces va al super por una sola pantalla?

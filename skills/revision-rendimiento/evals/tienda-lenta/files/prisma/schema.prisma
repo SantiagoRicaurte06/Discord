@@ -1,0 +1,2 @@
+model Pedido { id Int @id @default(autoincrement()) clienteId Int total Int creadoEn DateTime @default(now()) }
+model Cliente { id Int @id @default(autoincrement()) correo String nombre String }

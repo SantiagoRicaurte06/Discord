@@ -22,17 +22,19 @@ python <ruta-de-esta-skill>/scripts/lote.py <links.txt> <carpeta-del-lote> --fot
 - Por cada link corre `transcripcion.py`. Primero intenta subtítulos del autor, luego automáticos, luego `youtube-transcript-api` y, si nada funciona, Whisper `small` sobre el audio. Además saca 4 fotogramas.
 - Con unos 30 videos de TikTok tarda entre 25 y 30 minutos si hay GPU; córrelo en segundo plano.
 - Si un video falla, lo anota con el motivo y sigue con el siguiente. Si se corta, vuelve a correrlo: retoma donde quedó.
+- **Links repetidos de lotes anteriores**: agrega `--reusar cerebro/Lotes/<lote-anterior>` (se puede repetir). Copia la transcripción y los marca "ya procesado en <lote> (NN)" sin bajarlos otra vez. En `referencias-limpias.md` esos videos llevan un bloque corto: el título, "Ya procesado en [[<lote>/referencias-limpias|<lote>]] #NN" y la idea clave en una línea.
+- Si TikTok solo da la traducción `eng-US`, el script repite solo con Whisper sobre el audio original.
 - Al final escribe `enlaces.md`: tabla `# | Enlace | Plataforma | Estado`, con los duplicados marcados (mismo ID de video) pero sin borrarlos.
 
 ### Problemas conocidos (aprendidos en el lote de 2026-11-04)
 
 | Señal | Qué pasa | Qué hacer |
 |---|---|---|
-| `transcripcion: eng-US` en un video en español | TikTok solo entrega una **traducción automática** al inglés | Repetir con `transcripcion.py <url> -o <archivo> --solo-whisper` para tener el audio original |
+| `transcripcion: eng-US` en un video en español | TikTok solo entrega una **traducción automática** al inglés | `lote.py` ya lo repite solo con Whisper. A mano: `transcripcion.py <url> -o <archivo> --solo-whisper` |
 | Transcripción vacía, o "Amara.org" / "Gracias por ver" | Video sin voz (solo música), o Whisper inventando sobre música | Ya se filtra y se reintenta solo. Si sigue vacía, sacar más fotogramas (`--fotogramas 8`) y leerlos |
 | `formato: carrusel de fotos` | Publicación de imágenes: no hay voz y las imágenes no se pueden bajar | Usar la descripción y pedirle capturas al usuario si el contenido está en las imágenes |
 | Términos raros ("una spline", "la CIC", "esta tierese") | Whisper entiende mal tecnicismos y nombres | Confirmar con los fotogramas; si no se puede, `[verificar]` |
-| Links en los títulos de `referencias-limpias.md` | Es fácil cruzarlos a mano | Tomar cada link de `estado.json` por su número, nunca de memoria |
+| Links en los títulos de `referencias-limpias.md` | Es fácil cruzarlos a mano (pasó en los dos primeros lotes) | Escribir `({{NN}})` en vez del link y reemplazarlos al final desde `estado.json` con un script |
 
 ## 2. Leer cada video
 

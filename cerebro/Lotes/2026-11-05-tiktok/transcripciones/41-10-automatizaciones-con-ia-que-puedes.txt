@@ -1,0 +1,24 @@
+url: https://vt.tiktok.com/ZSpFFv6Lx/
+plataforma: tiktok
+id: 7698057546338159892
+url_final: https://www.tiktok.com/@soydiegoosorio/video/7698057546338159892?_r=1&_t=ZS-9B8ZcRYRpcg
+titulo: 10 automatizaciones con IA que puedes vender esta misma semana. 🤖 1️⃣...
+autor: soydiegoosorio
+autor_url: https://www.tiktok.com/@soydiegoosorio
+fecha_publicado: 2026-10-18
+duracion: 01:45
+vistas: 8851
+hashtags: agenciadeia, agentesdeia, automatizacion, claudeai, emprendedores, escalatunegocio, ia, inteligenciaartificial, marketingdigital, negociosonline, ventas, whatsappbusiness
+transcripcion: es (Whisper small/cuda)
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos2\41\fotograma-01-00m13s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos2\41\fotograma-02-00m40s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos2\41\fotograma-03-01m08s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos2\41\fotograma-04-01m35s.jpg
+---
+## Descripción del autor
+10 automatizaciones con IA que puedes vender esta misma semana. 🤖 1️⃣ Confirmación de exámenes en una clínica, con recordatorio 24 horas antes. 2️⃣ Reactivación de alumnos que dejaron de ir al gimnasio. 3️⃣ Encuesta de satisfacción y cupón después de comprar un sofá. 4️⃣ Alertas de vencimiento de suscripciones por WhatsApp o correo. 5️⃣ Calificación de interesados en la venta de carros. 6️⃣ Agendamiento automático de pruebas de manejo. 7️⃣ Cobro automático de la mensualidad en un colegio. 8️⃣ Envío del certificado al terminar un curso online. 9️⃣ Clasificación de síntomas en una clínica veterinaria. 🔟 Recuperación de cotizaciones abandonadas en una imprenta. Cada una le ahorra horas de trabajo a un negocio. Por eso la pagan. ¿Y todavía crees que los negocios no necesitan IA? 📲 Sígueme si quieres aprender a facturar con IA vendiendo automatizaciones. — @soydiegoosorio #inteligenciaartificial #ia #automatizacion #agentesdeia #claudeai #whatsappbusiness #marketingdigital #emprendedores #negociosonline #ventas #escalatunegocio #agenciadeia
+---
+## Transcripción
+[00:00] 10. Automatización decía que puedes vender esta misma semana. 1. Confirmación de exámenes médicos. La clínica confirma la cita y envía un recordatorio automático 24 horas antes. 2. Reactivación de alumnos inactivos en un gimnasio. El gimnasio detecta quién no hace 15 días y le manda un recordatorio automático. 3. Encuesta de satisfacción después de la compra en una tienda de mueblos. El frente compre un sofá y 15 días después le llega un encuesta automática más un cupón de descuento para la próxima. 4. Alertas del encimiento de suscripciones. Cualquier producto o servicio con suscripción puedes enviar un recordatorio por WhatsApp o correo avisando que la suscripción está aportando. 5. Calificación de interesados para venta de carros. El interesado llena una cotización y una gente de día lo califica. El carro para dar en parte de pago tiene la cuota inicial, un taje de crédito. Luego el vendedor atiende al cliente mucho más preparado y calificado. 6. Agendamiento automático de pruebas de manejo. El interesado escoge la fecha y hora solito. Luego el vendedor recibe la notificación de la cita. 7. Cobro automático de la mensualidad en un colegio. Envió un mensaje de 3 días antes del vencimiento como recordatorio.
+
+[01:04] Y otro mensaje el día del vencimiento para quien aún no ha pagado. Y si aún sigue atrasado otros dos recordatorios más de cobro. 8. Envío el certificado digital al terminar un curso. El alumno termina el curso online y el certificado se genera y se envía automáticamente. 9. Calificación de síntomas en una clínica veterinaria. El dueño de la mascota escribe su síntoma y el sistema le indica si es una urgencia, consulta normal o orientación. Y esa recuperación de cotizaciones abandonadas en una imprenta. El cliente pide una cotización y no vuelve a responder. Luego un voto, lo reactivo a 24 horas después con un descuento y le hace seguimiento hasta que con. ¿Y todavía crees que los negocios no necesitanía? Sígueme si quieres aprender más.
