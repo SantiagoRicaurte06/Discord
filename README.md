@@ -18,11 +18,12 @@ src/  docs/       el bot de Discord
 ## Empezar un proyecto, paso a paso
 
 ```
- 1. instalar      2. idea         3. repo          4. construir               5. revisar                          6. lanzar
- skills      ──► grill-me  ──►  git-workflow ──►  caveman · RTK       ──►  anti-slop                    ──►  checklist-lanzamiento ──► deploy
- proteccion                                      git-workflow (siempre)    revision-seguridad-backend
-                                                                           thermos
-                           cerebro + skill-creator: lo que aprendemos se vuelve skill nueva
+ 1. instalar     2. idea        3. repo           4. construir              5. revisar                           6. lanzar                   7. entregar
+ skills     ──► grill-me ──►  git-workflow ──►  caveman · RTK      ──►  anti-slop                     ──►  checklist-lanzamiento ──► entrega-al-cliente
+ proteccion                                     git-workflow (siempre)   revision-seguridad-backend          (security-audit si es
+                                                                         revision-rendimiento                 grande o sensible)
+                                                                         thermos
+                          cerebro + skill-creator: lo que aprendemos se vuelve skill nueva
 ```
 
 1. **Instala las skills en el proyecto**, una sola vez. Los repos que crea el bot ya las traen.
@@ -37,8 +38,10 @@ src/  docs/       el bot de Discord
 5. **Antes del PR**:
    - `anti-slop` para textos y código;
    - `revision-seguridad-backend` si el cambio toca login, datos o pagos;
+   - `revision-rendimiento` si toca consultas, listados o imágenes, o si la app está lenta;
    - `/thermos` si el PR es importante.
-6. **Antes de deployar un sitio: `checklist-lanzamiento`.**
+6. **Antes de deployar un sitio: `checklist-lanzamiento`.** Antes de un lanzamiento grande o con datos sensibles, una auditoría completa con `security-audit` (Cloudflare).
+7. **Al entregar a un cliente: `entrega-al-cliente`.** Cuentas a su nombre, accesos, manuales, legal y acta firmada.
 
 No hace falta acordarse de todo esto: la skill **`guia-skills`** le dice a Claude cuál aplicar en cada momento.
 
@@ -50,9 +53,12 @@ No hace falta acordarse de todo esto: la skill **`guia-skills`** le dice a Claud
 | Al crear ramas, commits, PRs, releases o hotfixes | **git-workflow** (propia) | Historial limpio y las mismas normas en todos los proyectos: Git Flow simplificado, Conventional Commits, SemVer | Automática al hacer commits o PRs. En un repo nuevo: `configurar.sh --aplicar`. Normas en [GIT_WORKFLOW.md](GIT_WORKFLOW.md) |
 | Siempre, desde que se abre el repo | **proteccion** (propia) | Un hook frena **antes de ejecutarse** lo que rompe todo: borrar la base de datos, `rm -rf` del proyecto, force push a main o develop, `--no-verify` | Funciona sola si está activa en `.claude/settings.json` (`activar.sh`). Si bloquea algo que sí querías, córrelo tú con `!comando` |
 | Antes de mergear o deployar algo con login, endpoints, Server Actions, Supabase, pagos o permisos | **revision-seguridad-backend** (propia) | Las apps hechas con IA repiten 12 fallos: sesión, validación, dueño del recurso (IDOR), precios del cliente, RLS, rate limiting, contraseñas, recuperación de cuenta, tokens, tarjetas y deploy | "Revisa la seguridad". Corre `scripts/revisar.mjs <carpeta>` y revisa cada endpoint con `referencias/puntos.md` |
+| Auditoría de seguridad completa antes de un lanzamiento grande o con datos sensibles | **security-audit** ([cloudflare/security-audit-skill](https://github.com/cloudflare/security-audit-skill)) | Seis fases con agentes aislados: el agente que encuentra un fallo nunca es el que lo confirma, otro intenta desmentirlo. No toca tu código ni prueba contra producción | "Haz una auditoría de seguridad de este repo". Es lenta y costosa (muchos subagentes): úsala para lo grande |
+| La app está lenta, antes de lanzar algo con tráfico, o un PR que toca consultas, listados o imágenes | **revision-rendimiento** (propia) | El código generado repite 10 problemas: N+1, escrituras una por una, índices, interfaz que espera al backend, tareas largas síncronas, HTML dinámico, compresión y caché, imágenes, cuello de botella y sin prueba de carga | "La app está lenta". Corre `scripts/revisar.mjs <carpeta>`, mide antes y después, y prueba la carga con `scripts/carga-k6.js` (solo local o staging) |
 | Antes de mergear un PR importante (seguridad, pagos, permisos, PR grande) | **thermos** ([cursor/plugins](https://github.com/cursor/plugins)) | Dos revisores en paralelo: uno busca bugs y seguridad, el otro calidad de código | Escribe `/thermos` |
 | Al terminar textos, READMEs, landings o código generado | **anti-slop** ([rand/cc-polymath](https://github.com/rand/cc-polymath)) | Quita frases de relleno, nombres genéricos y diseño de plantilla | Automática al cerrar textos o código |
 | Antes de deployar un sitio web | **checklist-lanzamiento** (propia) | 36 cosas que una página hecha con IA suele olvidar: legal y consentimiento, SEO, imágenes, 404, spam, WhatsApp, Clarity, señales de IA y WordPress | "¿Está lista la página?". Compila y corre `scripts/revisar.mjs dist` |
+| Al entregar un proyecto a un cliente | **entrega-al-cliente** (propia) | Que el cliente sea dueño de sus cuentas, pueda operar sin llamarte y quede claro qué cubre la garantía | "Voy a entregar el proyecto". Genera inventario de accesos (sin contraseñas), manuales, legal y acta desde `plantillas/` |
 | Sesiones largas o cuando quieres gastar menos | **caveman** ([JuliusBrussee/caveman](https://github.com/JuliusBrussee/caveman)) | Respuestas cortas con el mismo contenido técnico: menos tokens | Claude te la propone. La versión fuerte es `/ultracave` |
 | Comandos con salidas largas (tests, builds, logs) | **RTK** ([rtk-ai/rtk](https://github.com/rtk-ai/rtk)) | Comprime lo que Claude lee de la terminal (entre 40 y 90 % menos) | Es un programa, no una skill: `instalar.sh --con-rtk` |
 | Hay que crear o mejorar una skill | **skill-creator** ([anthropics/skills](https://github.com/anthropics/skills)) | El método oficial de Anthropic: entrevista, borrador, casos de prueba y mejora de la descripción para que se active cuando debe | "Crea una skill para…". Las del equipo van en `skills/<nombre>/`, en español |
@@ -61,6 +67,8 @@ No hace falta acordarse de todo esto: la skill **`guia-skills`** le dice a Claud
 Cuándo **no** usarlas:
 - **grill-me** no va con cambios pequeños ni obvios.
 - **thermos** y **revision-seguridad-backend** no van con un typo ni con sitios estáticos.
+- **security-audit** no va en el día a día: es una auditoría completa y costosa.
+- **revision-rendimiento** no va en apps pequeñas sin tráfico: no se optimiza lo que no duele.
 - **checklist-lanzamiento** no aplica a APIs, CLIs ni bots.
 - **caveman** no conviene cuando quieres aprender o el texto es para otras personas.
 
@@ -90,7 +98,9 @@ pip install youtube-transcript-api yt-dlp curl_cffi truststore faster-whisper   
    - la tabla de `guia-skills`;
    - el instalador `instalar.sh`.
 
-Las skills propias que salieron del cerebro son `revision-seguridad-backend` y la ampliación de `checklist-lanzamiento`.
+Las skills que salieron del cerebro son:
+- del lote del 2026-11-04: `revision-seguridad-backend` y la ampliación de `checklist-lanzamiento`;
+- del lote del 2026-11-05: `revision-rendimiento`, `entrega-al-cliente` y la adopción de `security-audit` de Cloudflare.
 
 ## Reglas del repo
 

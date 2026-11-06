@@ -1,6 +1,6 @@
 ---
 name: guia-skills
-description: Guía del equipo para elegir y usar las skills sin que el usuario tenga que configurarlas. Consúltala al empezar cualquier tarea de desarrollo (planear, construir, revisar, commitear, abrir un PR, deployar, tocar la base de datos, revisar la seguridad, escribir textos, revisar costos de tokens, crear una skill nueva o procesar videos e ideas para el cerebro) para saber qué skill aplicar, por qué y cómo, y para instalar la que falte. También si preguntan "qué skills tenemos", "cuál uso" o "configura las skills".
+description: Guía del equipo para elegir y usar las skills sin que el usuario tenga que configurarlas. Consúltala al empezar cualquier tarea de desarrollo (planear, construir, revisar, commitear, abrir un PR, deployar, tocar la base de datos, revisar la seguridad o el rendimiento, entregar a un cliente, escribir textos, revisar costos de tokens, crear una skill nueva o procesar videos e ideas para el cerebro) para saber qué skill aplicar, por qué y cómo, y para instalar la que falte. También si preguntan "qué skills tenemos", "cuál uso" o "configura las skills".
 ---
 
 # Guía de skills del equipo
@@ -11,7 +11,7 @@ Tu trabajo con esta guía: **elegir tú la skill correcta en cada momento** y ap
 
 ```
 videos/ideas ──► cerebro ──► skill-creator (skills propias)
-idea ──► grill-me ──► construir ──► anti-slop ──► revision-seguridad-backend + thermos ──► checklist-lanzamiento ──► deploy
+idea ──► grill-me ──► construir ──► anti-slop ──► revision-seguridad-backend + revision-rendimiento + thermos ──► checklist-lanzamiento ──► deploy ──► entrega-al-cliente
            │            │  caveman + RTK (ahorro de tokens, todo el tiempo)              │
            │            ├─ git-workflow (ramas, commits y PRs, todo el tiempo) ─────────┤
            │            └─ proteccion (hook que frena lo destructivo, siempre activo) ──┘
@@ -29,7 +29,10 @@ idea ──► grill-me ──► construir ──► anti-slop ──► revisi
 | Al terminar textos, READMEs, landings o código generado | **anti-slop** | Quita frases de relleno, nombres genéricos y diseño de plantilla | Úsala tú directamente. Sus scripts solo entienden inglés: en español revisa con sus reglas |
 | Antes de mergear un PR importante (seguridad, pagos, permisos, PR grande) | **thermos** | Dos revisores en paralelo: bugs y seguridad + calidad de código | `/thermos` solo lo activa el usuario. Tú puedes lanzar en paralelo los subagentes `thermo-nuclear-review-subagent` y `thermo-nuclear-code-quality-review-subagent` con el diff, o sugerir `/thermos` |
 | Antes de mergear o deployar algo con login, endpoints, Server Actions, Supabase, pagos o permisos | **revision-seguridad-backend** | 12 fallos que las apps hechas con IA repiten: sesión, validación, dueño del recurso (IDOR), precios del cliente, RLS, rate limiting, contraseñas, recuperación de cuenta, tokens, tarjetas, deploy | Úsala tú directamente: corre su `revisar.mjs` sobre el código y lee cada endpoint con `referencias/puntos.md` |
+| Auditoría de seguridad completa antes de un lanzamiento grande, con datos sensibles o pagos, o cuando lo pidan ("audita la seguridad", "pentest del código") | **security-audit** (Cloudflare) | Seis fases con agentes aislados; el agente que encuentra un fallo nunca es el que lo confirma, otro intenta desmentirlo. No toca tu código, no prueba contra producción y deja el reporte fuera del repo | Úsala tú solo si piden una auditoría completa: lanza muchos subagentes y tarda. Para revisiones rápidas, `revision-seguridad-backend` |
+| La app está lenta, antes de lanzar algo que espera tráfico, o un PR que toca consultas, listados o imágenes | **revision-rendimiento** | 10 problemas que el código generado repite: N+1, escrituras una por una, índices, interfaz que espera al backend, tareas largas síncronas, HTML dinámico, compresión y caché, imágenes, cuello de botella y prueba de carga | Úsala tú directamente: corre su `revisar.mjs`, mide antes y después, y para la carga usa `scripts/carga-k6.js` (solo local o staging) |
 | Antes de deployar un sitio web | **checklist-lanzamiento** | 36 cosas que una página hecha con IA suele olvidar (legal y consentimiento, SEO, imágenes, 404, spam, WhatsApp, Clarity, señales de IA, WordPress…) | Úsala tú directamente: compila y corre su `revisar.mjs` |
+| Al entregar un proyecto a un cliente ("qué le entrego", "acta de entrega", "manual de usuario") | **entrega-al-cliente** | Que el cliente sea dueño de sus cuentas, pueda operar sin llamarte y quede claro qué cubre la garantía: accesos, manuales, videos, soporte, legal y acta firmada | Úsala tú directamente: genera los documentos desde sus `plantillas/`, sin contraseñas en ellos |
 | Llegan links de videos (TikTok, YouTube…) o una idea para guardar (solo en el repo inicial) | **cerebro** | Lo útil de cada video queda en el vault de Obsidian (`cerebro/`) y termina en skills o proyectos, no en el olvido | Úsala tú directamente. Para listas de links sigue su `referencias/lote.md` |
 | Hay que crear o mejorar una skill | **skill-creator** (Anthropic) | Entrevista, borrador, casos de prueba y mejora de la descripción para que se active cuando debe | Úsala tú directamente. Las skills del equipo van en `skills/<nombre>/`, en español |
 | Escribir o editar notas, tableros (`.base`) o canvas de Obsidian (solo en el repo inicial) | **obsidian** (kepano: `obsidian-markdown`, `obsidian-bases`, `json-canvas`, `obsidian-cli`, `defuddle`) | Sintaxis correcta de Obsidian; `defuddle` saca una página web limpia en Markdown gastando menos tokens | Úsalas tú directamente al tocar `cerebro/` |
@@ -53,6 +56,9 @@ idea ──► grill-me ──► construir ──► anti-slop ──► revisi
 - **thermos**: cambios pequeños; es lenta y exigente a propósito.
 - **checklist-lanzamiento**: proyectos que no son sitios web (APIs, CLIs, bots).
 - **revision-seguridad-backend**: sitios estáticos sin backend, o cambios que no tocan datos, login ni permisos.
+- **security-audit**: revisiones del día a día o PRs pequeños; es lenta y costosa a propósito. Nunca contra sistemas en producción.
+- **revision-rendimiento**: apps pequeñas sin tráfico ni datos que crezcan; no optimices lo que no duele.
+- **entrega-al-cliente**: proyectos propios del equipo sin cliente externo.
 - **proteccion**: no se desactiva para "ir más rápido". Solo el usuario decide quitarla (`activar.sh --quitar`).
 - **cerebro**: preguntas rápidas que no hay que guardar; no crees notas que nadie pidió.
 - **skill-creator**: ajustes de una línea a una skill existente; edítala directo.

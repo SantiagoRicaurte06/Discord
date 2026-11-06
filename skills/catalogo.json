@@ -62,6 +62,44 @@
     "actualizar": "npx skills@latest update"
   },
   {
+    "nombre": "security-audit",
+    "hilo": "security-audit",
+    "repo": "cloudflare/security-audit-skill",
+    "archivos": [
+      "skills/security-audit/SKILL.md",
+      "skills/security-audit/VALIDATION-AND-REPORTING.md"
+    ],
+    "actualizar": "npx skills@latest update"
+  },
+  {
+    "nombre": "revision-rendimiento",
+    "hilo": "revision-rendimiento",
+    "repo": "SantiagoRicaurte06/Discord",
+    "archivos": [
+      "skills/revision-rendimiento/SKILL.md",
+      "skills/revision-rendimiento/referencias/puntos.md",
+      "skills/revision-rendimiento/scripts/revisar.mjs",
+      "skills/revision-rendimiento/scripts/carga-k6.js"
+    ],
+    "adjuntar": true,
+    "actualizar": "npx skills@latest update"
+  },
+  {
+    "nombre": "entrega-al-cliente",
+    "hilo": "entrega-al-cliente",
+    "repo": "SantiagoRicaurte06/Discord",
+    "archivos": [
+      "skills/entrega-al-cliente/SKILL.md",
+      "skills/entrega-al-cliente/referencias/legal.md",
+      "skills/entrega-al-cliente/plantillas/acta-de-entrega.md",
+      "skills/entrega-al-cliente/plantillas/inventario-accesos.md",
+      "skills/entrega-al-cliente/plantillas/manual-dueno.md",
+      "skills/entrega-al-cliente/plantillas/manual-empleados.md"
+    ],
+    "adjuntar": true,
+    "actualizar": "npx skills@latest update"
+  },
+  {
     "nombre": "checklist-lanzamiento",
     "hilo": "checklist-lanzamiento",
     "repo": "SantiagoRicaurte06/Discord",
