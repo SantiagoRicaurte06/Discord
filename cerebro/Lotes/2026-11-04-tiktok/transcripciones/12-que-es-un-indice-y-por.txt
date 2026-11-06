@@ -1,0 +1,22 @@
+url: https://vt.tiktok.com/ZSpFN3Q3g/
+plataforma: tiktok
+id: 7703398557813984532
+url_final: https://www.tiktok.com/@edicoder27/video/7703398557813984532?_r=1&_t=ZS-9B8Z2awgltq
+titulo: Qué es un índice y por qué tu consulta revisa un millón de filas. Fun...
+autor: edicoder27
+autor_url: https://www.tiktok.com/@edicoder27
+fecha_publicado: 2026-11-02
+duracion: 00:53
+vistas: 6094
+hashtags: aprendeentiktok, backend, basesdedatos, programacion, sql
+transcripcion: es (Whisper small/cuda)
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos\12\fotograma-01-00m07s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos\12\fotograma-02-00m21s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos\12\fotograma-03-00m36s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos\12\fotograma-04-00m50s.jpg
+---
+## Descripción del autor
+Qué es un índice y por qué tu consulta revisa un millón de filas. Fundamentos, parte 3 #basesdedatos #sql #backend #programacion #aprendeentiktok
+---
+## Transcripción
+[00:00] Esta consulta tardaba 3 segundos, con una sola línea bajó a 2 milisegundos. Buscamos un usuario por su correo en una tabla con un millón de filas. Sin índice, la base de datos revisa las filas una por una, del principio al final, hasta la fila un millón. Es como buscar un tema en un libro leyendo lo completo, en vez de ir al índice y ver dónde está lo que queremos buscar. Un índice es justo eso, una estructura ordenada que dice dónde está cada correo, la base de datos salta directo a la fila. Entonces, índice en todo? No. Cada índice ocupa más espacio y hace lenta las escrituras, porque hay que actualizarlo en cada íncer. La regla. Pon índices en las columnas por las que buscas, filtras o unas tablas a menudo. Y uso una spline para ver si tus consultas lo están usando. ¿Te ha pasado que de repente una consulta se volvió lenta? Avísame y los revisamos en el like.

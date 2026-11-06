@@ -1,0 +1,18 @@
+url: https://vt.tiktok.com/ZSpFF25SV/
+plataforma: tiktok
+id: 7701672067120368948
+url_final: https://www.tiktok.com/@agustin.paulise/video/7701672067120368948?_r=1&_t=ZS-9B8Z8WImwSu
+titulo: Últimamente te aparecen un montón de videos de motion graphics hechos...
+autor: agustin.paulise
+autor_url: https://www.tiktok.com/@agustin.paulise
+fecha_publicado: 2026-10-28
+duracion: 01:05
+vistas: 74200
+hashtags: claude, herramientasia, ia, inteligenciaartificial, motiongraphics
+transcripcion: es (Whisper small/cuda)
+---
+## Descripción del autor
+Últimamente te aparecen un montón de videos de motion graphics hechos con Claude que parecen una locura, y casi nadie te cuenta cómo se hacen.  Te lo explico en 3 pasos: 1️⃣ Entrá a prompt-motion.com, elegí el motion que más te guste y copiá el prompt 2️⃣ Abrí Claude y usá el modelo que te recomienda el motion, o el más alto que tengas 3️⃣ Pegá el prompt y pasale tu sistema de diseño: colores, tipografía y estilo de tu marca Así el resultado no es el mismo motion que usa todo el mundo, sino uno que parece tuyo.  Guardalo para cuando lo vayas a probar Mandáselo a alguien que cree contenido Seguime para más tips y herramientas de IA #claude #motiongraphics #inteligenciaartificial #ia #herramientasia
+---
+## Transcripción
+[00:00] Últimamente están apareciéndome un montón de videos en tendencia de motion graphics que está siendo clau que son literalmente una locura, pero el tema es que casi nadie te cuenta como realmente se hacen, así que quédate en este video, así te muestro como vos podés hacer el tuyo. Paso número 1. Vas a entrar a esta página que estás viendo y ahí vas a encontrar un montón de ejemplos de motion graphics que te pueden servir para hacer tu video. Vas a elegir el que más te guste y vas a copiar el prompt, fíjate que en la descripción también te va a indicar con qué modelo te recomiendo ejecutarlo y cuántas iteraciones podrías llegar a hacer. Paso número 2. Después te vas a ir a cloud y vas a elegir el modelo que te indicaba el motion que elegiste o el más alto que tengas disponible. Esto es muy importante porque la calidad del resultado varía mucho en base al modelo que elegís. Paso número 3. Vas a pegar el prompt que copiaste y acá le vas a indicar tu estilo de diseño, el sistema de diseño de tu marca, tu colores, tu tipografía, el estilo de tu marca básicamente. Esto es lo que va a hacer que no sea el mismo motion que usa todo el mundo, sino uno que parece tuyo. Y listo, así es como conseguirías resultados como todos los ejemplos que estás viendo hoy en día por Instagram. Y si quieres aprender más tips y herramientas como estas de IA, seguime para más.

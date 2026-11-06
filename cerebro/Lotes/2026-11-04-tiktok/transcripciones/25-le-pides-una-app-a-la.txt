@@ -1,0 +1,24 @@
+url: https://vt.tiktok.com/ZSpFNcde4/
+plataforma: tiktok
+id: 7701898553156734228
+url_final: https://www.tiktok.com/@explicandobugabug/video/7701898553156734228?_r=1&_t=ZS-9B8ZCUqngal
+titulo: ¿Le pides una app a la IA y SIEMPRE te mete Supabase? 🤖 No es casuali...
+autor: explicandobugabug
+autor_url: https://www.tiktok.com/@explicandobugabug
+fecha_publicado: 2026-10-29
+duracion: 01:35
+vistas: 17700
+hashtags: API, CICD, ExplicandoBugABug, angular, aprendeaprogramar, aws, backend, basededatos, ciberseguridad, code, database, desarrolloweb, devops, docker, dockercompose, gcloud, ia, inteligenciaartificial, lovable, nocode, postgres, programacion, programacionweb, programadores, react, supabase, techtok, tecnologia, tiktokeducativo, tsx
+transcripcion: es (Whisper small/cuda)
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos\25\fotograma-01-00m11s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos\25\fotograma-02-00m35s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos\25\fotograma-03-00m59s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos\25\fotograma-04-01m23s.jpg
+---
+## Descripción del autor
+¿Le pides una app a la IA y SIEMPRE te mete Supabase? 🤖 No es casualidad 👇 1️⃣ Todo en uno: base de datos, login, archivos y tiempo real 2️⃣ No necesitas servidor: tu página habla directo con la base de datos 3️⃣ Ya viene conectada en Lovable y Bolt 4️⃣ Es Postgres + tiene plan gratis ⚠️ El peligro: la llave pública va en tu navegador. Si no activas RLS (seguridad a nivel de fila), cualquiera puede leer tus datos. En 2025, más de 170 apps hechas con Lovable quedaron expuestas por esto (CVE-2025-48757). Tip: pídele a la IA que active RLS en cada tabla 🔒 #supabase #ia #inteligenciaartificial #vibecoding #lovable #programacion #desarrolloweb #backend #postgres #ciberseguridad #aprendeaprogramar #nocode #tecnologia #programadores #tiktokeducativo #docker #dockercompose #programacion #aprendeaprogramar #backend #desarrolloweb #techtok #ExplicandoBugABug #programacionweb #aws #gcloud #basededatos #database #API #angular #tsx #react #CICD #code #devops
+---
+## Transcripción
+[00:00] ¿Por qué la IA siempre elige SuperBase? Tiene cuatro razones y un peligro. SuperBase es un backend completo en una sola cuenta, base de datos posgres, login de usuarios, archivos y datos en tiempo real. Razón 1, todo en uno. Para la IA, menos piezas es menos errores. En vez de conectar cinco servicios distintos, conecta uno solo. Razón 2, no necesitas servidor. Tu página habla directo con la base de datos usando una llave pública. Así, la IA solo escribe el frontend y la app funciona sin programar un backend. Razón 3, ya viene conectada. Herramientas como lovable y bolt traen SuperBase integrado. Un clic y tu app ya tiene base de datos. Razón 4, por dentro es Postgres, una de las bases de datos más documentadas del mundo. La IA escribe ese QL muy bien y además tiene plan gratis para empezar. Pero ojo, esa llave pública va en tu navegador y cualquiera puede verla.
+
+[01:10] Lo único que protege tus datos es algo llamado RLS, Seguridad a nivel de fila. En 2025, más de 170 apps hechas con lovable dejaron datos expuestos por no tenerlo bien configurado. Así que, si la IA te arma la app con SuperBase, pídela que active RLS en cada tabla y revisa quién puede leer y escribir.

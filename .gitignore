@@ -3,3 +3,12 @@ node_modules/
 # Datos del bot (base, copias): nunca al repo
 data/*
 !data/.gitkeep
+.env.*
+!.env.example
+.DS_Store
+*.log
+dist/
+build/
+coverage/
+__pycache__/
+.venv/

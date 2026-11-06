@@ -1,0 +1,18 @@
+url: https://vt.tiktok.com/ZSpFF6ayb/
+plataforma: tiktok
+id: 7686621270636498189
+url_final: https://www.tiktok.com/@sebas.soto222/video/7686621270636498189?_r=1&_t=ZS-9B8ZLUqo4wy
+titulo: NO LANCES TU APP SIN ESTAS 3 COSAS #app #website #programador #claude...
+autor: sebas.soto222
+autor_url: https://www.tiktok.com/@sebas.soto222
+fecha_publicado: 2026-09-17
+duracion: 00:46
+vistas: 19700
+hashtags: app, claude, programador, rendimiento, website
+transcripcion: es (Whisper small/cuda)
+---
+## Descripción del autor
+NO LANCES TU APP SIN ESTAS 3 COSAS #app #website #programador #claude #rendimiento
+---
+## Transcripción
+[00:00] No lances tu app si no tienes estas tres cosas. Número uno, compresión de imágenes. Si las imágenes de tu app ocupan más de un megabyte, están ocupando espacio y haciendo tu app lenta. Invírtelas a este formato y tranquilo, es fácil. Solamente vea este website que es gratis y creado por Google. Número dos, es lazy loading. Y la regla de oro es básicamente no cargue tu data a menos que la necesite. Por ejemplo, si tienes una base de datos llena de imágenes y el usuario desliza, solamente caiga las imágenes que el usuario va viendo. O sea, mientras vas creoleando. Y número tres, dale al F12 y presiona en Lighthouse. Y permítate que Google analice tu app. Rendimiento web, accesibilidad, SEO, mejores prácticas. Luego de todo eso, exporta los resultados a Cloud Code y que te dé los pasos para corregirlo. Así que espero que te haya funcionado y sígueme para más. Bye.

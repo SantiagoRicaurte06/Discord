@@ -1,0 +1,21 @@
+url: https://vt.tiktok.com/ZSpFFucJD/
+plataforma: tiktok
+id: 7699628497941122311
+url_final: https://www.tiktok.com/@morfeoacademy/video/7699628497941122311?_r=1&_t=ZS-9B8ZUFnBidC
+titulo: Le prohibí a Claude cuatro cosas para que mis guiones no suenen a int...
+autor: morfeoacademy
+autor_url: https://www.tiktok.com/@morfeoacademy
+fecha_publicado: 2026-10-22
+duracion: 00:44
+vistas: 8529
+transcripcion: es (Whisper small/cuda)
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos2\32\fotograma-01-00m06s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos2\32\fotograma-02-00m18s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos2\32\fotograma-03-00m30s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos2\32\fotograma-04-00m42s.jpg
+---
+## Descripción del autor
+Le prohibí a Claude cuatro cosas para que mis guiones no suenen a inteligencia artificial. Te las dejo para que las copies hoy. Uno: decir lo que algo no es antes de decir lo que es. La frase «no es esto, es aquello» aparece en casi cualquier posteo hecho con IA. Dos: las listas de tres adjetivos. «Rápido, fácil y barato» suena a publicidad de los noventa. Tres: cerrar cada párrafo con una frase corta que repite lo que ya dijiste. Cuatro, la más importante: que suene como yo. Si escribe «tienes» o «puedes», ya se nota que no soy yo. La prueba final es leer el guion en voz alta, y si me trabo, lo reescribo. Las mías salieron de las correcciones que le fui haciendo. Juntá las frases que te molestan, explicale a Claude por qué y pedile que revise cada guion contra esa lista antes de mostrártelo. Si querés armar tu sistema con tus propias reglas, entrá al link de mi perfil.
+---
+## Transcripción
+[00:00] Le prohibía a Cloud cuatro cosas para que mis guiones no suenen a inteligencia artificial. Te muestro cuales para que puedas copiarlas hoy. Decir lo que algo no es antes de decir lo que es. Esa frase de no es esto, es aquello, aparece en casi cualquier posteo hecho con IA. Las listas de tres adjetivos. Rápido, fácil y barato, suena a publicidad de los 90. Cerrar cada párrafo con una frase corta que resume lo que ya dijiste. Y la última es la más importante, que suene como yo. Si escribe tienes o puedes, ya se nota que no soy yo. La prueba es leer el guión en voz alta. Si me trabo, se reescribe. Las mías salieron de las correcciones que le fui haciendo. Junta las frases que te molestan, explícale por qué y pedile que revise cada guión contra esa lista antes de mostrárselo. Si querés armar tu sistema con tus propias reglas, entra el link de mi perfil.

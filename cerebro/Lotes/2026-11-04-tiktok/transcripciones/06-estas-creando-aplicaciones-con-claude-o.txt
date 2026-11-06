@@ -1,0 +1,18 @@
+url: https://vt.tiktok.com/ZSpFNPtLw/
+plataforma: tiktok
+formato: carrusel de fotos
+id: 7703976999353699606
+url_final: https://www.tiktok.com/@chavescerrejon/video/7703976999353699606
+titulo: ¿Estás creando aplicaciones con Claude o ChatGPT? 🤖 Hay 5 errores que...
+autor: chavescerrejon
+autor_url: https://www.tiktok.com/@chavescerrejon
+fecha_publicado: 2026-11-03
+duracion: 00:59
+vistas: 17900
+hashtags: claudecode, diseñoweb, inteligenciaartificial, productividad, vibecoding
+transcripcion: NO DISPONIBLE
+motivo: el video no tiene subtítulos
+motivo: es un carrusel de fotos: no hay voz y las imágenes no se pueden bajar (pide capturas)
+---
+## Descripción del autor
+¿Estás creando aplicaciones con Claude o ChatGPT? 🤖 Hay 5 errores que pueden hacerte perder horas de trabajo, incluso aunque no sepas programar. El vibe coding está cambiando la forma de desarrollar aplicaciones. Herramientas como Claude Code permiten convertir ideas en proyectos reales utilizando inteligencia artificial, pero conseguir que una app funcione correctamente requiere algo más que escribir un prompt. En este carrusel te enseño 5 errores habituales al crear apps con IA y, lo más importante, ejemplos prácticos de cómo solucionarlos: ❌ Empezar con prompts demasiado genéricos. ❌ Programar sin definir las pantallas y funcionalidades. ❌ Confundir una interfaz bonita con una aplicación funcional. ❌ Pedir demasiados cambios al mismo tiempo. ❌ Publicar sin comprobar que todo funciona. Además, encontrarás ejemplos de prompts para Claude que puedes adaptar a tus propios proyectos y utilizar para mejorar tus resultados. 📌 Guarda este post para consultarlo antes de empezar tu próxima aplicación. 💬 ¿Qué es lo que más te cuesta cuando utilizas IA para programar? 🚀 Descubre mis recursos de inteligencia artificial y herramientas para crear mejores proyectos desde el enlace de mi bio. #claudecode #inteligenciaartificial #vibecoding #productividad #diseñoweb

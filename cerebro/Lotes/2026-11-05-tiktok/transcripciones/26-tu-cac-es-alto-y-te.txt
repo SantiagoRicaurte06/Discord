@@ -1,0 +1,22 @@
+url: https://vt.tiktok.com/ZSpFFMnXB/
+plataforma: tiktok
+id: 7699916865769950485
+url_final: https://www.tiktok.com/@jaimejjat/video/7699916865769950485?_r=1&_t=ZS-9B8ZMpCSIwp
+titulo: «Tu CAC es alto y te quedan 6 meses de runway» 🤔 El vocabulario de un...
+autor: jaimejjat
+autor_url: https://www.tiktok.com/@jaimejjat
+fecha_publicado: 2026-10-23
+duracion: 02:46
+vistas: 37900
+hashtags: aprendeentiktok, emprendimiento, startups, tecnologia, venturecapital
+transcripcion: es (Whisper small/cuda)
+---
+## Descripción del autor
+«Tu CAC es alto y te quedan 6 meses de runway» 🤔 El vocabulario de una startup en el orden en que vive una, de la idea a la bolsa, con datos reales de Carta y Crunchbase. #startups #emprendimiento #venturecapital #tecnologia #aprendeentiktok
+---
+## Transcripción
+[00:00] Vocabulario de startups, explicado rápido. Te te dicen, tu ICP no está claro. Tu CAC es alto y te quedan seis meses de runway. ¿Entendiste algo? Vamos con el diccionario, en el orden en que vive una startup. De la idea, a la bolsa. Todo empieza con el ICP, el perfil de cliente ideal. ¿Quién tiene el problema? Con nombre y apellido, no pimes. Clínicas dentales con dos a cinco sillas. Para ese cliente construyes un MVP, producto mínimo viable, lo más pequeño que puedes lanzar para aprender si alguien lo quiere. Airbnb empezó alquilando tres colchones inflables en un apartamento. Si lo quieren de verdad, tienes Product Market Fit. La prueba de Sean Ellis, si más del 40% de tus usuarios estaría muy decepcionado sin tu producto, vas bien. Si no, pivotas. Cambias de producto o de cliente sin cambiar de empresa. Instagram empezó como Bourbon, una app de check-ins. Para crecer, necesitas plata. Puedes hacer bootstrapping, crecer solo con lo que vendes. O levantar venture capital, VC. Fondos que ponen dinero en muchas startups a cambio de un pedazo de cada una. Ese pedazo es el equity. Apuestan sabiendo que casi todas fallan.
+
+[01:02] Según Correlation Ventures, dos de cada tres rondas no devuelven lo invertido. Buscan la que paga por todas. Para convencerlos, llevas un pitch deck, unas 10 láminas. Si les gusta, te mandan un term sheet. La hoja con el precio y las condiciones. La plata llega en rondas. Pre-seed, seed, sería A, B, C. Según carta, la seed mediana de este año levanta 4 millones de dólares. Y cada ronda te diluye. Tu porcentaje baja aunque el pastel crezca. En esa seed mediana, el inversionista se queda con el 18%. Las acciones del equipo no llegan de golpe. Hay vesting. Lo estándar son 4 años con un cliff de 1. Si te vas antes de 12 meses, te vas sin nada. Con la plata en el banco aparecen dos palabras. Burn rate. ¿Cuánto quemas al mes? Runway. ¿Cuántos meses te quedan? 1 millón en caja, quemando 100 mil al mes, 10 meses. Para saber si vas bien, el MRR, ingreso recurrente mensual. Multiplicado por 12, es el ARR. El churn es el porcentaje de clientes que se te va cada mes. Parece poco. Con un 5% mensual, lo calculé, en un año pierdes casi la mitad. El CAC es lo que te cuesta conseguir un cliente. El LTV lo que te deja en toda su vida.
+
+[02:05] Regla práctica. El LTV debe ser al menos 3 veces el CAC. Si todo sale bien, llegas a unicornio. Una startup privada que vale más de 1,000 millones de dólares. Crunchbase cuenta unas 1,840. Y al final, el exit. Cuando fundadores e inversionistas convierten sus acciones en dinero, lo más común es que te compre una empresa más grande. La otra salida es la IPO, la oferta pública inicial. Tus acciones empiezan a venderse en la bolsa. Newbank salió en Nueva York en 2021 y abrió valiendo cerca de 52,000 millones. Repaso. ICP, MVP, Product Market Fit, VC, Runway, Churn, IPO. Ahora ya hablas startup. Sígueme para entender la tecnología por dentro.

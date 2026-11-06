@@ -1,0 +1,22 @@
+url: https://vt.tiktok.com/ZSpFFMkNH/
+plataforma: tiktok
+id: 7679983896607345941
+url_final: https://www.tiktok.com/@mike.dev1/video/7679983896607345941?_r=1&_t=ZS-9B8ZOpWlTza
+titulo: Cosas que tienes que decirle a Claude antes de que lances tu pagina w...
+autor: mike.dev1
+autor_url: https://www.tiktok.com/@mike.dev1
+fecha_publicado: 2026-08-31
+duracion: 00:30
+vistas: 61700
+hashtags: claude, desarrollador, ia, programacion
+transcripcion: es (Whisper small/cuda)
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos2\27\fotograma-01-00m03s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos2\27\fotograma-02-00m11s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos2\27\fotograma-03-00m19s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos2\27\fotograma-04-00m26s.jpg
+---
+## Descripción del autor
+Cosas que tienes que decirle a Claude antes de que lances tu pagina wen #desarrollador #ia #claude #programacion
+---
+## Transcripción
+[00:00] cosas que le tienes que decir a clod antes de que lanzes tu propia página web. Pagina 404 personalizada, sete avisible sin hacer scroll, en enlaces internos, página de agradecimiento, breadcrumbs, casos de éxito, 5 preguntas frecuentes, promesa de tiempo de respuesta, sete a fijo en el móvil, archivo robots.txt, títulos únicos por página, meta descripciones, imagen para compartir en redes, mapas y direcciones, reseñas reales, texto alternativo, texto alternativo en imágenes, esquema local, política de privacidad, google analytics, foto del equipo. Sigue para más consejos así.

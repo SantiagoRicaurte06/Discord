@@ -1,0 +1,22 @@
+url: https://vt.tiktok.com/ZSpFFdqbb/
+plataforma: tiktok
+id: 7703574133224819976
+url_final: https://www.tiktok.com/@iadeguardiadev/video/7703574133224819976?_r=1&_t=ZS-9B8Z39Uvb56
+titulo: 20 cosas para que no demanden tu app, en menos de 30 segundos ⏱️ Vers...
+autor: iadeguardiadev
+autor_url: https://www.tiktok.com/@iadeguardiadev
+fecha_publicado: 2026-11-02
+duracion: 00:46
+vistas: 28700
+hashtags: apps, claude, emprendimiento, ia, iadeguardia, legal, mexico, programacion
+transcripcion: es (Whisper small/cuda)
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos\13\fotograma-01-00m06s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos\13\fotograma-02-00m19s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos\13\fotograma-03-00m31s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos\13\fotograma-04-00m44s.jpg
+---
+## Descripción del autor
+20 cosas para que no demanden tu app, en menos de 30 segundos ⏱️ Versión México: aviso de privacidad, derechos ARCO, Profeco y más. Claude no tuvo piedad. ¿Cuál le falta a la tuya? 👇 #programacion #apps #emprendimiento #ia #claude #legal #mexico #iadeguardia
+---
+## Transcripción
+[00:00] Claude, mi app sale mañana. ¿Qué le falta para que no me demanden? 20 cosas. En 30 segundos. ¿Listo? Aviso de privacidad. Terminos y condiciones. Política de reembolsos. Aviso de cookies. Un botón para rechazarlas. Casillas sin palomear. Y pide solo los datos que usas. ¡Más espacio! No, revisa que datos se llevan tus librerías. Nada de trampas para cancelar. Precio final sin cargo sorpresa. Cero reseñas falsas. No prometas lo que no cumples. Texto alternativo a las imágenes. Colores que se lean, que funcione con teclado. Tu nombre legal y un contacto. Permiso de los papás si hay menores. Un botón para darse de baja. Imágenes con licencia. Y un botón para borrar la cuenta. 20. ¿Y todo eso me lo haces tú? Casi todo. Pero el aviso de privacidad que lo revise un abogado. ¡Guárdalo! ¿Cuál de las 20 le falta tu app?

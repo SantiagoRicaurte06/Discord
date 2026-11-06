@@ -1,0 +1,18 @@
+url: https://vt.tiktok.com/ZSpFNcd7d/
+plataforma: tiktok
+id: 7692793523732614422
+url_final: https://www.tiktok.com/@luisalvarezweb/video/7692793523732614422?_r=1&_t=ZS-9B8ZEOQhe4d
+titulo: Diez cosas de seguridad que reviso antes de lanzar una web 👇 ✅ HTTPS,...
+autor: luisalvarezweb
+autor_url: https://www.tiktok.com/@luisalvarezweb
+fecha_publicado: 2026-10-05
+duracion: 00:23
+vistas: 7124
+hashtags: autonomos, ciberseguridad, diseñoweb, emprendedores, freelance, fyp, negocioonline, negociosonline, paginaweb, presenciadigital, pymes, seguridadweb, webdesign, wordpress
+transcripcion: es (Whisper small/cuda)
+---
+## Descripción del autor
+Diez cosas de seguridad que reviso antes de lanzar una web 👇 ✅ HTTPS, el candado, en todas las páginas ✅ Cortafuegos que bloquee los ataques ✅ reCAPTCHA en todos los formularios ✅ Bloqueo a quien prueba contraseñas sin parar ✅ Escáner de virus que revise tu web a diario ✅ WordPress, plugins y tema al día ✅ Ningún plugin pirata ✅ Copia automática, guardada fuera del hosting ✅ Otra dirección de acceso, no wp-admin ✅ Verificación en dos pasos para entrar Guárdalo y ve marcando 📝 #seguridadweb #wordpress #paginaweb #diseñoweb #ciberseguridad #negocioonline #freelance #emprendedores #webdesign #presenciadigital #negociosonline #fyp #pymes #autonomos
+---
+## Transcripción
+[00:00] 10 cosas de seguridad que reviso antes de lanzar una página web. HTTPS, el candadito en todas las páginas. Corta-fuegos que bloqueen los ataques. De Katsap en todos los formularios. Un bloqueo a quien prueba contraseñas sin parar. Scanner de virus que reviste tu web a diario. WordPress plugins y temas al día. Copia automática pero guardada fuera del hosting. Otra edición de acceso que no sea UWP Admin. Y verificación en dos pasos para entrar.

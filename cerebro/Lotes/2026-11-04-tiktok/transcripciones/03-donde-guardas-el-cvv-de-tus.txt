@@ -1,0 +1,22 @@
+url: https://vt.tiktok.com/ZSpFN5rDM/
+plataforma: tiktok
+id: 7704085012466945281
+url_final: https://www.tiktok.com/@caliche.tech/video/7704085012466945281?_r=1&_t=ZS-9B8YuGwVzlA
+titulo: ¿Dónde guardas el CVV de tus clientes? Si la respuesta es "en alguna ...
+autor: caliche.tech
+autor_url: https://www.tiktok.com/@caliche.tech
+fecha_publicado: 2026-11-03
+duracion: 01:03
+vistas: 3458
+hashtags: aws, backend, ciberseguridad, fintech, pagos
+transcripcion: es (Whisper small/cuda)
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos\03\fotograma-01-00m07s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos\03\fotograma-02-00m23s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos\03\fotograma-03-00m39s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos\03\fotograma-04-00m55s.jpg
+---
+## Descripción del autor
+¿Dónde guardas el CVV de tus clientes? Si la respuesta es "en alguna tabla", ya tienes un problema: el CVV NO se guarda, nunca, ni cifrado (lo prohíbe la norma de tarjetas). Y el número completo tampoco: el día que te filtren la base, entregas las tarjetas de todos. La salida es tokenizar + AWS Payment Cryptography. #aws #fintech #ciberseguridad #pagos #backend
+---
+## Transcripción
+[00:00] Pregunta de entrevista Procesas pagos y guardas el CVB, el código de atrás de la tarjeta. ¿En qué tabla queda? La respuesta correcta es en ninguna. El CVB no se guarda, nunca, ni cifrado. La norma de las tarjetas lo prohíbe. Ese código se usa una vez para autorizar el pago y se vota. Si lo guardas, aunque sea un ratico, ya estás en falta. El CVB ni lo tocas. Y el número completo de la tarjeta, ese sí lo guardas. Pero no como crees. Si te filtran la base, no quieres entregar las tarjetas de todos. Por eso, lo cambias por un token y guardas solo los últimos cuatro. En AWS, eso lo monta Payment Cryptography. Cifra las llaves dentro de un cofre que ni tú ves sin cifrar. Tú cobras contra el token y si te roban la base, se llevan basura. Guardate esto. Los cuatro datos que nunca tocan tu base. El número completo. El CVB. La banda y el PIN. Guárdalo para tu próximo diseño de pagos.

@@ -1,0 +1,22 @@
+url: https://vt.tiktok.com/ZSpFNvhSR/
+plataforma: tiktok
+id: 7702847849318452502
+url_final: https://www.tiktok.com/@migue.baena/video/7702847849318452502?_r=1&_t=ZS-9B8Z5emgLHm
+titulo: ¿Instalas habilidades en Claude Code sin comprobar si son seguras? 🤔 ...
+autor: migue.baena
+autor_url: https://www.tiktok.com/@migue.baena
+fecha_publicado: 2026-10-31
+duracion: 00:44
+vistas: 32900
+hashtags: AITools, Ciberseguridad, ClaudeCode, InteligenciaArtificial, NVIDIA, Programacion, SeguridadDigital, SkillSpector
+transcripcion: es (Whisper small/cuda)
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos\20\fotograma-01-00m06s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos\20\fotograma-02-00m18s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos\20\fotograma-03-00m30s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos\20\fotograma-04-00m42s.jpg
+---
+## Descripción del autor
+¿Instalas habilidades en Claude Code sin comprobar si son seguras? 🤔 Las herramientas de terceros pueden incluir instrucciones maliciosas o vulnerabilidades que pongan en riesgo tus proyectos.⚠️ • 📌 SkillSpector, de NVIDIA, está diseñado para analizar agentes y ayudar a detectar posibles problemas de seguridad antes de ejecutar código. 🔐 💡 Recuerda: ningún escáner garantiza una protección total, pero revisar las herramientas que instalas es un paso importante. • 👉🏻 Si quieres conocerla, ingresa al link https://skill-spectre-secure.base44.app/ 🚀 Visita el enlace de mi perfil para unirte a mi comunidad exclusiva y descubrir más herramientas de IA. • #NVIDIA #SkillSpector #ClaudeCode #Ciberseguridad #InteligenciaArtificial #AITools #Programacion #SeguridadDigital
+---
+## Transcripción
+[00:00] Si instalas en Cloud habilidades que encuentras en Instagram sin revisarlas, podrías abrirle la puerta a un ataque sin darte cuenta. Pero puedes añadir un guardián que las analice antes de usarlas. Se llama Skill Spectre. Es de envidia y busca instrucciones maliciosas, posibles robots de datos y otros riesgos. El problema es que instalar un analizador sirve de poco si luego te olvidas de ejecutarlo. Por eso lo interesante es integrarlo en el proceso de instalación. Puedes pedirle a Cloud Code que prepare un flujo que revise cada nueva habilidad y detenga ese proceso si aparecen riesgos graves, mostrando un informe para que decidas. Eso hay que configurarlo y probarlo. No se activa automáticamente por instalar el Skill Spectre. Así añades una revisión antes de incorporar código de terceros, aunque ningún análisis garantiza seguridad total.

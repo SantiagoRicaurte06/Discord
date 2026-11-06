@@ -1,0 +1,22 @@
+url: https://vt.tiktok.com/ZSpFY1Pa4/
+plataforma: tiktok
+id: 7692475022786481430
+url_final: https://www.tiktok.com/@torticodeyt/video/7692475022786481430?_r=1&_t=ZS-9B8ZcFoukmw
+titulo: Si envíos está caído, ¿qué pasa con tu pedido? Con Kafka, nada se pie...
+autor: torticodeyt
+autor_url: https://www.tiktok.com/@torticodeyt
+fecha_publicado: 2026-10-03
+duracion: 01:03
+vistas: 16700
+hashtags: backend, kafka, programacion, torticode
+transcripcion: es (Whisper small/cuda)
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos2\40\fotograma-01-00m07s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos2\40\fotograma-02-00m23s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos2\40\fotograma-03-00m39s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos2\40\fotograma-04-00m55s.jpg
+---
+## Descripción del autor
+Si envíos está caído, ¿qué pasa con tu pedido? Con Kafka, nada se pierde: la tienda escribe el evento y cada servicio lo lee cuando puede. Video completo en el canal de Torticode. #kafka #programacion #backend #torticode
+---
+## Transcripción
+[00:00] Pides pan en la tienda en línea de una panadería y pagas. En ese momento, el servidor de la tienda tiene que avisarle a tres partes. A la cocina para que lo prepare, a envíos para que lo lleve y a facturación para tu comprobante. Si las llama una por una y el servicio de envíos está caído, ¿qué pasa con tu pedido? Se queda esperando, falla o alguien tiene que acordarse de reintentarlo. Ahora mira otra forma. El servidor escribe una sola línea, pedido creado y sigue atendiendo. Cada parte lee esa línea cuando puede. Si envíos estuvo caído una hora, al volver sigue exactamente donde se quedó y no se pierde ningún pedido. Esa línea se escribe en Kafka. Nació en LinkedIn y, según el propio proyecto, hoy lo usan miles de empresas, entre ellas más del 80% de las 100 más grandes de Estados Unidos. En este video vas a ver qué es, para qué sirve, cómo funciona por dentro, cómo se usa desde tu código y cuándo no te conviene.

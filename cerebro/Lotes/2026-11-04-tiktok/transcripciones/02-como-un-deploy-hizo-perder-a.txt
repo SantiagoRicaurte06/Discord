@@ -1,0 +1,24 @@
+url: https://vt.tiktok.com/ZSpFNxsR1/
+plataforma: tiktok
+id: 7702186031793147137
+url_final: https://www.tiktok.com/@iterixs/video/7702186031793147137?_r=1&_t=ZS-9B8YtYbfy2K
+titulo: ¿Cómo un deploy hizo perder a Knight Capital más de 440 millones de d...
+autor: iterixs
+autor_url: https://www.tiktok.com/@iterixs
+fecha_publicado: 2026-11-04
+duracion: 01:12
+vistas: 774
+hashtags: bugs, deploy, devops, knightcapital, programacion
+transcripcion: es (Whisper small/cuda)
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos\02\fotograma-01-00m09s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos\02\fotograma-02-00m27s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos\02\fotograma-03-00m45s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos\02\fotograma-04-01m03s.jpg
+---
+## Descripción del autor
+¿Cómo un deploy hizo perder a Knight Capital más de 440 millones de dólares en 45 minutos? El código que hizo el daño, Power Peg, llevaba 9 años sin usarse y seguía instalado en los servidores. Y antes de abrir la bolsa, el sistema mandó 97 correos automáticos de error que nadie trató como alarma. Guárdalo para revisarlo antes de tu próximo deploy. #deploy #devops #programacion #bugs #knightcapital
+---
+## Transcripción
+[00:00] Un deploy hundió a Night Capital. Night compraba y vendía acciones con un programa. Y un deploy es subirle código nuevo. Al final, la regla que lo evitaba. Para una función nueva, reutilizaron un flag, un interruptor del código. Pero ese flag antes encendía PowerPEG, un código muerto que nadie usaba desde 2003. PowerPEG compraba acciones caros y las vendía barato sin parar. Pero el flag no fue el único error. Días antes, el deploy se hizo a mano en ocho servidores. Y aún no, nadie le copió el código nuevo. Al abrir la bolsa, ese servidor viejo leyó el flag como PowerPEG y disparó órdenes sin freno. Y al intentar apagarlo, empeoró. Sin botón de apagado, culparon al código nuevo y lo quitaron de los otros siete. Así, los ocho leyeron el flag como PowerPEG. En 45 minutos, perdió más de 440 millones de dólares. Y la empresa acabó vendida. La regla, borra el código muerto, automatiza el deploy y ten un botón de apagado.
+
+[01:06] Guárdalo para tu próximo deploy. Síguenos en Iterix.

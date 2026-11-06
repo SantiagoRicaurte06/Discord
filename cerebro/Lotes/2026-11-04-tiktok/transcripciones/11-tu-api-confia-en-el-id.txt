@@ -1,0 +1,24 @@
+url: https://vt.tiktok.com/ZSpFF1sHF/
+plataforma: tiktok
+id: 7697121395754470677
+url_final: https://www.tiktok.com/@ederr.tech/video/7697121395754470677?_r=1&_t=ZS-9B8Z1YIgHh9
+titulo: ¿Tu API confía en el ID que manda el cliente? Malas noticias 👇🏽 #ia #...
+autor: ederr.tech
+autor_url: https://www.tiktok.com/@ederr.tech
+fecha_publicado: 2026-10-16
+duracion: 01:16
+vistas: 12600
+hashtags: api, ciberseguridad, claude, ia, software
+transcripcion: es (Whisper small/cuda)
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos\11\fotograma-01-00m09s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos\11\fotograma-02-00m28s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos\11\fotograma-03-00m47s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos\11\fotograma-04-01m06s.jpg
+---
+## Descripción del autor
+¿Tu API confía en el ID que manda el cliente? Malas noticias 👇🏽 #ia #claude #api #ciberseguridad #software
+---
+## Transcripción
+[00:00] He vulnerado más de 50 endpoints y esto fue lo que descubrí. El otro día me encontré una app que aceptaba la creación de cuentas gratuitas, así que decidí registrarme como un usuario normal sin privilegios especiales. Sin embargo, decidí ir más allá y analicé el bundle de JavaScript de la web y encontré algo terrible. Almacenaba en el token en el local storage y además exponían todos sus endpoints, así que decidí tomar el token y llamar a mi propio recurso, el ID 1623. Sin embargo, bastó para solamente cambiar un número, 1620, y sucedió algo que no esperaba. El servidor nunca verificó si ese recurso era mío. Esto se llama IDOR, Insecure Direct Object Reference, y es una de las vulnerabilidades más comunes en apps reales. Así que decidí automatizarlo y pude recorrer una gran cantidad de IDs y extraer los datos de todos los usuarios. Y esto no se quedó solo en leer. Proved diversos endpoints con métodos como POST o PUT, cambiando el ID de otro recurso que no era mío y me dejó modificarlo. Y esto cada vez se ponía peor. Uno de los endpoints de reportes devuelve una URL firmada hacia un bucket de S3. Y ese endpoint no validaba el dueño del recurso, así que la URL firmada me dejaba descargar archivos directamente del bucket sin realizar ningún control adicional.
+
+[01:01] Mismo patrón, tres consecuencias distintas. Leer lo que no es tuyo, modificar lo que no es tuyo, y descargar archivos del storage sin permiso. Así que como recomendación, todo endpoint debe verificar que el recurso pertenece al usuario autenticado, y los tokens deberían vivir en cookies HTTP only.

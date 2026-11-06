@@ -1,0 +1,20 @@
+url: https://vt.tiktok.com/ZSpFFaas9/
+plataforma: tiktok
+id: 7700806352058223879
+url_final: https://www.tiktok.com/@luatech.ia/video/7700806352058223879?_r=1&_t=ZS-9B8ZPt9kyff
+titulo: Cloudflare liberó una herramienta gratuita que audita el código que e...
+autor: luatech.ia
+autor_url: https://www.tiktok.com/@luatech.ia
+fecha_publicado: 2026-10-26
+duracion: 01:25
+vistas: 37100
+hashtags: ciberseguridad, cloudflare, ia, programacion, techtok
+transcripcion: es (Whisper small/cuda)
+---
+## Descripción del autor
+Cloudflare liberó una herramienta gratuita que audita el código que escribe tu IA, y el agente que encuentra un fallo nunca es el que lo confirma. ¿Confiarías en ella o seguirías revisándolo tú? 👇 #ciberseguridad #ia #programacion #cloudflare #techtok
+---
+## Transcripción
+[00:00] Tu IA acaba de escribir el código de tu app, funciona, se ve perfecto, pero… y si dejó una vulnerabilidad escondida que ni tú ni ella notaron? Cloudflare liberó una herramienta de código abierto para cazar justo eso. Se llama Security Audit Scale, un método que le instalas a tu agente de código para que audite tu proyecto, y lo que la hace distinta es cómo trabaja. La auditoría se hace en seis fases. Primero se mapea tu proyecto y sus puntos más delicados. Después, varios agentes de IA salen a buscar fallos. Y aquí viene lo mejor. El agente que encuentra el problema nunca es el que lo confirma. Otro intenta desmentirlo. Si el fallo sobrevive, entonces sí llega tu reporte. Porque una cosa es encontrar un error. Otra, muy distinta, es demostrar que es un riesgo real. Aún así, una advertencia. Que no encuentre nada, no significa que tu app sea segura. Ninguna herramienta automática puede prometerlo. Es pública, con más de 33.000 estrellas en GitHub. Búscalala como Cloudflare Security, Guion Audit, Guion Scale.
+
+[01:11] Entonces, dime. ¿Dejarías que una IA escriba tu código y otra, guiada por esta herramienta, lo audite? O seguirías revisándolo tú.

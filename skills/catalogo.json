@@ -50,6 +50,56 @@
     "actualizar": "npx skills@latest update  (y vuelve a copiar los 2 subagentes con el comando de la publicación)"
   },
   {
+    "nombre": "revision-seguridad-backend",
+    "hilo": "revision-seguridad-backend",
+    "repo": "SantiagoRicaurte06/Discord",
+    "archivos": [
+      "skills/revision-seguridad-backend/SKILL.md",
+      "skills/revision-seguridad-backend/referencias/puntos.md",
+      "skills/revision-seguridad-backend/scripts/revisar.mjs"
+    ],
+    "adjuntar": true,
+    "actualizar": "npx skills@latest update"
+  },
+  {
+    "nombre": "security-audit",
+    "hilo": "security-audit",
+    "repo": "cloudflare/security-audit-skill",
+    "archivos": [
+      "skills/security-audit/SKILL.md",
+      "skills/security-audit/VALIDATION-AND-REPORTING.md"
+    ],
+    "actualizar": "npx skills@latest update"
+  },
+  {
+    "nombre": "revision-rendimiento",
+    "hilo": "revision-rendimiento",
+    "repo": "SantiagoRicaurte06/Discord",
+    "archivos": [
+      "skills/revision-rendimiento/SKILL.md",
+      "skills/revision-rendimiento/referencias/puntos.md",
+      "skills/revision-rendimiento/scripts/revisar.mjs",
+      "skills/revision-rendimiento/scripts/carga-k6.js"
+    ],
+    "adjuntar": true,
+    "actualizar": "npx skills@latest update"
+  },
+  {
+    "nombre": "entrega-al-cliente",
+    "hilo": "entrega-al-cliente",
+    "repo": "SantiagoRicaurte06/Discord",
+    "archivos": [
+      "skills/entrega-al-cliente/SKILL.md",
+      "skills/entrega-al-cliente/referencias/legal.md",
+      "skills/entrega-al-cliente/plantillas/acta-de-entrega.md",
+      "skills/entrega-al-cliente/plantillas/inventario-accesos.md",
+      "skills/entrega-al-cliente/plantillas/manual-dueno.md",
+      "skills/entrega-al-cliente/plantillas/manual-empleados.md"
+    ],
+    "adjuntar": true,
+    "actualizar": "npx skills@latest update"
+  },
+  {
     "nombre": "checklist-lanzamiento",
     "hilo": "checklist-lanzamiento",
     "repo": "SantiagoRicaurte06/Discord",
@@ -123,6 +173,42 @@
     "archivos": [
       "skills/guia-skills/SKILL.md",
       "skills/guia-skills/scripts/instalar.sh"
+    ],
+    "adjuntar": true,
+    "actualizar": "npx skills@latest update"
+  },
+  {
+    "nombre": "skill-creator",
+    "hilo": "skill-creator",
+    "repo": "anthropics/skills",
+    "archivos": [
+      "skills/skill-creator/SKILL.md"
+    ],
+    "actualizar": "npx skills@latest update"
+  },
+  {
+    "nombre": "obsidian",
+    "hilo": "obsidian",
+    "repo": "kepano/obsidian-skills",
+    "archivos": [
+      "skills/obsidian-markdown/SKILL.md",
+      "skills/obsidian-bases/SKILL.md",
+      "skills/json-canvas/SKILL.md",
+      "skills/obsidian-cli/SKILL.md",
+      "skills/defuddle/SKILL.md"
+    ],
+    "actualizar": "npx skills@latest update"
+  },
+  {
+    "nombre": "cerebro",
+    "hilo": "cerebro",
+    "repo": "SantiagoRicaurte06/Discord",
+    "archivos": [
+      "skills/cerebro/SKILL.md",
+      "skills/cerebro/referencias/lote.md",
+      "skills/cerebro/referencias/notas.md",
+      "skills/cerebro/scripts/transcripcion.py",
+      "skills/cerebro/scripts/lote.py"
     ],
     "adjuntar": true,
     "actualizar": "npx skills@latest update"

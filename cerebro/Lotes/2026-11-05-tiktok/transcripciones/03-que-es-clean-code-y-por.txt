@@ -1,0 +1,24 @@
+url: https://vt.tiktok.com/ZSpFFLujx/
+plataforma: tiktok
+id: 7703231555203878164
+url_final: https://www.tiktok.com/@davidev.tech/video/7703231555203878164?_r=1&_t=ZS-9B8Z3DEHuoJ
+titulo: 🚀🔥 ¿Qué es Clean Code y por qué todo programador debería conocerlo? 💻...
+autor: davidev.tech
+autor_url: https://www.tiktok.com/@davidev.tech
+fecha_publicado: 2026-11-01
+duracion: 02:01
+vistas: 1868
+hashtags: BuenasPracticas, CleanCode, Davidev, Programacion, RobertCMartin
+transcripcion: es (Whisper small/cuda)
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos\15\fotograma-01-00m15s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos\15\fotograma-02-00m45s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos\15\fotograma-03-01m16s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos\15\fotograma-04-01m46s.jpg
+---
+## Descripción del autor
+🚀🔥 ¿Qué es Clean Code y por qué todo programador debería conocerlo? 💻📚 🧠 Descubre los principios de Robert C. Martin (Uncle Bob) para escribir código limpio, legible y fácil de mantener. ⚡ Nombres claros, funciones pequeñas, menos duplicación y mejores prácticas para crear software de calidad. 🤔 ¿Tu código es fácil de entender o solo tú sabes cómo funciona? 😂👇 #CleanCode #RobertCMartin #Programacion #BuenasPracticas #Davidev
+---
+## Transcripción
+[00:00] Hay un libro que mide la calidad del código con una sola unidad. ¿Cuántas veces por minuto alguien lo lee y pregunta qué es esto? Es Clean Code de Robert C. Martin, conocido como Uncle Bob y uno de los firmantes del manifiesto ágil. Su idea central es que leer código nos toma más de 10 veces el tiempo que escribirlo. La primera regla son los nombres. En esta función nadie sabe que guardan P, F o T y si un nombre necesita un comentario no revela su intención. Por eso P pasa a ser pedido y T pasa a ser total. La segunda regla es que una función hace una sola cosa. Esta suma los productos, aplica el descuento y envía la factura, así que la partimos en tres funciones con nombres claros. Queda una llamada con un tru suelto que nadie entiende sin abrir la función. El libro lo llama Argumento bandera y propone dos funciones. Facturar y facturar con descuento. La decisión no desaparece, ahora la toma quien llama. Con estos nombres el comentario de arriba sobra porque el libro cita una regla clásica.
+
+[01:07] No comentes el código malo, reescríbelo. Los comentarios quedan para el porqué de una decisión o para una advertencia. En resumen antes había que adivinar qué hacía Proc. Y ahora el código se lee como una frase, facturar con descuento este pedido. Para no reescribir todo de golpe el libro propone la regla del Boy Scout. Cada vez que toques un archivo déjalo un poco más limpio de lo que lo encontraste. Eso sí, el libro tiene críticas. John Osterhout dice que tantas funciones diminutas te obligan a saltar entre muchas para entender una idea. Y Casey Muratori mostró que algunos de sus ejemplos sacrifican rendimiento. Tómalo como una guía y no como una ley y cada vez menos gente le era tu código preguntando qué es esto. Cuéntame en los comentarios qué regla de clean code ya aplicas.

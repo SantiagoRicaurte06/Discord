@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: lote-tres-links
+expected_outcome: |
+  Se crea una carpeta en cerebro/Lotes/ con enlaces.md (3 filas, la 3 marcada como duplicado de la 01), transcripciones/ y referencias-limpias.md con un bloque por video y la síntesis final; al terminar informa procesados, fallidos y las rutas, y no crea skills sin permiso.

@@ -1,0 +1,23 @@
+url: https://vt.tiktok.com/ZSpFNtBk8/
+plataforma: tiktok
+id: 7701061411589557524
+url_final: https://www.tiktok.com/@juanjimenezsieber/video/7701061411589557524?_r=1&_t=ZS-9B8Z48GEioh
+titulo: 4 señales obvias de que tu app fue hecha con Inteligencia Artificial,...
+autor: juanjimenezsieber
+autor_url: https://www.tiktok.com/@juanjimenezsieber
+fecha_publicado: 2026-10-31
+duracion: 01:11
+vistas: 15000
+transcripcion: es (Whisper small/cuda)
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos\16\fotograma-01-00m09s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos\16\fotograma-02-00m28s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos\16\fotograma-03-00m46s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos\16\fotograma-04-01m05s.jpg
+---
+## Descripción del autor
+4 señales obvias de que tu app fue hecha con Inteligencia Artificial, o vibecoded.
+---
+## Transcripción
+[00:00] Cuatro señales obvias de que tu app fue balcodeada y como arreglarlas. Hoy en día casi todos pueden identificar una aplicación que fue hecha con ViveCoding, especialmente gente que sabe cómo usar la IA. Número uno y la más obvia, tu texto de marketing o copy fue escrito con IA. Si hay frases como, no es esto, pero lo otro, probablemente fue escrito con IA. Nadie lo va a tomar en serie y todos pueden darse cuenta. En este caso yo creo que es mejor que lo escribas tú mismo, da tus ideas y quizás usa la IA para poder mejorarlas, pero si dejas que lo haga todo, es obvio. Dos, otra súper obvia, tu interfaces morada y azul o cualquier otro dos colores fuertes en degrade. Va lo mismo si tú estos dos colores los escogiste específicamente porque te encantan. Toda la IA está haciendo exactamente lo mismo. Dos colores de degrade. Tres, no tienes un fabicon, que es ese ícono pequeño que aparece en la pestaña de tu navegador, no existe tu aplicación. Te deberías pedir a la IA que haga uno personalizado para ti, quizás puede ser tu mismo logo, no sé, pero que algo esté ahí. Cuatro, tienes pésimo estado de carga, nada se carga, no se está manejando bien eso. Esto en general es muy fácil de reemplazarlo, dile a tu agente que use Skeleton Loaders, que simplemente son estados de carga bonitos para cuando algo se está cargando y no dejar una página blanca horrible. Esto también es mucho mejor que un spinner infinito que nunca te dice nada y no te da feedback. Ahora puedes sonar como mucho si no has escuchado estos términos antes,
+
+[01:04] pero también todo es va incogible. Así que agarra este video, vas a hacerla a tu agente y diré que arregle estas cosas por ti. Si te interesa este tipo de contenido, sígueme.

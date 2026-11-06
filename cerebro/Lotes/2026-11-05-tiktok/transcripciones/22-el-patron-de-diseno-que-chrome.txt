@@ -1,0 +1,24 @@
+url: https://vt.tiktok.com/ZSpFFmaNG/
+plataforma: tiktok
+id: 7699913350209096982
+url_final: https://www.tiktok.com/@linkfydev/video/7699913350209096982?_r=1&_t=ZS-9B8ZLHvThs0
+titulo: El patrón de diseño que Chrome utiliza y debes conocer #python #progr...
+autor: linkfydev
+autor_url: https://www.tiktok.com/@linkfydev
+fecha_publicado: 2026-10-23
+duracion: 02:06
+vistas: 27500
+hashtags: Tech, aprendecontiktok, javascript, programacion, python
+transcripcion: es (Whisper small/cuda)
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos2\22\fotograma-01-00m16s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos2\22\fotograma-02-00m49s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos2\22\fotograma-03-01m21s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos2\22\fotograma-04-01m54s.jpg
+---
+## Descripción del autor
+El patrón de diseño que Chrome utiliza y debes conocer #python #programacion #javascript #Tech #aprendecontiktok
+---
+## Transcripción
+[00:00] Si estás pensando en crear el próximo Spotify tendrías que conocer el patrón de diseño o mediator. Vale, vale, imagínate que pulsas el botón de siguiente canción. Parece fácil, ¿verdad? Pero ¿qué pasa si hay un anuncio que se está reproduciendo? ¿O qué pasa si tienes canciones pendientes en cola? Y no solo eso, ¿qué pasa si la tienes en reproducción en bucle? Ahí es donde todas las partes del sistema tienen que colaborar para decidir qué es lo que ocurre. Pero bien, si todos los componentes se conocen entre sí, tenemos un montón de dependencias. Esto hace que nuestro código sea difícil de mantener y encima difícil de reaprovechar. Y aquí es donde entra en juego mediator, un patrón de diseño que centraliza la comunicación entre componentes. Básicamente cada componente estaría notificando a nuestro mediador sin que tenga que conocer a los demás. Y es este mediador quien decide qué componentes tienen que intervenir y en qué orden. Perfecto, pero ¿cómo lo implementamos? Tendremos diferentes componentes para gestionar el reproductor, los anuncios, la cola y la interfaz, cada uno con sus propios métodos. Crearemos un mediator o un mediador con el método Notify que recibe los eventos. Ahora es cuando nuestro botón simplemente necesita una referencia al mediator para decirle, oye, siguiente canción. Y para ello cuando hagamos clic, ejecuta por ejemplo mediator.notify con el texto Next. Con esto nuestro mediator puede comprobar por un lado el sistema de anuncios para saber si puede proceder, consultar la cola y por otro lado decirle al reproductor que seleccione la siguiente canción en base a si estamos repitiendo o no.
+
+[01:09] Y finalmente coordinar la actualización de la interfaz, todo ello sin que los componentes se conozcan entre ellos. Ahora bien, todo tiene ventajas y desventajas. Lo bueno que estamos reduciendo el acoplamiento, esto hace que a la larga todo sea más fácil de refactorizar y de mantener. Pero bien, ¿qué pasa si nuestro mediator tiene demasiadas responsabilidades? Que acabaremos con una clase gigantesca también conocida como CodeObject. Leas e objeto Dios. Y para evitarlo, aquí dos recomendaciones. Número uno, aplicar el concepto de responsabilidad única. Nuestro mediator se tiene que encargar de coordinar, pero la lógica de negocio siempre la tenemos que delegar. Vamos, que cada componente o cada manejador de componentes encarga de lo suyo. Y por otro lado, si estás coordinando demasiadas funcionalidades que son independientes, entonces te conviene usar mediators especializados para cada caso. Y mueve el link file, esto está muy bonito, pero ¿hay algún caso real donde se utilice esto? Pues sí, de hecho el propio Google Chrome, en su versión para Android, tiene un tab list mediator. Esto le ayuda a coordinar la lógica que hay entre diferentes pestañas y también lo que estás viendo en la pantalla. Y lo mejor, que si te interesa, está el código fuente en Chromium. Y si te ha molado, hazme saber en comentarios si quieres más vídeos acerca de patrones de diseño.
