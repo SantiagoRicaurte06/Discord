@@ -1,0 +1,1 @@
+{ "name": "tienda-lenta", "dependencies": { "express": "^4.19.0", "@prisma/client": "^5.0.0", "nodemailer": "^6.9.0", "next": "^14.2.0", "react": "^18.3.0" } }
