@@ -4,10 +4,13 @@
 Uso:
   python lote.py <links.txt> <carpeta-del-lote> [--fotos DIR] [--fotogramas 4] [--whisper small]
   python lote.py <links.txt> <carpeta-del-lote> --solo-enlaces     # rehace enlaces.md sin bajar nada
+  python lote.py <links.txt> <carpeta-del-lote> --reusar cerebro/Lotes/<lote-anterior> [--reusar …]
 
 - <links.txt>: un link por línea, en orden (los duplicados se mantienen).
 - Escribe transcripciones/NN-titulo-corto.txt, estado.json (para retomar si se corta) y enlaces.md.
 - Si un video falla, lo anota con el motivo y sigue.
+- --reusar: los links que ya se procesaron en otro lote no se bajan de nuevo; se copia su transcripción y
+  quedan marcados "ya procesado en <lote> (NN)".
 """
 import argparse
 import json
@@ -53,6 +56,8 @@ def escribir_enlaces(links, estado, destino: Path):
             vistos[clave] = nn
             if e.get("motivo") and st != "procesado":
                 st += f" ({e['motivo']})"
+            if e.get("reusado"):
+                st += f" · ya procesado en {e['reusado']}"
         titulo = f" · {e['titulo']}" if e.get("titulo") else ""
         filas.append(f"| {nn} | {url}{titulo.replace('|', '/')} | {plataforma(url)} | {st} |")
     ok = sum(1 for e in estado.values() if e.get("estado") == "procesado")
@@ -70,6 +75,7 @@ def main():
     p.add_argument("--fotogramas", type=int, default=4)
     p.add_argument("--whisper", default="small", help="modelo de Whisper si no hay subtítulos ('no' para no usarlo)")
     p.add_argument("--solo-enlaces", action="store_true")
+    p.add_argument("--reusar", action="append", default=[], metavar="LOTE", help="carpeta de un lote anterior (se puede repetir)")
     a = p.parse_args()
 
     destino = Path(a.destino)
@@ -78,6 +84,29 @@ def main():
     links = [l.strip() for l in Path(a.links).read_text(encoding="utf-8").split() if l.strip().startswith("http")]
     estado_p = destino / "estado.json"
     estado = json.loads(estado_p.read_text(encoding="utf-8")) if estado_p.exists() else {}
+    # Links ya procesados en lotes anteriores: se copian en vez de bajarlos otra vez.
+    previos = {}
+    for lote in a.reusar:
+        ep = Path(lote) / "estado.json"
+        if ep.exists():
+            for k, v in json.loads(ep.read_text(encoding="utf-8")).items():
+                if v.get("estado") in ("procesado", "sin transcripción"):
+                    previos.setdefault(v["url"], (Path(lote), k, v))
+    for n, url in enumerate(links, 1):
+        nn = f"{n:02d}"
+        if nn in estado or url not in previos:
+            continue
+        lote, k, v = previos[url]
+        e = dict(v)
+        origen = lote / "transcripciones" / v.get("archivo", "")
+        if origen.is_file():
+            final = destino / "transcripciones" / f"{nn}-{slug(v.get('titulo'))}.txt"
+            final.write_text(origen.read_text(encoding="utf-8"), encoding="utf-8")
+            e["archivo"] = final.name
+        e.update({"url": url, "reusado": f"{lote.name} ({k})"})
+        estado[nn] = e
+    if previos:
+        estado_p.write_text(json.dumps(estado, ensure_ascii=False, indent=1), encoding="utf-8")
     escribir_enlaces(links, estado, destino)
     if a.solo_enlaces:
         return
@@ -99,6 +128,12 @@ def main():
         except subprocess.TimeoutExpired:
             salida, codigo, stderr = "", 1, "se pasó del tiempo (30 min)"
         cab = dict(re.findall(r"^(\w+): (.*)$", salida, re.M))
+        # TikTok a veces solo entrega su traducción automática al inglés (eng-US): se repite con el audio original.
+        if codigo == 0 and "tiktok" in url and re.match(r"eng", cab.get("transcripcion", "")) and a.whisper != "no":
+            r2 = subprocess.run([sys.executable, str(TRANSCRIPCION), url, "-o", str(tmp), "--solo-whisper", "--whisper", a.whisper],
+                                capture_output=True, text=True, encoding="utf-8", env=env, timeout=1800)
+            if r2.returncode == 0:
+                cab["transcripcion"] = dict(re.findall(r"^(\w+): (.*)$", r2.stdout, re.M)).get("transcripcion", cab["transcripcion"])
         e = {"url": url, "id": cab.get("id"), "titulo": cab.get("titulo"), "autor": cab.get("autor"),
              "duracion": cab.get("duracion"), "transcripcion": cab.get("transcripcion"),
              "fotogramas": re.findall(r"^fotograma: (.*)$", salida, re.M)}
