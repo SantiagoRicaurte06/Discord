@@ -1,0 +1,18 @@
+url: https://vt.tiktok.com/ZSpFFU5PG/
+plataforma: tiktok
+formato: carrusel de fotos
+id: 7701399931638009102
+url_final: https://www.tiktok.com/@sebas.soto222/video/7701399931638009102
+titulo: Crear una app con IA es rápido, pero lanzarla sin revisar la segurida...
+autor: sebas.soto222
+autor_url: https://www.tiktok.com/@sebas.soto222
+fecha_publicado: 2026-10-27
+duracion: 00:20
+vistas: 8302
+hashtags: claude, programador, seguridad
+transcripcion: NO DISPONIBLE
+motivo: el video no tiene subtítulos
+motivo: es un carrusel de fotos: no hay voz y las imágenes no se pueden bajar (pide capturas)
+---
+## Descripción del autor
+Crear una app con IA es rápido, pero lanzarla sin revisar la seguridad puede salirte caro. Estos 6 prompts te ayudan a detectar los errores más comunes:  inputs sin validar, falta de rate limiting, errores que exponen información sensible, sesiones mal manejadas, CORS mal configurado y rutas de API sin protección.💻 Guárdalo para tu próximo proyecto y compártelo con ese amigo que está creando su app. 🔥 #programador #seguridad #claude

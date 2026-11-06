@@ -1,0 +1,20 @@
+url: https://vt.tiktok.com/ZSpFYeRX4/
+plataforma: tiktok
+id: 7698363540859522312
+url_final: https://www.tiktok.com/@armelix.dev/video/7698363540859522312?_r=1&_t=ZS-9B8ZZ5a9bSU
+titulo: Dejá de guardar tus API keys en un .env 🔑 Hay bots que las encuentran...
+autor: armelix.dev
+autor_url: https://www.tiktok.com/@armelix.dev
+fecha_publicado: 2026-10-19
+duracion: 01:47
+vistas: 105900
+hashtags: aprendeentiktok, ciberseguridad, devsecops, github, javascript, programacion
+transcripcion: es (Whisper small/cuda)
+---
+## Descripción del autor
+Dejá de guardar tus API keys en un .env 🔑 Hay bots que las encuentran en minutos. #programacion #ciberseguridad #github #devsecops #javascript #aprendeentiktok
+---
+## Transcripción
+[00:00] Si tus API keys viven en un punto Env, tenemos que hablar. Ese archivo tiene todas tus llaves juntas, en texto plano, y se filtra por más lugares de los que pensás. Primero, el historial de Git. Subiste el punto Env por error. Lo borraste en el commit siguiente, pero el commit viejo sigue ahí, con la clave adentro. Segundo, el front. Las variables de entorno que usa el navegador terminan dentro del JavaScript que descarga cualquiera. Y tercero, tu propia computadora. Cualquier programa que corres puede leer ese archivo. ¿Y quién las encuentra? No una persona. Bots. Programas que leen cada commit público y prueban las claves que encuentran. En un experimento de Unit 42, una clave de AWS publicada en GitHub se usó en menos de cinco minutos. Hay campañas que escanean miles de servidores buscando archivos punto ENV expuestos. Y hubo paquetes de NPM infectados que, al instalarlos, buscaban secretos en la compu del desarrollador y los publicaban
+
+[01:05] en repos públicos. ¿Qué hacer en lugar de un punto Env? Uno, un gestor de secretos, como OpenBao, InFysical o Doppler. Las claves viven en un solo lugar. Cada persona ve solo lo que necesita y se inyectan cuando corres la app, sin archivos con claves dando vueltas. Dos, un scanner como GitLeaks o TruffleHog antes de cada push para que una clave nunca llegue al repo. Y tres, si una clave se filtró, rótala ya. Borrar el commit no alcanza. Guardalo para tu próximo proyecto y mandáselo a ese compañero que comparte el punto ENV por WhatsApp.

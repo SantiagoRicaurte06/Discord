@@ -1,0 +1,24 @@
+url: https://vt.tiktok.com/ZSpFFf2Lr/
+plataforma: tiktok
+id: 7699531903824661781
+url_final: https://www.tiktok.com/@andercdev/video/7699531903824661781?_r=1&_t=ZS-9B8ZTu1AreE
+titulo: Tu API responde en 100 ms… hasta que entran mil usuarios al mismo tie...
+autor: andercdev
+autor_url: https://www.tiktok.com/@andercdev
+fecha_publicado: 2026-10-22
+duracion: 01:36
+vistas: 9750
+hashtags: andercdev, backend, desarrolloweb, programacion, testing
+transcripcion: es (Whisper small/cuda)
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos2\31\fotograma-01-00m12s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos2\31\fotograma-02-00m37s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos2\31\fotograma-03-01m02s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos2\31\fotograma-04-01m28s.jpg
+---
+## Descripción del autor
+Tu API responde en 100 ms… hasta que entran mil usuarios al mismo tiempo 🔥 Con pruebas de carga (k6, Locust o Artillery) simulas miles de usuarios y descubres cuánto aguanta tu sistema. Ojo: no mires solo el promedio, revisa el p95 y el p99 📊 Mejor que el problema lo encuentres tú y no tus usuarios en producción. ¿Haces pruebas de carga o confías en la suerte? 👇 #backend #testing #desarrolloweb #programacion #andercdev
+---
+## Transcripción
+[00:00] Tus APIs responden en 100.000 segundos y hasta ahí todo bien. Luego entran mil usuarios al mismo tiempo y tu servidor empieza a quedarse un poco corto porque una cosa es que la aplicación funcione cuando solo tú la pruebas y otra muy diferente es cuando llegan cientos de usuarios al mismo tiempo y para eso existen cosas como las pruebas de carga, herramientas como K6 que usa JavaScript, Locus, que lo utilizaba Python o Artillery, te permiten simular cientos o miles de usuarios. Puedes probar qué pasa cuando el tráfico aumenta de golpe, cuánto aguanta tu sistema o cómo se comporta después de varias horas y mejor. Ahora también puedes apoyarte de la IA. Con las integraciones de K6 puedes usar agentes de código para ayudarte a crear o ejecutar varias pruebas pero ojo con los resultados. No te fije solamente en el promedio. Mira el P95 o el P99 porque mientras unas peticiones responden en mil milisegundos otras pueden tardar varios
+
+[01:12] segundos. Ahora recuerda esto, una prueba de carga no es para demostrar que tu sistema funciona, es para descubrir cuándo deja de funcionar porque es mejor que tú encuentres el problema y no que tus usuarios lo encuentran en producción y ahora dime, tú haces pruebas de cargas o sigues confiando en la suerte.

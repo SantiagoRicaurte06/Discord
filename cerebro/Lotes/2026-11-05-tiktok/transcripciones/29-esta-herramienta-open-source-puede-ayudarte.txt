@@ -1,0 +1,18 @@
+url: https://vt.tiktok.com/ZSpFFQuf7/
+plataforma: tiktok
+id: 7700244352676760855
+url_final: https://www.tiktok.com/@migue.baena/video/7700244352676760855?_r=1&_t=ZS-9B8ZRg8NHvj
+titulo: Esta herramienta open-source puede ayudarte a encontrar negocios loca...
+autor: migue.baena
+autor_url: https://www.tiktok.com/@migue.baena
+fecha_publicado: 2026-10-24
+duracion: 00:53
+vistas: 57700
+hashtags: Automatización, ClaudeCode, GeneraciónDeLeads, GoogleMaps, MarketingDigital, OpenSource, ProspecciónB2B
+transcripcion: es (Whisper small/cuda)
+---
+## Descripción del autor
+Esta herramienta open-source puede ayudarte a encontrar negocios locales para tu prospección B2B. 😱 📌 Se llama Google Maps Scraper Kit y permite recopilar información de negocios mediante búsquedas automatizadas, trabajando con Claude Code. 🤖 • ¿Cómo puedes aprovecharla? 👀 ☑️ Busca negocios por ciudad y categoría, como restaurantes en Madrid o clínicas dentales en Valencia. ☑️ Recopila datos disponibles, como nombres, direcciones, teléfonos y sitios web. ☑️ Organiza los resultados en un archivo CSV para investigar mercados y preparar tus listas de prospectos. ☑️ Puede ser útil para agencias, freelancers y equipos comerciales que buscan posibles clientes sin depender de suscripciones costosas. • ⚠️ Los datos disponibles varían según la herramienta y la fuente. Utiliza la automatización responsablemente y respeta las condiciones de uso y las normas de privacidad. 👉🏻 Si quieres probarla, ingresa al link https://miguebaena-ia.com/maps 📲 Visita el enlace de mi bio para unirte a mi comunidad exclusiva y descubrir más herramientas de IA. • #GoogleMaps #GeneraciónDeLeads #ClaudeCode #OpenSource #Automatización #MarketingDigital #ProspecciónB2B
+---
+## Transcripción
+[00:00] Esta herramienta Open Source te permite crear listas de potenciales clientes a partir de Google Maps sin pagar una suscripción mensual. Se llama Google Maps Scraper Kit. Funciona en tu ordenador y puedes controlarla directamente desde Cloud Code. Solo tienes que indicarle la ciudad y el tipo de negocio que estás buscando. Por ejemplo, busca clínicas dentales en Madrid. Cloud ejecuta la herramienta y te devuelve un archivo ordenado con los negocios que encuentre, incluyendo datos públicos como el nombre, la dirección, el teléfono, la web, las valoraciones. Y cuando están disponibles los correos electrónicos. También puedes activar una opción que visita las webs de esos negocios para buscar perfiles de Instagram, Facebook o LinkedIn. Eso sí, no consigue mágicamente todos los datos ni conviene utilizarlo para hacer búsquedas masivas sin control. Porque Google puede limitar temporalmente tu dirección IP. Pero para investigaciones concretas puede ahorrarte bastante trabajo y evitarte otra plataforma mensual.

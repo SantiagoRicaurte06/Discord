@@ -1,0 +1,24 @@
+url: https://vt.tiktok.com/ZSpFF9npT/
+plataforma: tiktok
+id: 7701905341612576020
+url_final: https://www.tiktok.com/@davidev.tech/video/7701905341612576020?_r=1&_t=ZS-9B8ZEvkbkVs
+titulo: 🚀🔥 ¿Qué es la Arquitectura Basada en Características (Feature-Based A...
+autor: davidev.tech
+autor_url: https://www.tiktok.com/@davidev.tech
+fecha_publicado: 2026-10-29
+duracion: 01:56
+vistas: 1654
+hashtags: ArquitecturaDeSoftware, CleanCode, Programacion, SoftwareEngineering
+transcripcion: es (Whisper small/cuda)
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos2\17\fotograma-01-00m15s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos2\17\fotograma-02-00m45s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos2\17\fotograma-03-01m15s.jpg
+fotograma: C:\Users\pc29\AppData\Local\Temp\claude\dbddd8f02e54fb51\2a4539f4-8683-4315-8dfc-34d2809d3fe7\scratchpad\fotos2\17\fotograma-04-01m45s.jpg
+---
+## Descripción del autor
+🚀🔥 ¿Qué es la Arquitectura Basada en Características (Feature-Based Architecture)? 💻🏗️ 🧩 Descubre cómo organizar tu código por funcionalidades en lugar de capas, logrando aplicaciones más modulares, escalables y fáciles de mantener. ⚡ ¡Menos acoplamiento, mayor cohesión y mejor trabajo en equipo! 🤔 ¿Prefieres organizar tus proyectos por capas o por características? 👀👇 #ArquitecturaDeSoftware #CleanCode #Programacion #SoftwareEngineering
+---
+## Transcripción
+[00:00] Para agregar un cupón de descuento a los pedidos, abriste cinco carpetas y en cada una, el código de pedidos estaba mezclado con el de usuarios. Eso pasa cuando organizas por tipo de archivo, controladores en una carpeta, servicios en otra, repositorios y modelos en otras. Un solo cambio queda repartido por todo el proyecto. La arquitectura basada en características le da la vuelta porque cada carpeta es una parte del negocio, como usuarios o pedidos. Con todo lo que necesita adentro. Así el cupón se cambia en una sola carpeta. En el backend con nest.js, la carpeta pedidos guarda su controlador, su servicio, su repositorio y un módulo que los une. Las capas siguen ahí, solo que viven dentro de pedidos. Para crear un pedido hay que buscar al usuario y aquí está la regla clave. Pedidos nunca toca el repositorio de usuarios. Le pide los datos a usuarios service, que es lo único que ese módulo exporta. En el frontend con react pasa lo mismo. Dentro de features, pedidos tiene sus componentes, sus hooks y sus llamadas a la API.
+
+[01:06] Su archivo index es la puerta de entrada. La página de compra importa, resumen pedido desde esa puerta y nunca desde un archivo interno. Además, una característica no importa a otra porque se juntan en la página. En resumen, todo lo de pedidos vive junto y quien lo necesite entra por una sola puerta. El módulo en el backend y el index en el frontend. Este orden brilla cuando el proyecto crece y varios equipos trabajan en partes distintas. En una app pequeña puede ser demasiada estructura y lo que todos comparten como los botones, va en una carpeta aparte. Organiza el código por lo que hace y no por el tipo de archivo y el próximo cupón lo cambias en una sola carpeta. Cuéntame en los comentarios cómo organizas tu proyecto.

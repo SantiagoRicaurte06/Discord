@@ -1,0 +1,17 @@
+url: https://vt.tiktok.com/ZSpFFHe4a/
+plataforma: tiktok
+id: 7701871282396220679
+url_final: https://www.tiktok.com/@liberman_ux/video/7701871282396220679?_r=1&_t=ZS-9B8ZHTPtzPE
+titulo: Estamos preparando una nueva iteración para un proyecto en el que tra...
+autor: liberman_ux
+autor_url: https://www.tiktok.com/@liberman_ux
+fecha_publicado: 2026-10-28
+duracion: 00:50
+vistas: 707
+transcripcion: es (Whisper small/cuda)
+---
+## Descripción del autor
+Estamos preparando una nueva iteración para un proyecto en el que trabajamos esta semana, y el foco está en resolver un problema común: la pérdida accidental de datos por pura memoria muscular. Cuando una interfaz abusa del modal genérico de ”¿Estás seguro?”, el cerebro del usuario aprende a ignorarlo y hace clic en “Aceptar” en automático. La confirmación deja de proteger. Para compartir la lógica sin tocar los estilos confidenciales de la marca, reconstruí el componente adaptándolo al lenguaje visual de mi portafolio. El sistema plantea una fricción progresiva en 3 niveles: •	Nivel 1 (Acción de bajo impacto - ej. descartar borrador) •	Nivel 2 (Riesgo medio - ej. eliminar un archivo) •	Nivel 3 (Riesgo crítico e irreversible - ej. borrar un proyecto) El objetivo de esta iteración no es eliminar la fricción, sino dosificarla para que cada acción pida exactamente la atención que amerita. — Liberman
+---
+## Transcripción
+[00:00] Estoy armando la interfaz para un proyecto y nos encontramos con un problema clásico. La gente borra cosas por error simplemente porque acepta cualquier alerta sin mirar. Para solucionarlo, estructuré tres niveles. Si el usuario solo descarta un borrador, no lo freno con preguntas. Se ejecuta el instante y le deja una barra limpia para deshacer si se arrepiente. Pero si va a eliminar un archivo que deja registro, el botón se transforma ahí mismo. Le pide un segundo toque consciente en rojo. Sin abrir ventanas emergentes que tapen la pantalla. Y para acciones críticas donde no hay vuelta atrás, el sistema exige escribir el nombre exacto. Por inercia, cualquiera hace clic, pero nadie escribe un nombre completo por accidente. Un buen diseño no es quitar fricción de golpe. Es pedirle al usuario exactamente lo que la acción amerita para proteger sus datos.
